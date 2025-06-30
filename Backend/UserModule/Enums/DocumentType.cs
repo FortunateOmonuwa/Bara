@@ -1,0 +1,14 @@
+﻿namespace UserModule.Enums
+{
+    /// <summary>
+    /// Holds the types of documents that can  be used for verification
+    /// </summary>
+    public enum DocumentType
+    {
+        BVN,
+        International_Passport,
+        NIN,
+        Voters_Card,
+        Drivers_License
+    }
+}

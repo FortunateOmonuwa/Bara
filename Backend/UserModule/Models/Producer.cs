@@ -1,0 +1,32 @@
+﻿using ScriptModule.Models;
+using TransactionModule.Models;
+
+namespace UserModule.Models
+{
+    public class Producer : User
+    {
+        //[Key]
+        //public Guid Id { get; set; }
+        //public override string Bio { get; set; }
+        ///// <summary>
+        ///// The list of script writing posts created by the producer.
+        ///// </summary>
+        //public List<ScriptWritingPostByProducer> ScriptWritingPosts { get; set; } = [];
+
+
+
+        /// <summary>
+        /// The list of scripts purchased by the producer.
+        /// </summary>
+        public List<Script> PurchasedScripts { get; set; } = [];
+        /// <summary>
+        /// The list of shared scripts between the producer and writers.
+        /// </summary>
+        public List<SharedScript> SharedScripts { get; set; } = [];
+        /// <summary>
+        /// The list of transactions made by the producer, such as payments for scripts or services.
+        /// </summary>
+        public List<Transaction> Transactions { get; set; } = [];
+        //public List<ScriptWritingPostByProducer> ScriptWritingPosts { get; set; } = [];
+    }
+}

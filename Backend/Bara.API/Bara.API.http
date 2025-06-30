@@ -1,0 +1,6 @@
+@Bara.API_HostAddress = http://localhost:5295
+
+GET {{Bara.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
