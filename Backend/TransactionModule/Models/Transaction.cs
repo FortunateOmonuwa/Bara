@@ -1,0 +1,37 @@
+﻿using SharedModule.Models;
+using System.ComponentModel.DataAnnotations.Schema;
+using TransactionModule.Enums;
+using TransactionStatus = TransactionModule.Enums.TransactionStatus;
+
+namespace TransactionModule.Models
+{
+    public class Transaction : BaseEntity
+    {
+        //[Key]
+        //public Guid Id { get; set; }
+        [ForeignKey("Producer")]
+        public Guid ProducerId { get; set; }
+        [ForeignKey("Writer")]
+        public Guid WriterId { get; set; }
+        public Guid? ScriptId { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public double Amount { get; set; }
+        public TransactionType TransactionType { get; set; }
+        public TransactionStatus Status { get; set; }
+        public DateTime? CompletedAt { get; set; }
+        public DateOnly? DateCompleted => CompletedAt.HasValue ? DateOnly.FromDateTime(CompletedAt.Value) : null;
+        public TimeOnly? TimeCompleted => CompletedAt.HasValue ? TimeOnly.FromDateTime(CompletedAt.Value) : null;
+        /// <summary>
+        /// Reference ID for the transaction, such as a payment gateway transaction ID or internal reference number.
+        /// </summary>
+        public string? ReferenceId { get; set; }
+        /// <summary>
+        /// Optional notes or comments about the transaction, such as payment details or special instructions.
+        /// </summary>
+        public string? Notes { get; set; }
+        /// <summary>
+        /// Optional response from the payment gateway or service provider.
+        /// </summary>
+        public string? GatewayResponse { get; set; }
+    }
+}
