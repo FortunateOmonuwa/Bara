@@ -1,5 +1,6 @@
 ﻿using ScriptModule.Enums;
 using SharedModule.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ScriptModule.Models
@@ -9,20 +10,24 @@ namespace ScriptModule.Models
     /// </summary>
     public class Script : BaseEntity
     {
-        //[Key]
-        //public Guid Id { get; set; }
+        [Column(TypeName = "Nvarchar(100)")]
         public required string Title { get; set; }
+        [Column(TypeName = "Nvarchar(60)")]
         public required string Genre { get; set; }
         public required string Logline { get; set; }
         public required string Synopsis { get; set; }
-
-        public required double Price { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public required decimal Price { get; set; }
         public bool IsScriptRegistered { get; set; }
         public string? RegistrationBody { get; set; }
-        public string? RegistrationNumber { get; set; }
+        [DataType(DataType.ImageUrl)]
+        public string? Image { get; set; }
+        public required ScriptPDF File { get; set; }
+        public string? CopyrightNumber { get; set; }
+        public IPDealType OwnershipRights { get; set; }
         public string? ProofUrl { get; set; }
         [ForeignKey("Writer")]
-        public Guid WriterId { get; set; }
+        public Guid? WriterId { get; set; }
         public ScriptStatus Status { get; set; } = ScriptStatus.Available;
         public List<SharedScript> SharedScripts { get; set; } = [];
     }

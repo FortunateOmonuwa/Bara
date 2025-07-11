@@ -2,13 +2,13 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UserModule.Models;
 
-namespace Infrastructure.Configs
+namespace UserModule.configs.ModelBuilderConfig
 {
-    internal class WriterModelBuilderConfig : IEntityTypeConfiguration<Writer>
+    public class ProducerModelBuilderConfig : IEntityTypeConfiguration<Producer>
     {
-        public void Configure(EntityTypeBuilder<Writer> builder)
+        void IEntityTypeConfiguration<Producer>.Configure(EntityTypeBuilder<Producer> builder)
         {
-            builder.HasKey(x => x.Id);
+            //builder.HasKey(x => x.Id);
             builder.HasIndex(u => u.IsBlacklisted);
             builder.HasIndex(u => u.IsVerified);
             builder.HasIndex(u => u.IsEmailVerified);

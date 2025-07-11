@@ -1,5 +1,4 @@
 ﻿using ScriptModule.Models;
-using TransactionModule.Models;
 
 namespace UserModule.Models
 {
@@ -26,7 +25,7 @@ namespace UserModule.Models
         /// <summary>
         /// The list of transactions made by the producer, such as payments for scripts or services.
         /// </summary>
-        public List<Transaction> Transactions { get; set; } = [];
+        //public List<Transaction> Transactions { get; set; } = [];
         //public List<ScriptWritingPostByProducer> ScriptWritingPosts { get; set; } = [];
     }
 }

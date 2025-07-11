@@ -8,9 +8,9 @@ namespace TransactionModule.Models
         //[Key]
         //public Guid Id { get; set; }
         [Column(TypeName = "decimal(18,2)")]
-        public double Balance { get; set; } = 0.00;
+        public decimal Balance { get; set; } = 0.00m;
         [Column(TypeName = "decimal(18,2)")]
-        public double LockedBalance { get; set; } = 0.00;
+        public decimal LockedBalance { get; set; } = 0.00m;
         public string Currency { get; set; } = "NGN";
     }
 

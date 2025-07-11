@@ -1,5 +1,6 @@
 ﻿using ScriptModule.Models;
-using TransactionModule.Models;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 
 namespace UserModule.Models
@@ -11,6 +12,7 @@ namespace UserModule.Models
     {
         //[Key]
         //public Guid Id { get; set; }
+        [DataType(DataType.Text), Column(TypeName = "Nvarchar(200)")]
         public override required string Bio { get; set; } = string.Empty;
         /// <summary>
         /// The list of services provided by the writer, such as script editing, proofreading, etc.
@@ -21,7 +23,7 @@ namespace UserModule.Models
         /// The list of all the scripts shared between the writer and producers
         /// </summary>
         public List<SharedScript> SharedScripts { get; set; } = [];
-        public List<Transaction> Transactions { get; set; } = [];
+        //public List<Transaction> Transactions { get; set; } = [];
         //public List<ScriptWritingPostApplicant> Applicarions { get; set; } = [];
     }
 }

@@ -1,4 +1,5 @@
 ﻿using SharedModule.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UserModule.Models
@@ -10,16 +11,16 @@ namespace UserModule.Models
     {
         /// [Key]
         //public Guid Id { get; set; }
-        //[DataType(DataType.EmailAddress)]
+        [DataType(DataType.EmailAddress)]
         public required string Email { get; set; }
         //[DataType(DataType.Password)]
-        public required string PasswordHash { get; set; }
-        public DateTime LastLoginAt { get; private set; } = DateTime.UtcNow;
-        public DateOnly LastLoginDate => DateOnly.FromDateTime(LastLoginAt);
-        public TimeOnly LastLoginTime => TimeOnly.FromDateTime(LastLoginAt);
-        public DateTime? LastLogoutAt { get; set; }
-        public DateOnly? LastLogoutDate => LastLogoutAt.HasValue ? DateOnly.FromDateTime(LastLogoutAt.Value) : null;
-        public TimeOnly? LastLogoutTime => LastLogoutAt.HasValue ? TimeOnly.FromDateTime(LastLogoutAt.Value) : null;
+        public required string Password { get; set; }
+        public DateTimeOffset LastLoginAt { get; private set; } = DateTime.UtcNow;
+        public DateOnly LastLoginDate => DateOnly.FromDateTime(LastLoginAt.UtcDateTime);
+        public TimeOnly LastLoginTime => TimeOnly.FromDateTime(LastLoginAt.UtcDateTime);
+        public DateTimeOffset? LastLogoutAt { get; set; }
+        public DateOnly? LastLogoutDate => LastLogoutAt.HasValue ? DateOnly.FromDateTime(LastLogoutAt.Value.UtcDateTime) : null;
+        public TimeOnly? LastLogoutTime => LastLogoutAt.HasValue ? TimeOnly.FromDateTime(LastLogoutAt.Value.UtcDateTime) : null;
         [ForeignKey(nameof(User))]
         public Guid UserId { get; set; }
         public User? User { get; set; }

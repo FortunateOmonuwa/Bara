@@ -18,9 +18,9 @@ namespace ScriptModule.Models
         public required Guid WriterId { get; set; }
         [ForeignKey("Producer")]
         public required Guid ProducerId { get; set; }
-        public DateTime SharedAt { get; set; } = DateTime.UtcNow;
-        public DateOnly SharedDate => DateOnly.FromDateTime(SharedAt);
-        public TimeOnly SharedTime => TimeOnly.FromDateTime(SharedAt);
+        public DateTimeOffset SharedAt { get; set; } = DateTime.UtcNow;
+        public DateOnly SharedDate => DateOnly.FromDateTime(SharedAt.UtcDateTime);
+        public TimeOnly SharedTime => TimeOnly.FromDateTime(SharedAt.UtcDateTime);
         public string? EncryptedScriptUrl { get; set; }
 
         public ScriptDeliveryStatus Status { get; set; } = ScriptDeliveryStatus.Pending;
