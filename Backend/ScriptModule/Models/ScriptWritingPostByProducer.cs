@@ -19,9 +19,9 @@ namespace ScriptModule.Models
         /// </summary>
         public int DurationInDays { get; set; }
         [Column(TypeName = "decimal(18,2)")]
-        public required double MinBudget { get; set; }
+        public required decimal MinBudget { get; set; }
         [Column(TypeName = "decimal(18,2)")]
-        public double MaxBudget { get; set; }
+        public decimal MaxBudget { get; set; }
         public PaymentType PaymentType { get; set; }
         public bool IsOpen { get; set; } = true;
         public IPDealType? IPArrangement { get; set; }

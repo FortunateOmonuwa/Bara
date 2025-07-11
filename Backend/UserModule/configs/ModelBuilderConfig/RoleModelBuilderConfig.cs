@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UserModule.Models;
 
-namespace Infrastructure.Configs
+namespace UserModule.configs.ModelBuilderConfig
 {
-    internal class RoleModelBuilderConfig : IEntityTypeConfiguration<Role>
+    public class RoleModelBuilderConfig : IEntityTypeConfiguration<Role>
     {
         public void Configure(EntityTypeBuilder<Role> builder)
         {

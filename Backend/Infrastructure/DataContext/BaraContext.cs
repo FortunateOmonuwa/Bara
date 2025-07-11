@@ -41,11 +41,14 @@ namespace Infrastructure.DataContext
         //public DbSet<ScriptWritingPostByProducer> ScriptWritingPosts { get; set; }
         //public DbSet<ScriptWritingPostApplicant> Applicants { get; set; }
         public DbSet<Escrow> EscrowOperations { get; set; }
+        public DbSet<ScriptPDF> ScriptPDFs { get; set; }
 
-        //protected override void OnModelCreating(ModelBuilder modelBuilder)
-        //{
-        //    base.OnModelCreating(modelBuilder);
-        //    modelBuilder.ApplyConfigurationsFromAssembly(typeof(BaraContext).Assembly);
-        //}
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(Script).Assembly);
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(Transaction).Assembly);
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(User).Assembly);
+        }
     }
 }

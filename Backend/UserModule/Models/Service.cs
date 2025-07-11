@@ -12,12 +12,14 @@ namespace UserModule.Models
     {
         //[Key]
         //public Guid Id { get; set; }
+        [DataType(DataType.Text), Column(TypeName = "Nvarchar(60)")]
         public required string Name { get; set; }
+        [DataType(DataType.Text), Column(TypeName = "Nvarchar(200)")]
         public required string Description { get; set; }
         [Column(TypeName = "decimal(18,2)")]
-        public required double MinPrice { get; set; }
+        public required decimal MinPrice { get; set; }
         [Column(TypeName = "decimal(18,2)")]
-        public double MaxPrice { get; set; }
+        public decimal MaxPrice { get; set; }
         public IPDealType IPDealType { get; set; }
         /// <summary>
         /// If the IP is shared, this defines the percentage share for the producer.
@@ -29,7 +31,7 @@ namespace UserModule.Models
         public PaymentType PaymentType { get; set; }
         public List<string> Genre { get; set; } = [];
         [ForeignKey(nameof(ScriptWriter))]
-        public Guid WriterId { get; set; }
+        public Guid ScriptWriterId { get; set; }
         public virtual Writer? ScriptWriter { get; set; }
     }
 }

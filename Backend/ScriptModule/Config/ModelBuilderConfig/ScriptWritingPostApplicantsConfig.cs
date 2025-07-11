@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Configs
+﻿namespace ScriptModule.Config.ModelBuilderConfig
 {
     //internal class ScriptWritingPostApplicantsConfig : IEntityTypeConfiguration<ScriptWritingPostApplicant>
     //{

@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UserModule.Models;
 
-namespace Infrastructure.Configs
+namespace UserModule.configs.ModelBuilderConfig
 {
-    internal class DocumentModelBuilderConfig : IEntityTypeConfiguration<Document>
+    public class DocumentModelBuilderConfig : IEntityTypeConfiguration<Document>
     {
         public void Configure(EntityTypeBuilder<Document> builder)
         {
