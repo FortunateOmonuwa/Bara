@@ -1,11 +1,62 @@
-import Navbar from "@/components/Navbar";
+"use client";
+import { useState } from "react";
+import Navbar from "@/components/Navbar"; // adjust import based on your structure
+import Image from "next/image";
+import CreateAccountDropdown from "@/components/Navbar";
 
-export default function Home() {
+export default function HomePage() {
+  const [showDropdown, setShowDropdown] = useState(false);
+
   return (
-    <div>
+    <main className="min-h-screen bg-white flex flex-col relative">
       <Navbar />
-      {/* Rest of your homepage sections */}
-      <div className="bg-barRedMain text-barRedMain p-4">TEST</div>
-    </div>
+
+      <section className="flex flex-col-reverse md:flex-row items-center justify-between px-6 md:px-16 py-12 md:py-20 flex-1 max-w-7xl mx-auto w-full">
+        <div className="md:w-1/2 max-w-xl mt-10 md:mt-0 relative">
+          <h1 className="[font-family:var(--font-lato)] text-3xl md:text-5xl font-semibold leading-tight text-barRedMain">
+            Where <span className="italic text-[#810306]">Writers </span>
+            and <span className="italic text-[#810306]">Producers</span>{" "}
+            Collaborate To Bring Stories To Life
+          </h1>
+          <p className="mt-4 md:text-medium text-[#333740]">
+            Bara connects screenwriters and producers in one <br />
+            secure space.
+          </p>
+
+          <div className="mt-6 flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
+            {/* Create Account button */}
+            <button
+              onClick={() => setShowDropdown((prev) => !prev)}
+              className="bg-[#800000] text-white font-medium px-12 py-3 rounded-md hover:bg-[#BF0000] transition-colors text-center relative"
+            >
+              Create account
+            </button>
+
+            {/* Explore for free button */}
+            <a
+              href="/auth/login"
+              className="border border-[#800000] text-[#800000] font-medium px-12 py-3 rounded-sm text-center"
+            >
+              Explore for free
+            </a>
+          </div>
+
+          {showDropdown && (
+            <CreateAccountDropdown onClose={() => setShowDropdown(false)} />
+          )}
+        </div>
+
+        {/* Right Image */}
+        <div className="md:w-1/2 flex justify-center md:justify-end mt-8 md:mt-0">
+          <Image
+            src="/hero-image.png"
+            alt="Bara App Hero"
+            width={500}
+            height={400}
+            className="w-full max-w-md h-auto object-contain"
+          />
+        </div>
+      </section>
+    </main>
   );
 }

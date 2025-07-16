@@ -84,6 +84,7 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-lato)", ...defaultTheme.fontFamily.sans],
         dm: ["var(--font-dm-sans)", ...defaultTheme.fontFamily.sans],
+       
       },
     },
   },

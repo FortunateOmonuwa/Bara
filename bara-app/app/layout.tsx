@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import "./globals.css";
 
+// Lato for main body text
 const lato = Lato({
   subsets: ["latin"],
   weight: ["400", "700"],
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   description:
     "Your trusted platform for managing and exploring scripts effortlessly.",
   icons: {
-    icon: "/logo.png", 
+    icon: "/logo.png",
   },
 };
 
