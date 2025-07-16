@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react";
-import Navbar from "@/components/Navbar"; // adjust import based on your structure
+
+import Navbar from "@/components/Navbar";
 import Image from "next/image";
-import CreateAccountDropdown from "@/components/Navbar";
+
 
 export default function HomePage() {
-  const [showDropdown, setShowDropdown] = useState(false);
+
 
   return (
     <main className="min-h-screen bg-white flex flex-col relative">
@@ -24,15 +24,15 @@ export default function HomePage() {
           </p>
 
           <div className="mt-6 flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-            {/* Create Account button */}
-            <button
-              onClick={() => setShowDropdown((prev) => !prev)}
+            {/* Create Account link*/}
+            <a
+              href="/auth/register"
               className="bg-[#800000] text-white font-medium px-12 py-3 rounded-md hover:bg-[#BF0000] transition-colors text-center relative"
             >
               Create account
-            </button>
+            </a>
 
-            {/* Explore for free button */}
+            {/* Explore for free link*/}
             <a
               href="/auth/login"
               className="border border-[#800000] text-[#800000] font-medium px-12 py-3 rounded-sm text-center"
@@ -40,10 +40,6 @@ export default function HomePage() {
               Explore for free
             </a>
           </div>
-
-          {showDropdown && (
-            <CreateAccountDropdown onClose={() => setShowDropdown(false)} />
-          )}
         </div>
 
         {/* Right Image */}
