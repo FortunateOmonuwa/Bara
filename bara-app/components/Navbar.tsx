@@ -5,19 +5,18 @@ import Logo from "./Logo";
 export default function Navbar() {
   return (
     <nav className="w-full flex justify-between items-center py-4 px-8 bg-white">
-    
       <Logo />
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-10">
         <Link
           href="/auth/login"
-          className="text-barRedMain font-medium bg-white"
+          className="text-barRedMain font-medium  hover:text-[#BF0000]"
         >
           Log in
         </Link>
         <Link
           href="/auth/register"
-          className="bg-red-300 text-white font-medium px-4 py-2 rounded-sm hover:bg-barRedBright1 transition-colors"
+          className="bg-[#800000] text-white font-medium px-10 py-3 rounded-md hover:bg-[#BF0000] transition-colors text-center"
         >
           Create account
         </Link>
