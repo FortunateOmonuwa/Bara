@@ -26,7 +26,12 @@
         /// <summary>
         /// Withdrawal of funds from a user's wallet, typically to a bank account or payment service.
         /// </summary>
-        Withdrawal
+        Withdrawal,
+        /// <summary>
+        /// Payment made by writers to suscribe for premium privileges in the application.
+        /// </summary>
+
+        PremiumSubscriptionPayment,
 
     }
 }

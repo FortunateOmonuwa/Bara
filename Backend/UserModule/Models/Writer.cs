@@ -12,8 +12,10 @@ namespace UserModule.Models
     {
         //[Key]
         //public Guid Id { get; set; }
-        [DataType(DataType.Text), Column(TypeName = "Nvarchar(200)")]
+        [DataType(DataType.Text), Column(TypeName = "Nvarchar(300)")]
         public override required string Bio { get; set; } = string.Empty;
+
+        public bool IsPremiumMember { get; set; }
         /// <summary>
         /// The list of services provided by the writer, such as script editing, proofreading, etc.
         /// </summary>

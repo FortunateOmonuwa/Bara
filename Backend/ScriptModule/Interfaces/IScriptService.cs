@@ -1,0 +1,45 @@
+﻿using ScriptModule.DTOs;
+using ScriptModule.Models;
+using SharedModule.Interfaces;
+using SharedModule.Utils;
+
+namespace ScriptModule.Interfaces
+{
+    public interface IScriptService : IBaseService<Script>
+    {
+        /// <summary>
+        /// Retrieves a script detail by its ID.
+        /// </summary>
+        /// <param name="scriptId">The ID of the script detail to retrieve.</param>
+        /// <returns>The script detail with the specified script ID, or null if not found.</returns>
+        Task<ResponseDetail<ScriptDetailsGetDTO>> GetScriptDetailById(Guid scriptId);
+
+        /// <summary>
+        /// Retrieves a script detail by its ID.
+        /// </summary>
+        /// <param name="scriptId">The ID of the script to retrieve.</param>
+        /// <param name="writerId">The ID of the writer ID who owns the script.</param>
+        /// <returns>The script detail with the specified script ID and writer ID, or null if not found.</returns>
+        Task<ResponseDetail<ScriptDetailsGetDTO>> GetScriptDetailById(Guid scriptId, Guid writerId);
+
+        /// <summary>
+        /// Retrieves all scripts details associated with a specific writer.
+        /// </summary>
+        /// <param name="writerId">The ID of the writer whose scripts are to be retrieved.</param>
+        /// <returns>A list of scripts details associated with the specified writer.</returns>
+        Task<ResponseDetail<List<ScriptDetailsGetDTO>>> GetScriptDetailsByWriterId(Guid writerId, int pageNumber, int pageSize);
+
+        /// <summary>
+        /// Retrieves all scripts details
+        /// </summary>
+        /// <returns>A list of scripts details</returns>
+        Task<ResponseDetail<List<ScriptDetailsGetDTO>>> GetScriptDetails(int pageNumber, int pageSize); //Remember to create 2 endpoints... one for all scripts, second for premium members.
+
+        /// <summary>
+        /// Retrieves the actual script
+        /// </summary>
+        /// <param name="scriptId">The ID of the script to be retrieved</param>
+        /// <returns>A script file</returns>
+        Task<ResponseDetail<byte[]>> GetScriptFile(Guid scriptId);
+    }
+}
