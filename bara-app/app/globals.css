@@ -7,14 +7,14 @@ body {
   font-family: var(--font-lato), var(--font-dm-sans), sans-serif;
 }
 
-/* ✅ Force input backgrounds to stay white, even on autofill */
+/* force input backgrounds to stay white, even on autofill */
 input,
 textarea,
 select {
   background-color: #ffffff; /* Always white */
 }
 
-/* ✅ Override browser autofill yellow/gray background */
+/*Override browser autofill yellow/gray background */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -31,4 +31,29 @@ button,
 textarea,
 select {
   transition: all 0.2s ease-in-out;
+}
+
+
+
+
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+}
+
+/* Chrome/Safari/WebKit clear/reveal buttons */
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-clear-button,
+input::-webkit-reveal,
+input::-webkit-search-cancel-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+
+input[type="password"],
+input[type="text"] {
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
 }
