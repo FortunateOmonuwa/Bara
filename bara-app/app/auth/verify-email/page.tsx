@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation"; 
 import Image from "next/image";
 
 export default function VerifyEmailPage() {
   const [otp, setOtp] = useState("");
+  const router = useRouter();
 
   // only allow digits and max length 6
   const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,9 +21,7 @@ export default function VerifyEmailPage() {
 
   const handleContinue = () => {
     if (canContinue) {
-      console.log("Navigating to next page...");
-      // example: navigate to next page
-      // router.push("/next-page");
+      router.push("/auth/password"); // navigates to set password page
     }
   };
 
@@ -80,9 +80,9 @@ export default function VerifyEmailPage() {
             <span className="ml-2 text-lg">→</span>
           </button>
 
-          {/*  Success message shows automatically when 6 digits are entered */}
+          {/* Success message when 6 digits are entered */}
           {otp.length === 6 && (
-            <div className="mx-auto mt-25 w-64 flex items-center justify-center border border-[#0DA500] rounded-md px-2 py-2 text-[#0DA500] text-sm font-medium gap-2">
+            <div className="mx-auto mt-28 w-64 flex items-center justify-center border border-[#0DA500] rounded-md px-2 py-2 text-[#0DA500] text-sm font-medium gap-2">
               <Image
                 src="/Check_ring.png"
                 alt="Success Icon"
