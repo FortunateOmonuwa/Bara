@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // ✅ import router for navigation
+import { useRouter } from "next/navigation"; //  import router for navigation
 import Image from "next/image";
 import EyeToggle from "@/components/EyeToggle";
+import Logo from "@/components/Logo";
 
 export default function SetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -27,20 +28,14 @@ export default function SetPasswordPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#1a0000] px-4">
-      <div className="bg-white rounded-lg shadow-lg flex flex-col md:flex-row w-full max-w-4xl h-[550px]">
+    <main className="h-screen w-screen flex items-center justify-center bg-[#1a0000]">
+      <div className="bg-white rounded-lg shadow-lg flex flex-col md:flex-row w-full max-w-4xl h-[90%] md:h-[550px] overflow-hidden">
         {/* LEFT: FORM SECTION */}
         <div className="flex-1 md:p-12 flex flex-col justify-between">
           <div>
             {/* Logo */}
             <div className="mr-6">
-              <Image
-                src="/logo.png"
-                alt="Bara Logo"
-                width={60}
-                height={40}
-                className="h-auto w-auto"
-              />
+              <Logo />
             </div>
 
             {/* Title & Subtitle */}
@@ -61,7 +56,7 @@ export default function SetPasswordPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full border border-[#ABADB2] rounded-md px-3 py-3 pr-10 bg-white 
-                           focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-[#800000]"
+                       focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-[#800000]"
               />
               <EyeToggle
                 isVisible={showPassword}
@@ -93,8 +88,8 @@ export default function SetPasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full border border-[#ABADB2] rounded-md px-3 py-3 pr-10 bg-white 
-                           focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-[#800000]
-                           placeholder:text-[#858990]"
+                       focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-[#800000]
+                       placeholder:text-[#858990]"
               />
               <EyeToggle
                 isVisible={showConfirm}
@@ -139,7 +134,7 @@ export default function SetPasswordPage() {
         </div>
 
         {/* RIGHT: IMAGE SECTION */}
-        <div className="md:w-1/2 relative hidden md:flex items-center justify-center p-8">
+        <div className="md:w-1/2 hidden md:flex items-center justify-center p-8">
           <Image
             src="/Mask group.png"
             alt="Password Illustration"
