@@ -1,13 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
+
 export default function ProfilePage() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     company: "",
     nin: "",
+    altNin: "",
     phone: "",
     country: "Nigeria",
     state: "",
@@ -39,22 +44,22 @@ export default function ProfilePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Profile Data: ", formData);
-    //  API call or navigation after saving profile
+
+    // ✅ Navigate to landing page after form submit
+    router.push("/landing"); // change to "/" if your landing page is the home page
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-start bg-[white] p-6">
+    <div className="fixed inset-0 bg-[#1a0000] bg-opacity-50 flex items-center justify-center z-50 p-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-5xl rounded-lg shadow-lg p-6 space-y-6"
+        className="bg-white rounded-lg shadow-lg p-6 w-full max-w-5xl max-h-[90%] overflow-y-auto space-y-6"
       >
         {/* Header */}
-        <div>
-          <Logo />
-          <h1 className="text-2xl font-semibold text-gray-800 mb-1">
-            Set up your profile
-          </h1>
-        </div>
+        <Logo />
+        <h1 className="text-2xl font-semibold text-gray-800 mb-1">
+          Set up your profile
+        </h1>
 
         {/* Row 1 */}
         <div className="grid md:grid-cols-2 gap-4">
@@ -103,13 +108,14 @@ export default function ProfilePage() {
           />
           <input
             name="altNin"
+            value={formData.altNin}
             onChange={handleChange}
-            placeholder="NIN"
+            placeholder="Alternate NIN"
             className="border p-3 rounded-md border-[#ABADB2]"
           />
         </div>
 
-        {/* Row 4: Country/State/City */}
+        {/* Row 4 */}
         <div className="grid md:grid-cols-3 gap-4">
           <select
             name="country"
@@ -136,7 +142,7 @@ export default function ProfilePage() {
           />
         </div>
 
-        {/* Row 5: Address details */}
+        {/* Row 5 */}
         <div className="grid md:grid-cols-3 gap-4">
           <input
             name="houseNumber"
@@ -185,8 +191,7 @@ export default function ProfilePage() {
           </select>
         </div>
 
-        {/* File Uploads */}
-
+        {/* File Upload */}
         <div className="border-dashed border-[#ABADB2] border-2 rounded-md p-10 text-center bg-[#F5F5F5]">
           <p className="text-gray-500">Drag and drop file (png, jpeg) here</p>
           <p className="text-red-600 font-medium cursor-pointer mt-2">
@@ -202,25 +207,10 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {/* <div className="border-dashed border-2 rounded-md p-4 text-center">
-            <p className="text-gray-500">Drag and drop file (png, jpeg) here</p>
-            <p className="text-red-600 font-medium cursor-pointer mt-2">
-              <label>
-                Browse
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg"
-                  className="hidden"
-                  onChange={(e) => handleFileChange(e, "fileAddress")}
-                />
-              </label>
-            </p>
-          </div> */}
-
-        {/* Submit */}
+        {/* Submit Button */}
         <button
           type="submit"
-          className="w-full bg-[#800000] text-white py-3 rounded-md font-medium hover:bg-[#BF0000]"
+          className="w-full bg-[#800000] text-white py-3 rounded-md font-medium hover:bg-[#1a0000] transition-all duration-300 ease-in-out"
         >
           Get started
         </button>
