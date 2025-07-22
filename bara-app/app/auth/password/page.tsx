@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"; //  import router for navigation
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import EyeToggle from "@/components/EyeToggle";
 import Logo from "@/components/Logo";
@@ -11,34 +11,36 @@ export default function SetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  const router = useRouter(); // initialize router
+  const router = useRouter();
 
-  // Validation states
   const isValidPassword = password.length >= 8;
   const doPasswordsMatch =
     password === confirmPassword && confirmPassword !== "";
   const canContinue = isValidPassword && doPasswordsMatch;
 
-  // navigate to profile when valid
   const handleContinue = () => {
     if (canContinue) {
-      router.push("/profile"); 
+      setShowSuccess(true);
+
+      // after 2.5 seconds, go to profile page
+      setTimeout(() => {
+        router.push("/profile");
+      }, 2500);
     }
   };
 
   return (
     <main className="h-screen w-screen flex items-center justify-center bg-[#1a0000]">
       <div className="bg-white rounded-lg shadow-lg flex flex-col md:flex-row w-full max-w-4xl h-[90%] md:h-[550px] overflow-hidden">
-        {/* LEFT: FORM SECTION */}
+        {/* LEFT */}
         <div className="flex-1 md:p-12 flex flex-col justify-between">
           <div>
-            {/* Logo */}
             <div className="mr-6">
               <Logo />
             </div>
 
-            {/* Title & Subtitle */}
             <h1 className="text-2xl font-semibold text-[#22242A] mb-2">
               Set password
             </h1>
@@ -46,7 +48,7 @@ export default function SetPasswordPage() {
               Set a strong password to protect your account
             </p>
 
-            {/* Password Field */}
+            {/* Password */}
             <label className="block text-sm font-medium text-[#22242A] mb-2">
               Password
             </label>
@@ -56,7 +58,7 @@ export default function SetPasswordPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full border border-[#ABADB2] rounded-md px-3 py-3 pr-10 bg-white 
-                       focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-[#800000]"
+                  focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-[#800000]"
               />
               <EyeToggle
                 isVisible={showPassword}
@@ -64,7 +66,6 @@ export default function SetPasswordPage() {
               />
             </div>
 
-            {/* Dynamic helper row */}
             <div className="flex items-center gap-2 mb-4 mt-1">
               {isValidPassword && (
                 <Image src="/check.png" alt="valid" width={16} height={16} />
@@ -78,7 +79,7 @@ export default function SetPasswordPage() {
               </p>
             </div>
 
-            {/* Confirm Password */}
+            {/* Confirm */}
             <label className="block text-sm font-medium text-[#22242A] mb-2">
               Confirm password
             </label>
@@ -88,8 +89,7 @@ export default function SetPasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full border border-[#ABADB2] rounded-md px-3 py-3 pr-10 bg-white 
-                       focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-[#800000]
-                       placeholder:text-[#858990]"
+                  focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-[#800000]"
               />
               <EyeToggle
                 isVisible={showConfirm}
@@ -103,22 +103,20 @@ export default function SetPasswordPage() {
             )}
           </div>
 
-          <div className="mt-4">
-            {/* Create Account Button */}
+          <div className="mt-2">
             <button
               onClick={handleContinue}
               disabled={!canContinue}
               className={`w-full font-medium py-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
                 canContinue
-                  ? "bg-[#800000] text-white hover:bg-[#BF0000]"
+                  ? "bg-[#800000] text-white hover:bg-[#1a0000]"
                   : "bg-[#F5F5F5] text-[#858990] cursor-not-allowed"
               }`}
             >
               Create account
             </button>
 
-            {/* Success message */}
-            {canContinue && (
+            {showSuccess && (
               <div className="mx-auto mt-6 w-72 flex items-center justify-center border border-[#0DA500] rounded-md px-2 py-2 text-[#0DA500] text-sm font-medium gap-2">
                 <Image
                   src="/Check_ring.png"
@@ -133,7 +131,7 @@ export default function SetPasswordPage() {
           </div>
         </div>
 
-        {/* RIGHT: IMAGE SECTION */}
+        {/* RIGHT */}
         <div className="md:w-1/2 hidden md:flex items-center justify-center p-8">
           <Image
             src="/Mask group.png"

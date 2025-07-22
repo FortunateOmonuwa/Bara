@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation"; 
 import Image from "next/image";
 
+
 export default function VerifyEmailPage() {
   const [otp, setOtp] = useState("");
   const router = useRouter();
@@ -32,7 +33,8 @@ export default function VerifyEmailPage() {
         {/* Left: Form Section */}
         <div className="flex-1 md:p-12 overflow-y-auto">
           {/* Logo */}
-          <div>
+
+          <div className="mb-2">
             <Image
               src="/logo.png"
               alt="Bara Logo"
@@ -72,7 +74,7 @@ export default function VerifyEmailPage() {
             disabled={!canContinue}
             className={`w-full font-medium py-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
               canContinue
-                ? "bg-[#800000] text-white hover:bg-[#BF0000]"
+                ? "bg-[#800000] text-white hover:bg-[#1a0000]"
                 : "bg-[#F5F5F5] text-[#858990] cursor-not-allowed"
             }`}
           >
