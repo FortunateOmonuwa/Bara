@@ -45,8 +45,8 @@ export default function ProfilePage() {
     e.preventDefault();
     console.log("Profile Data: ", formData);
 
-    // ✅ Navigate to landing page after form submit
-    router.push("/landing"); // change to "/" if your landing page is the home page
+    //  Navigate to landing page after form submit
+    router.push("/dashboard"); // change to "/" if your landing page is the home page
   };
 
   return (
