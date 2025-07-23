@@ -1,7 +1,7 @@
 ﻿using SharedModule.Utils;
 using UserModule.DTOs.WriterDTOs;
 
-namespace UserModule.Interfaces
+namespace UserModule.Interfaces.UserInterfaces
 {
     /// <summary>
     /// Defines the interface for writer services, providing methods to manage writers' details.
