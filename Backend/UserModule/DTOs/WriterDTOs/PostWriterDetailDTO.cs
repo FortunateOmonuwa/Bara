@@ -26,7 +26,7 @@ namespace UserModule.DTOs.WriterDTOs
         string PhoneNumber,
         string Bio,
         string Role,
-        bool IsPremium,
+        bool IsPremiumMember,
         AddressDetail AddressDetail,
         PostDocumentDetailDTO VerificationDocument,
         PostServiceDetailDTO? PostServiceDetail
