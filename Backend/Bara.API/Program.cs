@@ -1,5 +1,7 @@
 using Infrastructure.DataContext;
 using Microsoft.EntityFrameworkCore;
+using Services.ExternalAPI_Integration;
+using Services.YouVerifyIntegration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<BaraContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
+
+builder.Services.AddScoped<IYouVerifyService, YouVerifyService>();
+builder.Services.AddScoped<ExternalApiIntegrationService>();
+
+builder.Services.AddHttpClient("YouVerify", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["AppSettings:YouVerifyBaseUrl"]);
+    client.DefaultRequestHeaders.Add("token", builder.Configuration["Secrets:YouVerifyTestAPIKEY"]);
+    //client.DefaultRequestHeaders.Add("token", builder.Configuration["Secrets:YouVerifyLiveAPIKEY"]);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

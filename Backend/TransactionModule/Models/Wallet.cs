@@ -1,5 +1,4 @@
-﻿using SharedModule;
-using SharedModule.Models;
+﻿using SharedModule.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TransactionModule.Models

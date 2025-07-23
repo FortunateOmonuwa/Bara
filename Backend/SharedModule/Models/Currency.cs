@@ -1,4 +1,4 @@
-﻿namespace SharedModule
+﻿namespace SharedModule.Models
 {
     public enum Currency
     {
