@@ -49,7 +49,7 @@ export default function RegisterPage() {
           {/* Google Button */}
           <button
             onClick={handleGoogleClick}
-            className="w-full bg-[#800000] text-white font-medium py-3 rounded-md hover:bg-[#BF0000] flex items-center justify-center gap-4"
+            className="w-full bg-[#800000] text-white font-medium py-3 rounded-md hover:bg-[#1a0000] flex items-center justify-center gap-4"
           >
             <Image src="/Google.png" alt="Google Icon" width={20} height={20} />
             Create with Google
@@ -78,7 +78,7 @@ export default function RegisterPage() {
             disabled={!canContinue}
             className={`w-full font-medium py-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
               canContinue
-                ? "bg-[#800000] text-white hover:bg-[#BF0000]"
+                ? "bg-[#800000] text-white hover:bg-[#1a0000]"
                 : "bg-[#F5F5F5] text-[#858990] cursor-not-allowed"
             }`}
           >

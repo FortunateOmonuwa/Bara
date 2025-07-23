@@ -27,7 +27,8 @@ export default function HomePage() {
             {/* Create Account link*/}
             <a
               href="/auth/register"
-              className="bg-[#800000] text-white font-medium px-12 py-3 rounded-md hover:bg-[#BF0000] transition-colors text-center relative"
+              className="bg-[#800000] text-white font-medium px-12 py-3 rounded-md hover:bg-[#1a0000] text-center relative   transition-all duration-300 ease-in-out 
+              hover:scale-105"
             >
               Create account
             </a>
@@ -35,7 +36,9 @@ export default function HomePage() {
             {/* Explore for free link*/}
             <a
               href="/auth/login"
-              className="border border-[#800000] text-[#800000] font-medium px-12 py-3 rounded-sm text-center"
+              className="border border-[#800000] text-[#800000] font-medium px-12 py-3 rounded-sm text-center 
+             transition-all duration-300 ease-in-out 
+              hover:scale-105"
             >
               Explore for free
             </a>
