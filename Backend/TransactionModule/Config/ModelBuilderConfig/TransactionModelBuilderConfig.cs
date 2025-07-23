@@ -15,7 +15,8 @@ namespace TransactionModule.Config.ModelBuilderConfig
             builder.Property(t => t.Status)
                 .HasConversion<string>()
                 .HasMaxLength(50);
-
+            builder.Property(t => t.Currency)
+         .HasConversion<string>();
             //builder.HasOne("Producer")
             //    .WithMany()
             //    .HasForeignKey("ProducerId")

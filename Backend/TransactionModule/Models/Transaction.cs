@@ -1,4 +1,5 @@
-﻿using SharedModule.Models;
+﻿using SharedModule;
+using SharedModule.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 using TransactionModule.Enums;
 using TransactionStatus = TransactionModule.Enums.TransactionStatus;
@@ -10,13 +11,22 @@ namespace TransactionModule.Models
         //[Key]
         //public Guid Id { get; set; }
         [ForeignKey("Producer")]
-        public Guid ProducerId { get; set; }
+        public Guid? ProducerId { get; set; }
         [ForeignKey("Writer")]
-        public Guid WriterId { get; set; }
+        public Guid? WriterId { get; set; }
         [ForeignKey("Script")]
         public Guid? ScriptId { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
+        public Currency Currency { get; set; } = Currency.NAIRA;
+        public string CurrencySymbol => Currency switch
+        {
+            Currency.NAIRA => "₦",
+            Currency.USD => "$",
+            Currency.EUR => "€",
+            Currency.GBP => "£",
+            _ => "₦"
+        };
         public TransactionType TransactionType { get; set; }
         public TransactionStatus Status { get; set; }
         public DateTimeOffset? CompletedAt { get; set; }

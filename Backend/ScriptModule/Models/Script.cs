@@ -1,4 +1,5 @@
 ﻿using ScriptModule.Enums;
+using SharedModule;
 using SharedModule.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -18,6 +19,15 @@ namespace ScriptModule.Models
         public required string Synopsis { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public required decimal Price { get; set; }
+        public Currency Currency { get; set; } = Currency.NAIRA;
+        public string CurrencySymbol => Currency switch
+        {
+            Currency.NAIRA => "₦",
+            Currency.USD => "$",
+            Currency.EUR => "€",
+            Currency.GBP => "£",
+            _ => "₦"
+        };
         public bool IsScriptRegistered { get; set; }
         public string? RegistrationBody { get; set; }
         [DataType(DataType.ImageUrl)]
