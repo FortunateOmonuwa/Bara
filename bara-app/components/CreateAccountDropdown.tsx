@@ -37,7 +37,7 @@ export default function CreateAccountDropdown({ onClose }: Props) {
         z-50
       "
     >
-      <div className="p-3 hover:bg-[#CCCEEF] rounded-md cursor-pointer [font-family:var(--font-lato)]">
+      <div className="p-3 hover:bg-[#F5F5F5] rounded-md cursor-pointer [font-family:var(--font-lato)]">
         <h3 className="font-bold text-[#22242A]">I am a Producer</h3>
         <p className="text-sm text-[#333740]">
           I want to discover original scripts and hire talented writers to bring
@@ -45,7 +45,7 @@ export default function CreateAccountDropdown({ onClose }: Props) {
         </p>
       </div>
       <hr className="my-2 mx-4 border border-[#ABADB2]" />
-      <div className="p-3 hover:bg-[#CCCEEF] rounded-md cursor-pointer">
+      <div className="p-3 hover:bg-[#F5F5F5] rounded-md cursor-pointer">
         <h3 className="font-bold text-[#22242A]">I am a Writer</h3>
         <p className="text-sm text-[#333740]">
           I want to sell my scripts and get hired for story development.
