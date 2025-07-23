@@ -8,7 +8,6 @@
         BVN,
         International_Passport,
         NIN,
-        Voters_Card,
         Drivers_License
     }
 }
