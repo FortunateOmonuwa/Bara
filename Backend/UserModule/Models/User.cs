@@ -26,6 +26,8 @@ namespace UserModule.Models
         public virtual string Bio { get; set; } = string.Empty;
         public bool IsEmailVerified { get; set; }
         public string Role { get; set; } = string.Empty;
+        public required Gender Gender { get; set; }
+        public required DateOnly DateOfBirth { get; set; }
         [ForeignKey(nameof(Address))]
         public Guid AddressId { get; set; }
         public required Address Address { get; set; }
