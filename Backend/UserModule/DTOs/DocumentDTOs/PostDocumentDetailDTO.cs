@@ -7,6 +7,8 @@ namespace UserModule.DTOs.DocumentDTOs
     /// </summary>
     /// <param name="Document"> Represents the uploaded document</param>
     public record PostDocumentDetailDTO(
+            string type,
+            string VerificationNumber,
             IFormFile Document
         );
 }

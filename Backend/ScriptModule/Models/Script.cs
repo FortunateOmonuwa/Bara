@@ -1,5 +1,4 @@
 ﻿using ScriptModule.Enums;
-using SharedModule;
 using SharedModule.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;

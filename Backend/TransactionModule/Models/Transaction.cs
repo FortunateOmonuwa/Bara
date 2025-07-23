@@ -1,5 +1,4 @@
-﻿using SharedModule;
-using SharedModule.Models;
+﻿using SharedModule.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 using TransactionModule.Enums;
 using TransactionStatus = TransactionModule.Enums.TransactionStatus;
