@@ -1,4 +1,5 @@
 ﻿using ScriptModule.Enums;
+using SharedModule;
 using SharedModule.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -20,6 +21,15 @@ namespace UserModule.Models
         public required decimal MinPrice { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public decimal MaxPrice { get; set; }
+        public Currency Currency { get; set; } = Currency.NAIRA;
+        public string CurrencySymbol => Currency switch
+        {
+            Currency.NAIRA => "₦",
+            Currency.USD => "$",
+            Currency.EUR => "€",
+            Currency.GBP => "£",
+            _ => "₦"
+        };
         public IPDealType IPDealType { get; set; }
         /// <summary>
         /// If the IP is shared, this defines the percentage share for the producer.

@@ -25,6 +25,8 @@ namespace ScriptModule.Config.ModelBuilderConfig
             builder.Property(s => s.OwnershipRights)
                 .HasConversion<string>()
                 .HasMaxLength(50);
+            builder.Property(s => s.Currency)
+            .HasConversion<string>();
         }
     }
 }

@@ -15,6 +15,8 @@ namespace UserModule.configs.ModelBuilderConfig
             builder.Property(s => s.PaymentType)
                 .HasConversion<string>()
                 .HasMaxLength(50);
+            builder.Property(s => s.Currency)
+         .HasConversion<string>();
             //builder.HasOne<Writer>()
             //    .WithMany(w => w.Services)
             //    .HasForeignKey(s => s.ScriptWriterId)

@@ -3,6 +3,7 @@ using SharedModule.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using TransactionModule.Models;
+using UserModule.Enums;
 
 namespace UserModule.Models
 {
@@ -31,6 +32,7 @@ namespace UserModule.Models
         [ForeignKey(nameof(VerificationDocument))]
         public Guid VerificationDocumentID { get; set; }
         public required Document VerificationDocument { get; set; }
+        public VerificationStatus VerificationStatus { get; set; } = VerificationStatus.Pending;
         public bool IsVerified { get; set; }
         public bool IsBlacklisted { get; set; }
         [ForeignKey(nameof(Wallet))]
