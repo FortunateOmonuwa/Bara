@@ -1,10 +1,21 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import DashboardNavbar from "@/components/DashboardNavbar";
 import WriterProfileCard from "@/components/WriterProfileCard";
 
 export default function ScriptPage() {
+
+  const [copied, setCopied] = useState(false);
+  const scriptLink = "https://your-script-link.com"; 
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(scriptLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <main className="min-h-screen bg-[#F9FAFB]">
       <DashboardNavbar />
@@ -30,13 +41,28 @@ export default function ScriptPage() {
               Save this script
             </span>
           </button>
-
+          <hr className="border-t border-gray-300 my-2" />
+          {/* Copy script section */}
           <div>
             <p className="text-sm text-[#333740] mb-1">Copy this script</p>
-            <button className="flex items-center gap-2 text-sm text-[#333740] border border-gray-300 rounded-md py-1 px-2 hover:bg-gray-50">
-              <Image src="/copy.png" alt="Copy" width={16} height={16} />
-              Copy link
-            </button>
+
+            {/* Wrapper for icon and feedback */}
+            <div className="relative inline-flex items-center">
+              <button
+                onClick={handleCopy}
+                className="p-1 hover:opacity-80"
+                aria-label="Copy link"
+              >
+                <Image src="/copy.png" alt="Copy" width={20} height={20} />
+              </button>
+
+              {/* Copied feedback directly below icon */}
+              {copied && (
+                <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 text-xs text-green-600 whitespace-nowrap">
+                  Copied!
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
