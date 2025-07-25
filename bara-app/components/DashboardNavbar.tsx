@@ -31,7 +31,7 @@ export default function DashboardNavbar() {
         <div className="relative w-full">
           <input
             type="text"
-            placeholder="Search writers and genres"
+            placeholder="Search authors and genres"
             className="w-full border border-[#ABADB2] rounded-md py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-[#800000] placeholder-[#858990]"
           />
           <Image
@@ -45,7 +45,7 @@ export default function DashboardNavbar() {
       </div>
 
       {/* Right: Links */}
-      <div className="flex items-center gap-6 text-sm font-semibold text-[#22242A]">
+      <div className="flex items-center gap-6 text-sm font-semibold text-[#22242A] mr-8">
         <Link
           href="/account"
           className="hover:text-[#800000] flex items-center gap-1"
