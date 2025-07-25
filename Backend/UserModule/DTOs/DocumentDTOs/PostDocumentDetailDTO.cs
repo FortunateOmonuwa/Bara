@@ -10,5 +10,5 @@ namespace UserModule.DTOs.DocumentDTOs
             string type,
             string VerificationNumber,
             IFormFile Document
-        );
+    );
 }

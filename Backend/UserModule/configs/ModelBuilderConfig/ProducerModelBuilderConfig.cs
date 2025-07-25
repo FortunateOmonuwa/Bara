@@ -14,6 +14,10 @@ namespace UserModule.configs.ModelBuilderConfig
             builder.HasIndex(u => u.IsEmailVerified);
             builder.HasIndex(u => u.IsDeleted);
             builder.HasIndex(u => u.Email).IsUnique();
+            builder.Property(u => u.Gender)
+               .HasConversion<string>();
+            builder.Property(u => u.VerificationStatus)
+             .HasConversion<string>();
         }
     }
 }

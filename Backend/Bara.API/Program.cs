@@ -1,7 +1,9 @@
 using Infrastructure.DataContext;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using Services.ExternalAPI_Integration;
 using Services.YouVerifyIntegration;
+using SharedModule.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<BaraContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
+
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+builder.Services.Configure<Secrets>(builder.Configuration.GetSection("Secrets"));
+
+builder.Host.UseSerilog((context, config) => config.ReadFrom.Configuration(context.Configuration));
+
+builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IYouVerifyService, YouVerifyService>();
 builder.Services.AddScoped<ExternalApiIntegrationService>();
