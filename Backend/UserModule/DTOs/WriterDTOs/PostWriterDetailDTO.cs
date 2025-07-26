@@ -1,6 +1,7 @@
 ﻿using SharedModule.DTOs.AddressDTOs;
 using UserModule.DTOs.DocumentDTOs;
 using UserModule.DTOs.ServiceDTOs;
+using UserModule.Enums;
 
 namespace UserModule.DTOs.WriterDTOs
 {
@@ -17,18 +18,21 @@ namespace UserModule.DTOs.WriterDTOs
     /// <param name="IsPremium"></param>
     /// <param name="AddressDetail"></param>
     /// <param name="VerificationDocument"></param>
-    public record PostWriterDetailDTO(
-        string FirstName,
-        string LastName,
-        string MiddleName,
-        string Email,
-        string Password,
-        string PhoneNumber,
-        string Bio,
-        string Role,
-        bool IsPremiumMember,
-        AddressDetail AddressDetail,
-        PostDocumentDetailDTO VerificationDocument,
-        PostServiceDetailDTO? PostServiceDetail
-    );
+    public record class PostWriterDetailDTO
+    {
+        public required string FirstName { get; init; }
+        public required string LastName { get; init; }
+        public string MiddleName { get; init; }
+        public required string Email { get; init; }
+        public required string Password { get; init; }
+        public required string PhoneNumber { get; init; }
+        public required string Bio { get; init; }
+        public required Gender Gender { get; init; }
+        public required DateOnly DateOfBirth { get; init; }
+        public bool IsPremiumMember { get; init; }
+        public required AddressDetail AddressDetail { get; init; }
+        public required PostDocumentDetailDTO VerificationDocument { get; init; }
+        public PostServiceDetailDTO? PostServiceDetail { get; init; }
+    }
+
 }

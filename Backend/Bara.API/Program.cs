@@ -2,6 +2,8 @@ using Infrastructure.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Services.ExternalAPI_Integration;
+using Services.FileStorageServices.CloudinaryStorage;
+using Services.FileStorageServices.Interfaces;
 using Services.YouVerifyIntegration;
 using SharedModule.Settings;
 
@@ -25,14 +27,18 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IYouVerifyService, YouVerifyService>();
 builder.Services.AddScoped<ExternalApiIntegrationService>();
-
+builder.Services.AddScoped<IFileStorageService, CloudinaryService>();
 builder.Services.AddHttpClient("YouVerify", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["AppSettings:YouVerifyBaseUrl"]);
-    client.DefaultRequestHeaders.Add("token", builder.Configuration["Secrets:YouVerifyTestAPIKEY"]);
+    client.DefaultRequestHeaders.Add("token", $"{builder.Configuration["Secrets:YouVerifyTestAPIKEY"]}");
     //client.DefaultRequestHeaders.Add("token", builder.Configuration["Secrets:YouVerifyLiveAPIKEY"]);
 });
 
+builder.Services.AddHttpClient("Cloudinary", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["AppSettings:CloudinaryBaseUrl"]);
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

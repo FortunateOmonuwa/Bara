@@ -19,8 +19,9 @@ namespace BaraTests
             var kycDto = new YouVerify_KYC_DTO
             (
                 id,
-                true,
-                type
+                type,
+                lastName,
+                true
             );
 
             var response = await youVerify.VerifyDocumentAsync(kycDto);
