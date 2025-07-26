@@ -53,6 +53,7 @@ namespace Infrastructure.Repositories.UserRepositories
                     Gender = writerDetail.Gender,
                     IsPremiumMember = writerDetail.IsPremiumMember,
                     MiddleName = writerDetail.MiddleName,
+                    Role = "Writer",
                     Services = writerDetail.PostServiceDetail?
                                 .Select(dto => new Service
                                 {
