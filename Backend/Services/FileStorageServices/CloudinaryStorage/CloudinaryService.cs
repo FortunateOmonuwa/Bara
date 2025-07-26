@@ -1,21 +1,29 @@
 ﻿using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Services.FileStorageServices.Interfaces;
 using SharedModule.Settings;
+using System.Net;
 
 namespace Services.FileStorageServices.CloudinaryStorage
 {
     public class CloudinaryService : IFileStorageService
     {
         private readonly string CloudinaryBaseURL = "";
-        const string CREATE_FOLDER_URL = "/folders/:folder";
+        const string FOLDER_URL = "/folders/:folder";
+        const string Search_FOLDER_URL = "/folders/search";
+
         private readonly AppSettings settings;
         private readonly Secrets secrets;
-        public CloudinaryService(Secrets secrets, IOptions<AppSettings> appSettings)
+        private readonly ILogger<CloudinaryService> logger;
+        public CloudinaryService(IOptions<Secrets> secrets, IOptions<AppSettings> appSettings, ILogger<CloudinaryService> logger)
         {
-            this.secrets = secrets;
+            this.secrets = secrets.Value;
             settings = appSettings.Value;
-            CloudinaryBaseURL = $"{settings.CloudinaryBaseURL}/{secrets.CloudinaryName}";
+            CloudinaryBaseURL = $"{settings.CloudinaryBaseURL}/{secrets.Value.CloudinaryName}";
+            this.logger = logger;
         }
         public Task<bool> DeleteAsync(Guid fileId)
         {
@@ -27,7 +35,32 @@ namespace Services.FileStorageServices.CloudinaryStorage
             throw new NotImplementedException();
         }
 
-        public async Task<bool> UploadDocumentAsync(Stream fileStream, string fileName)
+        public async Task<bool> UploadDocumentAsync(string userDirectoryName, IFormFile file)
+        {
+            try
+            {
+                var cloudinary = new Cloudinary(new Account(secrets.CloudinaryName, secrets.CloudinaryAPIKEY, secrets.CloudinaryAPISecret));
+
+                var baseFolder = secrets.CloudinaryFolderName;
+                var documentFolder = $"{baseFolder}/{userDirectoryName}/documents";
+
+                var uploadParams = new RawUploadParams
+                {
+                    File = new FileDescription(file.FileName, file.OpenReadStream()),
+                    Folder = documentFolder
+                };
+
+                var uploadResult = await cloudinary.UploadAsync(uploadParams);
+                return uploadResult.StatusCode == HttpStatusCode.OK;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error uploading document to Cloudinary for {userDirectoryName}");
+                return false;
+            }
+        }
+
+        private async Task<FolderResponse> GetAllFolders()
         {
             try
             {
@@ -35,10 +68,21 @@ namespace Services.FileStorageServices.CloudinaryStorage
                 {
 
                 };
+                var folders = await cloudinary.SubFoldersAsync(secrets.CloudinaryFolderName);
+                return new FolderResponse
+                {
+                    Folders = folders.Folders.Select(f => new Folder
+                    {
+                        Name = f.Name,
+                        Path = f.Path,
+                    }).ToList(),
+                    NextCursor = null,
+                    TotalCount = folders.TotalCount
+                };
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                throw new Exception($"Error fetching folders: {ex.Message}");
             }
         }
     }

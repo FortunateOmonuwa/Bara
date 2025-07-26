@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
-using SharedModule.Utils;
+﻿using SharedModule.Utils;
+using UserModule.DTOs.DocumentDTOs;
 
 namespace Services.FileStorageServices.Interfaces
 {
     public interface IFileService
     {
-        Task<ResponseDetail<FileDetailResponse>> ProcessDocumentForUpload(IFormFile file);
+        Task<ResponseDetail<Guid>> ProcessDocumentForUpload(string userDirectoryName, PostDocumentDetailDTO documentDetail);
     }
 }
