@@ -42,14 +42,32 @@ namespace Services.YouVerifyIntegration
                 "Drivers_License" => Drivers_License_URL,
                 _ => throw new ArgumentException($"Unsupported document type: {details.Type}")
             };
+            object body = details.Type switch
+            {
+                "BVN" or "NIN" or "Drivers_License" => new
+                {
+                    id = details.Id,
+                    isSubjectConsent = true,
+                    premiumBVN = false,
+                    metadata = new { requestId = Guid.NewGuid().ToString() }
+                },
+                "International_Passport" => new
+                {
+                    id = details.Id,
+                    isSubjectConsent = true,
+                    lastName = details.LastName,
+                    premiumBVN = false,
+                    metadata = new { requestId = Guid.NewGuid().ToString() }
+                },
+                _ => throw new ArgumentException($"Unsupported document type: {details.Type}")
+            };
 
-            var reqBody = new YouVerify_KYC_DTO_PassPort(details.Id, true);
-            var body = apiService.SerializeReqBody(reqBody);
+            var reqBody = apiService.SerializeReqBody(body);
             //var header = new Dictionary<string, string>
             //{
             //    { "token", secrets.YouVerifyLiveAPIKEY },
             //};
-            var request = await apiService.SendPostRequest(body, url, null, "YouVerify");
+            var request = await apiService.SendPostRequest(reqBody, url, null, "YouVerify");
             if (!request.IsSuccessStatusCode)
             {
                 var errorResponse = await request.Content.ReadAsStringAsync();

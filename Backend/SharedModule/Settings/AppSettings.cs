@@ -11,7 +11,10 @@
 
         //File Storage
         public string AzureBlobStoragePath { get; set; }
-        public string GoogleDriveStoragePath { get; set; }
+
+        //Cloudinary
+        public string CloudinaryStoragePath { get; set; }
+        public string CloudinaryBaseURL { get; set; }
 
         //Mailer
         public string Sender { get; set; }
