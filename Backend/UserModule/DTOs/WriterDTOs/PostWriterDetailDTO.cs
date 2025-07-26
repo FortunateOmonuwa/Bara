@@ -32,7 +32,7 @@ namespace UserModule.DTOs.WriterDTOs
         public bool IsPremiumMember { get; init; }
         public required AddressDetail AddressDetail { get; init; }
         public required PostDocumentDetailDTO VerificationDocument { get; init; }
-        public PostServiceDetailDTO? PostServiceDetail { get; init; }
+        public List<PostServiceDetailDTO>? PostServiceDetail { get; init; }
     }
 
 }

@@ -16,6 +16,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SharedModule\SharedModule.csproj" />
+    <ProjectReference Include="..\UserModule\UserModule.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="FileStorageServices\Repository\" />
   </ItemGroup>
 
 </Project>

@@ -20,5 +20,7 @@ namespace UserModule.Models
         [DataType(DataType.Url)]
         public required string Path { get; set; }
         public string? FileExtension { get; set; }
+
+        public long Size { get; set; }
     }
 }

@@ -28,16 +28,17 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IYouVerifyService, YouVerifyService>();
 builder.Services.AddScoped<ExternalApiIntegrationService>();
 builder.Services.AddScoped<IFileStorageService, CloudinaryService>();
+
 builder.Services.AddHttpClient("YouVerify", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["AppSettings:YouVerifyBaseUrl"]);
+    client.BaseAddress = new Uri($"{builder.Configuration["AppSettings:YouVerifyBaseUrl"]}");
     client.DefaultRequestHeaders.Add("token", $"{builder.Configuration["Secrets:YouVerifyTestAPIKEY"]}");
     //client.DefaultRequestHeaders.Add("token", builder.Configuration["Secrets:YouVerifyLiveAPIKEY"]);
 });
 
 builder.Services.AddHttpClient("Cloudinary", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["AppSettings:CloudinaryBaseUrl"]);
+    client.BaseAddress = new Uri($"{builder.Configuration["AppSettings:CloudinaryBaseUrl"]}/{builder.Configuration["Secrets:CloudinaryName"]}");
 });
 var app = builder.Build();
 

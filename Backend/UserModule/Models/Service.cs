@@ -8,7 +8,7 @@ namespace UserModule.Models
     /// <summary>
     /// Defines all the services rendered by a Writer user in the application, such as script editing, proofreading, etc.
     /// </summary>
-    public class Services : BaseEntity
+    public class Service : BaseEntity
     {
         //[Key]
         //public Guid Id { get; set; }
