@@ -1,4 +1,5 @@
 ﻿using Infrastructure.DataContext;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Services.FileStorageServices.Interfaces;
@@ -31,6 +32,12 @@ namespace Infrastructure.Repositories.UserRepositories
         public async Task<ResponseDetail<GetWriterDetailDTO>> AddWriter(PostWriterDetailDTO writerDetail)
         {
             using var transaction = await dbContext.Database.BeginTransactionAsync();
+            var writerEmailExist = await dbContext.Writers.AnyAsync(w => w.Email == writerDetail.Email);
+
+            if (writerEmailExist)
+            {
+                return ResponseDetail<GetWriterDetailDTO>.Failed($"Writer with email {writerDetail.Email} already exists", 409, "Conflict");
+            }
             try
             {
                 var writer = new Writer
@@ -79,6 +86,17 @@ namespace Infrastructure.Repositories.UserRepositories
                     },
                 };
 
+                var userDirectoryName = $"{writer.FirstName}_{writer.LastName}-{writer.Id}";
+                var documentId = await fileService.ProcessDocumentForUpload(userDirectoryName, writerDetail.VerificationDocument);
+
+                if (documentId.Data.ToString() == null)
+                {
+                    logger.LogError($"Error uploading verification document: for writer {writer.Id} ");
+                    await transaction.RollbackAsync();
+                    return ResponseDetail<GetWriterDetailDTO>.Failed("Error uploading verification document: for writer {writer.Id}");
+                }
+                writer.VerificationDocumentID = documentId.Data;
+
                 await dbContext.Writers.AddAsync(writer);
                 var writerRes = await dbContext.SaveChangesAsync();
 
@@ -88,32 +106,10 @@ namespace Infrastructure.Repositories.UserRepositories
                     await transaction.RollbackAsync();
                     return ResponseDetail<GetWriterDetailDTO>.Failed($"Error saving writer profile {writer.FirstName} {writer.LastName} to the database");
                 }
-                var userDirectoryName = $"{writer.FirstName}_{writer.LastName}-{writer.Id}";
-                var uploadDocsOp = await fileService.ProcessDocumentForUpload(userDirectoryName, writerDetail.VerificationDocument);
-
-                if (uploadDocsOp.Data.ToString() == null)
-                {
-                    logger.LogError($"Error uploading verification document: for writer {writer.Id} ");
-                    await transaction.RollbackAsync();
-                    return ResponseDetail<GetWriterDetailDTO>.Failed("Error uploading verification document: for writer {writer.Id}");
-                }
-
-                //Verify the document and setup a background service to handle this
-                writer.VerificationDocumentID = uploadDocsOp.Data;
-                dbContext.Update(writer);
-
-                var updateWriterRes = await dbContext.SaveChangesAsync();
-                if (updateWriterRes < 1)
-                {
-                    logger.LogError($"Error updating writer profile {writer.FirstName} {writer.LastName} with verification document");
-                    await transaction.RollbackAsync();
-                    return ResponseDetail<GetWriterDetailDTO>.Failed($"Error updating writer profile {writer.FirstName} {writer.LastName} with verification document");
-                }
-
-                //Send verification mail before commiting transaction
 
                 await transaction.CommitAsync();
 
+                //Here i'll send a request to dojah using a background service os the method doesn't take too long and also send a verification mail with the background service
                 var finalResponse = new GetWriterDetailDTO
                 {
                     Id = writer.Id,
@@ -150,14 +146,15 @@ namespace Infrastructure.Repositories.UserRepositories
                         IPDealType = s.IPDealType,
                         SharePercentage = s.SharePercentage,
                         PaymentType = s.PaymentType,
-                        Genre = s.Genre
+                        Genre = s.Genre,
                     }).ToList(),
                     Wallet = new GetWalletDetailDTO
                     {
                         Id = writer.Wallet.Id,
                         Balance = writer.Wallet.Balance,
                         Currency = writer.Wallet.Currency,
-                        CurrencySymbol = writer.Wallet.CurrencySymbol
+                        CurrencySymbol = writer.Wallet.CurrencySymbol,
+                        UserId = writer.Id
                     },
                     CreatedAt = writer.CreatedAt,
                     DateCreated = writer.DateCreated,
