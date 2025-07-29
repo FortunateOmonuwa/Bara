@@ -40,7 +40,7 @@ namespace Bara.API.Controllers.ScriptModuleControllers
             }
             catch (Exception ex)
             {
-                logger.LogError($"An exception was thrown while adding a script for writer {writerId}.", ex);
+                logger.LogError($"An exception was thrown at {ex.Source} while adding a script for writer {writerId}.", ex);
                 return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500, "Internal Server Error");
             }
         }
@@ -59,7 +59,26 @@ namespace Bara.API.Controllers.ScriptModuleControllers
             }
             catch (Exception ex)
             {
-                logger.LogError($"An exception was thrown while fetching scripts for writer with Id:{writerId}.", ex);
+                logger.LogError($"An exception was thrown at {ex.Source} while fetching scripts for writer with Id:{writerId}.", ex);
+                return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500, "Internal Server Error");
+            }
+        }
+
+        [HttpGet("scripts/{pageNumber}/{pageSize}")]
+        public async Task<IActionResult> GetAllScripts(int pageNumber, int pageSize)
+        {
+            try
+            {
+                var response = await scriptService.GetScripts(pageNumber, pageSize);
+                if (response.IsSuccess is false)
+                {
+                    return BadRequest(response);
+                }
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"An exception was thrown at {ex.Source} while fetching scripts", ex);
                 return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500, "Internal Server Error");
             }
         }
