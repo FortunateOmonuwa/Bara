@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
 import Image from "next/image";
+import LocationForm from "@/components/LocationForm";
+import IdentityVerificationForm from "@/components/IdentityVerificationForm";
+
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -213,17 +216,9 @@ export default function ProfilePage() {
           </>
         )}
 
-        {activeTab === "location" && (
-          <div className="text-[#22242A] text-sm">
-            <p>Location details form goes here...</p>
-          </div>
-        )}
+        {activeTab === "location" && <LocationForm />}
 
-        {activeTab === "identity" && (
-          <div className="text-[#22242A] text-sm">
-            <p>Identity verification form goes here...</p>
-          </div>
-        )}
+        {activeTab === "identity" && <IdentityVerificationForm />}
 
         {/* Buttons */}
         {/* Buttons */}
