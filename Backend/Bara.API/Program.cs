@@ -1,8 +1,10 @@
 using Hangfire;
 using Infrastructure.DataContext;
 using Infrastructure.Repositories.FileRepositories;
+using Infrastructure.Repositories.ScriptRepositories;
 using Infrastructure.Repositories.UserRepositories;
 using Microsoft.EntityFrameworkCore;
+using ScriptModule.Interfaces;
 using Serilog;
 using Services.BackgroudServices;
 using Services.ExternalAPI_Integration;
@@ -60,6 +62,7 @@ builder.Services.AddScoped<IFileStorageService, CloudinaryService>();
 builder.Services.AddScoped<IFileService, FileRepository>();
 
 builder.Services.AddScoped<IWriterService, WriterRepository>();
+builder.Services.AddScoped<IScriptService, ScriptRepository>();
 
 builder.Services.AddHttpClient("YouVerify", client =>
 {

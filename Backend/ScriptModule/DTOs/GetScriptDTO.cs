@@ -1,8 +1,7 @@
 ﻿namespace ScriptModule.DTOs
 {
-    public class ScriptGetDTO
+    public class GetScriptDTO
     {
         public byte[] File { get; set; }
-
     }
 }
