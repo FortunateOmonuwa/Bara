@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ScriptModule.DTOs;
+using ScriptModule.Enums;
 using ScriptModule.Interfaces;
 using ScriptModule.Models;
 using Services.FileStorageServices.Interfaces;
@@ -152,7 +153,6 @@ namespace Infrastructure.Repositories.ScriptRepositories
                 {
                     var writer = await dbContext.Writers.Select(x => new
                     {
-                        WriterId = x.Id,
                         PremiumStatus = x.IsPremiumMember,
                         x.Scripts,
                         x.CreatedAt
@@ -161,7 +161,7 @@ namespace Infrastructure.Repositories.ScriptRepositories
                     allScripts = writer
                                 .OrderByDescending(x => x.PremiumStatus)
                                 .ThenByDescending(x => x.CreatedAt)
-                                .SelectMany(x => x.Scripts)
+                                .SelectMany(x => x.Scripts.Where(x => x.Status == ScriptStatus.Available))
                                 .ToList();
 
                     var cacheOptions = new MemoryCacheEntryOptions()
@@ -239,6 +239,11 @@ namespace Infrastructure.Repositories.ScriptRepositories
         }
 
         public Task<ResponseDetail<Script>> UpdateScript(PostScriptDetailDTO scriptDetails, Guid writerId, Guid scriptId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ResponseDetail<Script>> UpdateScriptStatus(ScriptStatus status, Guid scriptId, Guid writerId)
         {
             throw new NotImplementedException();
         }
