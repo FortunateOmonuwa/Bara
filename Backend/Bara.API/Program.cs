@@ -1,8 +1,10 @@
+using Hangfire;
 using Infrastructure.DataContext;
 using Infrastructure.Repositories.FileRepositories;
 using Infrastructure.Repositories.UserRepositories;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Services.BackgroudServices;
 using Services.ExternalAPI_Integration;
 using Services.FileStorageServices.CloudinaryStorage;
 using Services.FileStorageServices.Interfaces;
@@ -13,14 +15,14 @@ using UserModule.Interfaces.UserInterfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services to the container.  
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle  
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<BaraContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
+   options.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
 
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.Configure<Secrets>(builder.Configuration.GetSection("Secrets"));
@@ -30,6 +32,23 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 builder.Services.AddMemoryCache();
+
+builder.Services.AddHangfire(config =>
+{
+    config.UseSqlServerStorage(builder.Configuration.GetConnectionString("Connection"))
+        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings();
+});
+builder.Services.AddHangfireServer();
+GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute
+{
+    Attempts = 3,
+    DelaysInSeconds = new[] { 10, 30, 60 },
+    OnAttemptsExceeded = AttemptsExceededAction.Fail
+});
+
+builder.Services.AddScoped<HangfireJobs>();
 
 builder.Host.UseSerilog((context, config) => config.ReadFrom.Configuration(context.Configuration));
 
@@ -46,7 +65,7 @@ builder.Services.AddHttpClient("YouVerify", client =>
 {
     client.BaseAddress = new Uri($"{builder.Configuration["AppSettings:YouVerifyBaseUrl"]}");
     client.DefaultRequestHeaders.Add("token", $"{builder.Configuration["Secrets:YouVerifyTestAPIKEY"]}");
-    //client.DefaultRequestHeaders.Add("token", builder.Configuration["Secrets:YouVerifyLiveAPIKEY"]);
+    //client.DefaultRequestHeaders.Add("token", builder.Configuration["Secrets:YouVerifyLiveAPIKEY"]);  
 });
 
 builder.Services.AddHttpClient("Cloudinary", client =>
@@ -55,13 +74,14 @@ builder.Services.AddHttpClient("Cloudinary", client =>
 });
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline.  
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
