@@ -13,7 +13,7 @@ namespace UserModule.Interfaces.UserInterfaces
         /// </summary>
         /// <param name="writerDetail"></param>
         /// <returns></returns>
-        Task<ResponseDetail<GetWriterDetailDTO>> CreateWriter(PostWriterDetailDTO writerDetail);
+        Task<ResponseDetail<GetWriterDetailDTO>> AddWriter(PostWriterDetailDTO writerDetail);
         /// <summary>
         /// Retrieves the details of a writer by their ID.
         /// </summary>

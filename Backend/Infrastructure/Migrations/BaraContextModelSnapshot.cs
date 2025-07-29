@@ -416,8 +416,6 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
                     b.ToTable("AuthProfiles");
                 });
 
@@ -485,6 +483,9 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
                     b.ToTable("Documents");
@@ -524,7 +525,7 @@ namespace Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("UserModule.Models.Services", b =>
+            modelBuilder.Entity("UserModule.Models.Service", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -590,6 +591,9 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("AddressId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("AuthProfileId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Bio")
                         .IsRequired()
                         .HasColumnType("Nvarchar(200)");
@@ -616,8 +620,9 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("Nvarchar(60)");
 
-                    b.Property<int>("Gender")
-                        .HasColumnType("int");
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsBlacklisted")
                         .HasColumnType("bit");
@@ -663,6 +668,8 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AddressId");
+
+                    b.HasIndex("AuthProfileId");
 
                     b.HasIndex("VerificationDocumentID");
 
@@ -787,17 +794,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Wallet");
                 });
 
-            modelBuilder.Entity("UserModule.Models.AuthProfile", b =>
-                {
-                    b.HasOne("UserModule.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("UserModule.Models.BlackListedUser", b =>
                 {
                     b.HasOne("UserModule.Models.User", "User")
@@ -809,7 +805,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("UserModule.Models.Services", b =>
+            modelBuilder.Entity("UserModule.Models.Service", b =>
                 {
                     b.HasOne("UserModule.Models.Writer", "ScriptWriter")
                         .WithMany("Services")
@@ -828,6 +824,12 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("UserModule.Models.AuthProfile", "AuthProfile")
+                        .WithMany()
+                        .HasForeignKey("AuthProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("UserModule.Models.Document", "VerificationDocument")
                         .WithMany()
                         .HasForeignKey("VerificationDocumentID")
@@ -841,6 +843,8 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Address");
+
+                    b.Navigation("AuthProfile");
 
                     b.Navigation("VerificationDocument");
 

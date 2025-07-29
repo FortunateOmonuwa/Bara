@@ -1,4 +1,5 @@
 ﻿using SharedModule.DTOs.AddressDTOs;
+using TransactionModule.DTOs;
 using UserModule.DTOs.ServiceDTOs;
 
 namespace UserModule.DTOs.WriterDTOs
@@ -22,23 +23,32 @@ namespace UserModule.DTOs.WriterDTOs
     /// <param name="IsBlacklisted"></param>
     /// <param name="IsDeleted"></param>
     /// <param name="Services"></param>
-    public record GetWriterDetailDTO(
-        Guid Id,
-        string Name,
-        string FirstName,
-        string LastName,
-        string MiddleName,
-        string Email,
-        string PhoneNumber,
-        string Bio,
-        bool IsEmailVerified,
-        bool IsPremium,
-        AddressDetail? Address,
-        bool IsVerified,
-        string VerificationStatus,
-        bool IsBlacklisted,
-        bool IsDeleted,
-        List<GetServiceDetailDTO>? Services
-    );
+    public class GetWriterDetailDTO
+    {
+        public Guid Id { get; init; }
+        public string? Name { get; init; }
+        public string? FirstName { get; init; }
+        public string? LastName { get; init; }
+        public string? MiddleName { get; init; }
+        public string? Email { get; init; }
+        public string? PhoneNumber { get; init; }
+        public string? Bio { get; init; }
+        public bool IsEmailVerified { get; init; }
+        public bool IsPremium { get; init; }
+        public AddressDetail? Address { get; init; }
+        public bool IsVerified { get; init; }
+        public string? VerificationStatus { get; init; }
+        public bool IsBlacklisted { get; init; }
+        public bool IsDeleted { get; init; }
+        public List<GetServiceDetailDTO>? Services { get; init; }
+        public GetWalletDetailDTO Wallet { get; init; }
+        public DateTimeOffset CreatedAt { get; init; }
+        public DateOnly DateCreated { get; init; }
+        public TimeOnly TimeCreated { get; init; }
+        public DateTimeOffset? ModifiedAt { get; init; }
+        public DateOnly? DateModified { get; init; }
+        public TimeOnly? TimeModified { get; init; }
+    }
+
 
 }
