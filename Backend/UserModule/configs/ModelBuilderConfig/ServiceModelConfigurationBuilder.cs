@@ -4,9 +4,9 @@ using UserModule.Models;
 
 namespace UserModule.configs.ModelBuilderConfig
 {
-    public class ServiceModelConfigurationBuilder : IEntityTypeConfiguration<Services>
+    public class ServiceModelConfigurationBuilder : IEntityTypeConfiguration<Service>
     {
-        public void Configure(EntityTypeBuilder<Services> builder)
+        public void Configure(EntityTypeBuilder<Service> builder)
         {
             //builder.HasKey(x => x.Id);
             builder.Property(s => s.IPDealType)

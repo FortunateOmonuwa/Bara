@@ -2,9 +2,10 @@
 {
     public record YouVerify_KYC_DTO
     (
-        string ID,
-        bool IsSubjectConsent,
+        string Id,
         string Type,
-        string LastName = ""
+        string LastName,
+        bool IsSubjectConsent = true
+
     );
 }

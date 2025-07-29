@@ -19,7 +19,7 @@ namespace Infrastructure.DataContext
             Writers = Set<Writer>();
             AuthProfiles = Set<AuthProfile>();
             Roles = Set<Role>();
-            Services = Set<Services>();
+            Services = Set<Service>();
             Documents = Set<Document>();
             Addresses = Set<Address>();
             //ScriptWritingPosts = Set<ScriptWritingPostByProducer>();
@@ -35,7 +35,7 @@ namespace Infrastructure.DataContext
         public DbSet<Writer> Writers { get; set; }
         public DbSet<AuthProfile> AuthProfiles { get; set; }
         public DbSet<Role> Roles { get; set; }
-        public DbSet<Services> Services { get; set; }
+        public DbSet<Service> Services { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<Address> Addresses { get; set; }
         //public DbSet<ScriptWritingPostByProducer> ScriptWritingPosts { get; set; }

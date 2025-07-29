@@ -23,6 +23,5 @@ namespace UserModule.Models
         public TimeOnly? LastLogoutTime => LastLogoutAt.HasValue ? TimeOnly.FromDateTime(LastLogoutAt.Value.UtcDateTime) : null;
         [ForeignKey(nameof(User))]
         public Guid UserId { get; set; }
-        public User? User { get; set; }
     }
 }

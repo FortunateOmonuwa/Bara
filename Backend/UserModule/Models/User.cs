@@ -33,13 +33,16 @@ namespace UserModule.Models
         public required Address Address { get; set; }
         [ForeignKey(nameof(VerificationDocument))]
         public Guid VerificationDocumentID { get; set; }
-        public required Document VerificationDocument { get; set; }
+        public Document? VerificationDocument { get; set; }
         public VerificationStatus VerificationStatus { get; set; } = VerificationStatus.Pending;
         public bool IsVerified { get; set; }
         public bool IsBlacklisted { get; set; }
         [ForeignKey(nameof(Wallet))]
         public Guid WalletId { get; set; }
         public Wallet Wallet { get; set; } = new Wallet();
+        [ForeignKey(nameof(AuthProfile))]
+        public Guid AuthProfileId { get; set; }
+        public AuthProfile AuthProfile { get; set; }
         public bool IsDeleted { get; set; } = false;
         public List<Transaction> Transactions { get; set; } = [];
         public DateTimeOffset? DeletedAt { get; set; }

@@ -402,3 +402,4 @@ MigrationBackup/
 FodyWeavers.xsd
 .rest
 *.rest
+/Backend/BaraTests/Utils/test.config.json

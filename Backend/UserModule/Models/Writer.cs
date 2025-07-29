@@ -19,7 +19,7 @@ namespace UserModule.Models
         /// <summary>
         /// The list of services provided by the writer, such as script editing, proofreading, etc.
         /// </summary>
-        public List<Services> Services { get; set; } = [];
+        public List<Service> Services { get; set; } = [];
         public List<Script> Scripts { get; set; } = [];
         /// <summary>
         /// The list of all the scripts shared between the writer and producers

@@ -9,12 +9,14 @@
     /// <param name="Country"></param>
     /// <param name="PostalCode"></param>
     /// <param name="AdditionalDetails"></param>
-    public record AddressDetail(
-        string Street,
-        string City,
-        string State,
-        string Country,
-        string? PostalCode,
-        string AdditionalDetails
-        );
+    public record class AddressDetail
+    {
+        public required string Street { get; init; }
+        public required string City { get; init; }
+        public required string State { get; init; }
+        public required string Country { get; init; }
+        public string PostalCode { get; init; } = "";
+        public string AdditionalDetails { get; init; } = "";
+    }
+
 }
