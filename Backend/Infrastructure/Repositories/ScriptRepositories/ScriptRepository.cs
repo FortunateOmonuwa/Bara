@@ -150,7 +150,19 @@ namespace Infrastructure.Repositories.ScriptRepositories
                 var scriptsCache = !memoryCache.TryGetValue<List<Script>>(ALL_SCRIPTS_CACHE_KEY, out var allScripts);
                 if (allScripts == null)
                 {
-                    allScripts = await dbContext.Scripts.OrderByDescending(x => x.CreatedAt).ToListAsync();
+                    var writer = await dbContext.Writers.Select(x => new
+                    {
+                        WriterId = x.Id,
+                        PremiumStatus = x.IsPremiumMember,
+                        x.Scripts,
+                        x.CreatedAt
+                    }).ToListAsync();
+
+                    allScripts = writer
+                                .OrderByDescending(x => x.PremiumStatus)
+                                .ThenByDescending(x => x.CreatedAt)
+                                .SelectMany(x => x.Scripts)
+                                .ToList();
 
                     var cacheOptions = new MemoryCacheEntryOptions()
                         .SetAbsoluteExpiration(TimeSpan.FromMinutes(10))
