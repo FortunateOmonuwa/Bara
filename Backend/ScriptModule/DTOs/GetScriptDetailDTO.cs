@@ -1,6 +1,6 @@
 ﻿namespace ScriptModule.DTOs
 {
-    public class ScriptDetailGetDTO
+    public class GetScriptDetailDTO
     {
         public Guid Id { get; set; }
         public string Title { get; set; }

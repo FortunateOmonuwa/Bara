@@ -18,12 +18,14 @@ namespace Services.FileStorageServices.CloudinaryStorage
         private readonly AppSettings settings;
         private readonly Secrets secrets;
         private readonly ILogger<CloudinaryService> logger;
+        private readonly string BaseFolder = "";
         public CloudinaryService(IOptions<Secrets> secrets, IOptions<AppSettings> appSettings, ILogger<CloudinaryService> logger)
         {
             this.secrets = secrets.Value;
             settings = appSettings.Value;
             CloudinaryBaseURL = $"{settings.CloudinaryBaseURL}/{secrets.Value.CloudinaryName}";
             this.logger = logger;
+            BaseFolder = secrets.Value.CloudinaryFolderName;
         }
         public Task<bool> DeleteAsync(Guid fileId)
         {
@@ -41,8 +43,7 @@ namespace Services.FileStorageServices.CloudinaryStorage
             {
                 var cloudinary = new Cloudinary(new Account(secrets.CloudinaryName, secrets.CloudinaryAPIKEY, secrets.CloudinaryAPISecret));
 
-                var baseFolder = secrets.CloudinaryFolderName;
-                var documentFolder = $"{baseFolder}/{userDirectoryName}/documents";
+                var documentFolder = $"{BaseFolder}/{userDirectoryName}/documents";
 
                 var uploadParams = new RawUploadParams
                 {
@@ -55,11 +56,33 @@ namespace Services.FileStorageServices.CloudinaryStorage
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Error uploading document to Cloudinary for {userDirectoryName}");
+                logger.LogError($"Error uploading document to Cloudinary for {userDirectoryName}", ex.Message);
                 return false;
             }
         }
+        public async Task<bool> UploadScriptAsync(string userDirectoryName, IFormFile file)
+        {
+            try
+            {
+                var cloudinary = new Cloudinary(new Account(secrets.CloudinaryName, secrets.CloudinaryAPIKEY, secrets.CloudinaryAPISecret));
 
+                var scriptFolder = $"{BaseFolder}/{userDirectoryName}/scripts";
+
+                var uploadParams = new RawUploadParams
+                {
+                    File = new FileDescription(file.FileName, file.OpenReadStream()),
+                    Folder = scriptFolder
+                };
+
+                var uploadResult = await cloudinary.UploadAsync(uploadParams);
+                return uploadResult?.StatusCode == HttpStatusCode.OK;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Error uploading script titled {file.Name} to Cloudinary for {userDirectoryName}", ex.Message);
+                return false;
+            }
+        }
         private async Task<FolderResponse> GetAllFolders()
         {
             try

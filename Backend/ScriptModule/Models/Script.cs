@@ -18,6 +18,11 @@ namespace ScriptModule.Models
         public required string Synopsis { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public required decimal Price { get; set; }
+        public required string Path { get; set; }
+        public required string Url { get; set; }
+        public DateTimeOffset UploadedOn { get; set; } = DateTime.UtcNow;
+        public DateOnly UploadedDate => DateOnly.FromDateTime(UploadedOn.UtcDateTime);
+        public TimeOnly UploadedTime => TimeOnly.FromDateTime(UploadedOn.UtcDateTime);
         public Currency Currency { get; set; } = Currency.NAIRA;
         public string CurrencySymbol => Currency switch
         {
@@ -31,13 +36,12 @@ namespace ScriptModule.Models
         public string? RegistrationBody { get; set; }
         [DataType(DataType.ImageUrl)]
         public string? Image { get; set; }
-        public required ScriptPDF File { get; set; }
         public string? CopyrightNumber { get; set; }
-        public IPDealType OwnershipRights { get; set; }
+        public IPDealType? OwnershipRights { get; set; }
         public string? ProofUrl { get; set; }
         [ForeignKey("Writer")]
         public Guid? WriterId { get; set; }
         public ScriptStatus Status { get; set; } = ScriptStatus.Available;
-        public List<SharedScript> SharedScripts { get; set; } = [];
+        //public List<SharedScript> SharedScripts { get; set; } = [];
     }
 }
