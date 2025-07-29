@@ -1,4 +1,5 @@
 ﻿using ScriptModule.DTOs;
+using ScriptModule.Enums;
 using ScriptModule.Models;
 using SharedModule.Utils;
 
@@ -56,5 +57,14 @@ namespace ScriptModule.Interfaces
         /// <param name="scriptId">Represents the id of the script to be deleted</param>
         /// <param name="writerId">Represents the id of the writer</param>
         Task<ResponseDetail<bool>> DeleteScript(Guid scriptId, Guid? writerId);
+
+        /// <summary>
+        /// Updates the status of a script 
+        /// </summary>
+        /// <param name="status"></param>
+        /// <param name="scriptId"></param>
+        /// <param name="writerId"></param>
+        /// <returns>A script object</returns>
+        Task<ResponseDetail<Script>> UpdateScriptStatus(ScriptStatus status, Guid scriptId, Guid writerId);
     }
 }
