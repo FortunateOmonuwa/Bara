@@ -1,12 +1,17 @@
-﻿using Infrastructure.DataContext;
+﻿using Hangfire;
+using Infrastructure.DataContext;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Services.BackgroudServices;
 using Services.FileStorageServices.Interfaces;
+using Services.MailingService;
 using Shared.Models;
 using SharedModule.DTOs.AddressDTOs;
 using SharedModule.Settings;
 using SharedModule.Utils;
+using System.Security.Cryptography;
 using TransactionModule.DTOs;
 using TransactionModule.Models;
 using UserModule.DTOs.ServiceDTOs;
@@ -22,12 +27,16 @@ namespace Infrastructure.Repositories.UserRepositories
         private readonly ILogger<WriterRepository> logger;
         private readonly AppSettings settings;
         private readonly IFileService fileService;
-        public WriterRepository(BaraContext dbContext, ILogger<WriterRepository> logger, IOptions<AppSettings> appSettings, IFileService fileService)
+        private readonly HangfireJobs hangfire;
+        private readonly IMemoryCache cache;
+        public WriterRepository(BaraContext dbContext, ILogger<WriterRepository> logger, IOptions<AppSettings> appSettings, IFileService fileService, HangfireJobs hangfireJobs, IMemoryCache memoryCache)
         {
             this.dbContext = dbContext;
             this.logger = logger;
             settings = appSettings.Value;
             this.fileService = fileService;
+            hangfire = hangfireJobs;
+            cache = memoryCache;
         }
         public async Task<ResponseDetail<GetWriterDetailDTO>> AddWriter(PostWriterDetailDTO writerDetail)
         {
@@ -109,8 +118,14 @@ namespace Infrastructure.Repositories.UserRepositories
 
                 await transaction.CommitAsync();
 
-                //Here i'll send a request to dojah using a background service os the method doesn't take too long and also send a verification mail with the background service
-                var finalResponse = new GetWriterDetailDTO
+                var token = RandomNumberGenerator.GetInt32(100000, 999999);
+
+                cache.Set($"Writer_Verification_Token_{writer.Id}", token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+
+                var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(writer.Email, writer.FirstName, "");
+                BackgroundJob.Enqueue(() => hangfire.SendMailAsync(verificationMail));
+
+                var writerProfile = new GetWriterDetailDTO
                 {
                     Id = writer.Id,
                     FirstName = writer.FirstName,
@@ -163,7 +178,15 @@ namespace Infrastructure.Repositories.UserRepositories
                     ModifiedAt = writer.ModifiedAt,
                     TimeModified = writer.TimeModified
                 };
-                return ResponseDetail<GetWriterDetailDTO>.Successful(finalResponse, "Writer profile created successfully", 201);
+
+                var options = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
+                    SlidingExpiration = TimeSpan.FromMinutes(3),
+                    Priority = CacheItemPriority.High
+                };
+                cache.Set($"Writer_Profile{writer.Id}", writerProfile, options);
+                return ResponseDetail<GetWriterDetailDTO>.Successful(writerProfile, "Writer profile created successfully", 201);
             }
             catch (Exception ex)
             {

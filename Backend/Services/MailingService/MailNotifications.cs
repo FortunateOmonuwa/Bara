@@ -1,6 +1,6 @@
 ﻿namespace Services.MailingService
 {
-    internal class MailNotifications
+    public class MailNotifications
     {
         public string Subject { get; set; }
         public string Body { get; set; }
@@ -120,7 +120,7 @@
             return mail;
         }
 
-        public static object RegistrationConfirmationMailNotification(string receiver, string name, string token)
+        public static MailRequestDTO RegistrationConfirmationMailNotification(string receiver, string name, string token)
         {
             var subject = "WELCOME TO BARA!";
             var body = $@"
@@ -128,7 +128,7 @@
                 <p>Thank you for joining <b className=""bara"">Bara!!!</b> We're thrilled to have you on board.</p>
                 <p>Please verify your account with this token <b classNamw=""bara"">{token.ToUpper()}</b></p>
                 <p>It expires in 5 mins";
-            return new
+            return new MailRequestDTO
             {
                 Receiver = receiver,
                 Subject = subject,
@@ -136,13 +136,13 @@
             };
         }
 
-        public static object EmailVerifiedNotification(string receiver, string name)
+        public static MailRequestDTO EmailVerifiedNotification(string receiver, string name)
         {
             var subject = "EMAIL VERIFIED";
             var body = $@"
                 <br/>
                 <p>Congratulations {name}, your email has been successfully verified.</p>";
-            return new
+            return new MailRequestDTO
             {
                 Receiver = receiver,
                 Subject = subject,
@@ -150,13 +150,13 @@
             };
         }
 
-        public static object AccountVerificationSuccessNotification(string receiver, string name)
+        public static MailRequestDTO AccountVerificationSuccessNotification(string receiver, string name)
         {
             var subject = "ACCOUNT VERIFICATION SUCCESSFUL";
             var body = $@"
                 <br/>
                 <p>Congratulations {name}, your account has been successfully verified.</p>";
-            return new
+            return new MailRequestDTO
             {
                 Receiver = receiver,
                 Subject = subject,
