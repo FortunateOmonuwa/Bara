@@ -43,8 +43,8 @@ builder.Services.AddHangfire(config =>
 builder.Services.AddHangfireServer();
 GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute
 {
-    Attempts = 3,
-    DelaysInSeconds = new[] { 10, 30, 60 },
+    Attempts = 2,
+    DelaysInSeconds = [10, 30],
     OnAttemptsExceeded = AttemptsExceededAction.Fail
 });
 
