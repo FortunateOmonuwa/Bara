@@ -191,7 +191,7 @@ namespace Infrastructure.Repositories.UserRepositories
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                logger.LogError(ex, $"An exception {ex.InnerException} was thrown while creating a writer profile");
+                logger.LogError($"An exception {ex.InnerException} was thrown while creating a writer profile", ex.Message);
                 return ResponseDetail<GetWriterDetailDTO>.Failed(ex.Message, ex.HResult, "Caught Exception");
             }
         }

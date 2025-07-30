@@ -18,7 +18,7 @@ namespace Services.BackgroudServices
             this.logger = logger;
         }
 
-        [AutomaticRetry(Attempts = 0, DelaysInSeconds = [10, 30, 60])]
+        [AutomaticRetry(Attempts = 3, DelaysInSeconds = [10, 30, 60])]
         public async Task SendMailAsync(MailRequestDTO mail)
         {
             try

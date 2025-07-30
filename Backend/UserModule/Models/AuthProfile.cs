@@ -15,6 +15,9 @@ namespace UserModule.Models
         public required string Email { get; set; }
         //[DataType(DataType.Password)]
         public required string Password { get; set; }
+        public bool IsLocked { get; set; }
+        public string LastLoginDevice { get; set; } = string.Empty;
+        public int LoginAttempts { get; set; }
         public DateTimeOffset LastLoginAt { get; private set; } = DateTime.UtcNow;
         public DateOnly LastLoginDate => DateOnly.FromDateTime(LastLoginAt.UtcDateTime);
         public TimeOnly LastLoginTime => TimeOnly.FromDateTime(LastLoginAt.UtcDateTime);

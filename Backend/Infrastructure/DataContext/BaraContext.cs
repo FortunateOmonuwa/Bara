@@ -41,7 +41,6 @@ namespace Infrastructure.DataContext
         //public DbSet<ScriptWritingPostByProducer> ScriptWritingPosts { get; set; }
         //public DbSet<ScriptWritingPostApplicant> Applicants { get; set; }
         public DbSet<Escrow> EscrowOperations { get; set; }
-        public DbSet<ScriptPDF> ScriptPDFs { get; set; }
         public DbSet<BlackListedUser> BlackListedUsers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

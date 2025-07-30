@@ -17,12 +17,12 @@ namespace BaraTests
         internal async Task TestYouVerifyKYC(string type, string id, string lastName)
         {
             var kycDto = new YouVerify_KYC_DTO
-            (
-                id,
-                type,
-                lastName,
-                true
-            );
+            {
+                Id = id,
+                Type = type,
+                LastName = lastName,
+                IsSubjectConsent = true
+            };
 
             var response = await youVerify.VerifyDocumentAsync(kycDto);
             Assert.NotNull(response);

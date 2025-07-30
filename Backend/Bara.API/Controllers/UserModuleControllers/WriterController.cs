@@ -24,7 +24,7 @@ namespace Bara.API.Controllers.UserControllers
             {
                 if (writerDetail == null || !ModelState.IsValid)
                 {
-                    return BadRequest("Writer detail cannot be null");
+                    return BadRequest("Writer request body is null or invalid");
                 }
                 var response = await writerService.AddWriter(writerDetail);
                 if (response.IsSuccess)
@@ -38,7 +38,7 @@ namespace Bara.API.Controllers.UserControllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred while adding a writer.");
+                logger.LogError($"An exception was thrown at {ex.Source} while adding a writer {writerDetail.FirstName} {writerDetail.LastName}.", ex);
                 return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500);
             }
         }
