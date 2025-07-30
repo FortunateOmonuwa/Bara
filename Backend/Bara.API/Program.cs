@@ -1,8 +1,10 @@
 using Hangfire;
 using Infrastructure.DataContext;
 using Infrastructure.Repositories.FileRepositories;
+using Infrastructure.Repositories.ScriptRepositories;
 using Infrastructure.Repositories.UserRepositories;
 using Microsoft.EntityFrameworkCore;
+using ScriptModule.Interfaces;
 using Serilog;
 using Services.BackgroudServices;
 using Services.ExternalAPI_Integration;
@@ -43,8 +45,8 @@ builder.Services.AddHangfire(config =>
 builder.Services.AddHangfireServer();
 GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute
 {
-    Attempts = 3,
-    DelaysInSeconds = new[] { 10, 30, 60 },
+    Attempts = 2,
+    DelaysInSeconds = [10, 30],
     OnAttemptsExceeded = AttemptsExceededAction.Fail
 });
 
@@ -60,6 +62,7 @@ builder.Services.AddScoped<IFileStorageService, CloudinaryService>();
 builder.Services.AddScoped<IFileService, FileRepository>();
 
 builder.Services.AddScoped<IWriterService, WriterRepository>();
+builder.Services.AddScoped<IScriptService, ScriptRepository>();
 
 builder.Services.AddHttpClient("YouVerify", client =>
 {
