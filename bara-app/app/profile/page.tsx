@@ -7,7 +7,6 @@ import Image from "next/image";
 import LocationForm from "@/components/LocationForm";
 import IdentityVerificationForm from "@/components/IdentityVerificationForm";
 
-
 export default function ProfilePage() {
   const router = useRouter();
 
