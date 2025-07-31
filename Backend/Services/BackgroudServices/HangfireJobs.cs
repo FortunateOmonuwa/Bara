@@ -24,11 +24,7 @@ namespace Services.BackgroudServices
             try
             {
                 var response = await mailService.SendMail(mail);
-                if (response.IsSuccess)
-                {
-                    logger.LogInformation($"Email sent successfully to {mail.Receiver}");
-                }
-                else
+                if (!response.IsSuccess)
                 {
                     logger.LogError($"Failed to send email to {mail.Receiver}: {response.Message}");
                 }

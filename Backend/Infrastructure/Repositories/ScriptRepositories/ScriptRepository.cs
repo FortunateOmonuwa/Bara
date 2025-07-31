@@ -134,21 +134,99 @@ namespace Infrastructure.Repositories.ScriptRepositories
             }
         }
 
-        public Task<ResponseDetail<bool>> DeleteScript(Guid scriptId, Guid? writerId)
+        public async Task<ResponseDetail<bool>> DeleteScript(Guid scriptId, Guid writerId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var writerCacheKey = $"Writer_{writerId}_Scripts";
+                var writerScriptsCache = memoryCache.TryGetValue<List<Script>>(writerCacheKey, out var writerScripts);
+                if (writerScriptsCache && writerScripts != null)
+                {
+                    var scriptInWriterCache = writerScripts.FirstOrDefault(x => x.Id == scriptId);
+                    if (scriptInWriterCache != null)
+                        writerScripts.Remove(scriptInWriterCache);
+                }
+
+                var allcriptsCache = memoryCache.TryGetValue<List<Script>>(ALL_SCRIPTS_CACHE_KEY, out var allScripts);
+                if (allcriptsCache && allScripts != null)
+                {
+                    var scriptInAll = allScripts.FirstOrDefault(x => x.Id == scriptId);
+                    if (scriptInAll != null)
+                        allScripts.Remove(scriptInAll);
+                }
+
+                var script = await dbContext.Scripts.FindAsync(scriptId);
+                if (script is null)
+                {
+                    return ResponseDetail<bool>.Failed("Invalid script Id");
+                }
+                if (script.Status == ScriptStatus.Deleted)
+                {
+                    return ResponseDetail<bool>.Failed("Script already deleted");
+                }
+                var deleteFromStorage = await cloudinary.DeleteAsync(script.Path);
+                if (!deleteFromStorage)
+                {
+                    return ResponseDetail<bool>.Failed("An error occurred while deleting the script", 500, "Unexpected Error");
+                }
+
+                script.Status = ScriptStatus.Deleted;
+                await dbContext.SaveChangesAsync();
+
+                return ResponseDetail<bool>.Successful(true, "Script deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Error deleting script with ID {scriptId}. Exception: {ex.Message}");
+                return ResponseDetail<bool>.Failed("An error occurred while deleting the script", 500, "Internal Error");
+            }
         }
 
-        public Task<ResponseDetail<Script>> GetScriptById(Guid scriptId, Guid? writerId)
+        public async Task<ResponseDetail<Script>> GetScriptById(Guid scriptId, Guid? writerId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Script script;
+
+                if (writerId.HasValue)
+                {
+                    var writerCacheKey = $"Writer_{writerId}_Scripts";
+                    memoryCache.TryGetValue<List<Script>>(writerCacheKey, out var writerScriptsList);
+                    if (writerScriptsList is not null)
+                    {
+                        script = writerScriptsList.FirstOrDefault(x => x.Id == scriptId);
+                        if (script is not null)
+                        {
+                            return ResponseDetail<Script>.Successful(script);
+                        }
+                    }
+
+                    script = await dbContext.Scripts.FirstOrDefaultAsync(x => x.Id == scriptId && x.WriterId == writerId);
+                }
+                else
+                {
+                    script = await dbContext.Scripts.FindAsync(scriptId);
+                }
+
+                if (script == null)
+                {
+                    return ResponseDetail<Script>.Failed($"Script not found", 404, "Not Found");
+                }
+
+                return ResponseDetail<Script>.Successful(script);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Error retrieving script with ID {scriptId}. Exception: {ex.Message}");
+                return ResponseDetail<Script>.Failed("An error occurred while retrieving the script", 500, "Internal Error");
+            }
         }
 
         public async Task<ResponseDetail<List<Script>>> GetScripts(int pageNumber, int pageSize)
         {
             try
             {
-                var scriptsCache = !memoryCache.TryGetValue<List<Script>>(ALL_SCRIPTS_CACHE_KEY, out var allScripts);
+                memoryCache.TryGetValue<List<Script>>(ALL_SCRIPTS_CACHE_KEY, out var allScripts);
                 if (allScripts == null)
                 {
                     var writer = await dbContext.Writers.Select(x => new
@@ -197,10 +275,13 @@ namespace Infrastructure.Repositories.ScriptRepositories
             try
             {
                 var cacheKey = $"Writer_{writerId}'s_Scripts";
-                var cache = memoryCache.TryGetValue<List<Script>>(cacheKey, out var cachedScripts);
+                memoryCache.TryGetValue<List<Script>>(cacheKey, out var cachedScripts);
                 if (cachedScripts is null)
                 {
-                    cachedScripts = await dbContext.Scripts.Where(x => x.WriterId == writerId).OrderByDescending(x => x.CreatedAt).ToListAsync();
+                    cachedScripts = await dbContext.Scripts
+                                                    .Where(x => x.WriterId == writerId && x.Status != ScriptStatus.Deleted)
+                                                    .OrderByDescending(x => x.CreatedAt)
+                                                    .ToListAsync();
                     var cacheOptions = new MemoryCacheEntryOptions()
                        .SetAbsoluteExpiration(TimeSpan.FromMinutes(10))
                        .SetSlidingExpiration(TimeSpan.FromMinutes(5));
@@ -233,8 +314,13 @@ namespace Infrastructure.Repositories.ScriptRepositories
             }
         }
 
-        public Task<ResponseDetail<byte[]>> GetScriptFile(Guid scriptId)
+        public Task<ResponseDetail<byte[]>> DownloadScript(Guid scriptId)
         {
+            //var script = await dbContext.Scripts.FindAsync(scriptId);
+            //if (script is null) ?? ResponseDetail
+
+            //var fileStream = await cloudinary.DownloadAsync(script.Path);
+            //return File(fileStream, "application/pdf", Path.GetFileName(script.Path));
             throw new NotImplementedException();
         }
 

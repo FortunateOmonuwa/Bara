@@ -1,4 +1,5 @@
 ﻿using SharedModule.DTOs.AddressDTOs;
+using UserModule.Enums;
 
 namespace UserModule.DTOs.ProducerDTOs
 {
@@ -20,21 +21,22 @@ namespace UserModule.DTOs.ProducerDTOs
     /// <param name="VerificationStatus"></param>
     /// <param name="IsBlacklisted"></param>
     /// <param name="IsDeleted"></param>
-    public record GetProducerDetailDTO(
-        Guid Id,
-        string Name,
-        string FirstName,
-        string LastName,
-        string MiddleName,
-        string Email,
-        string PhoneNumber,
-        bool IsEmailVerified,
-        bool IsPremium,
-        AddressDetail? Address,
-        bool IsVerified,
-        string VerificationStatus,
-        bool IsBlacklisted,
-        bool IsDeleted,
-        string? Bio = ""
-        );
+    public record GetProducerDetailDTO
+    {
+        public Guid Id { get; init; }
+        public string Name { get; init; } = default!;
+        public string FirstName { get; init; } = default!;
+        public string LastName { get; init; } = default!;
+        public string MiddleName { get; init; } = default!;
+        public string Email { get; init; } = default!;
+        public string PhoneNumber { get; init; } = default!;
+        public bool IsEmailVerified { get; init; }
+        public AddressDetail? Address { get; init; }
+        public bool IsVerified { get; init; }
+        public VerificationStatus VerificationStatus { get; init; }
+        public bool IsBlacklisted { get; init; }
+        public bool IsDeleted { get; init; }
+        public string Bio { get; init; }
+    }
+
 }

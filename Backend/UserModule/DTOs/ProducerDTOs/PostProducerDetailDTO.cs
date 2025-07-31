@@ -1,5 +1,6 @@
 ﻿using SharedModule.DTOs.AddressDTOs;
 using UserModule.DTOs.DocumentDTOs;
+using UserModule.Enums;
 
 namespace UserModule.DTOs.ProducerDTOs
 {
@@ -17,17 +18,19 @@ namespace UserModule.DTOs.ProducerDTOs
     /// <param name="AddressDetail"></param>
     /// <param name="VerificationDocument"></param>
     /// <param name="Bio"></param>
-    public record PostProducerDetailDTO(
-        string FirstName,
-        string LastName,
-        string MiddleName,
-        string Email,
-        string Password,
-        string PhoneNumber,
-        string Role,
-        bool IsPremium,
-        AddressDetail AddressDetail,
-        PostDocumentDetailDTO VerificationDocument,
-        string? Bio = ""
-        );
+    public record PostProducerDetailDTO
+    {
+        public required string FirstName { get; init; }
+        public required string LastName { get; init; }
+        public string MiddleName { get; init; } = string.Empty;
+        public required string Email { get; init; }
+        public required string Password { get; init; }
+        public required string PhoneNumber { get; init; }
+        public required DateOnly DateOfBirth { get; init; }
+        public required Gender Gender { get; init; }
+        public required AddressDetail AddressDetail { get; init; }
+        public required PostDocumentDetailDTO VerificationDocument { get; init; }
+        public string Bio { get; init; } = "";
+    }
+
 }
