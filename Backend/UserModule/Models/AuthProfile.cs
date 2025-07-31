@@ -16,11 +16,13 @@ namespace UserModule.Models
         //[DataType(DataType.Password)]
         public required string Password { get; set; }
         public bool IsLocked { get; set; }
+        public bool IsDeleted { get; set; }
         public string LastLoginDevice { get; set; } = string.Empty;
         public int LoginAttempts { get; set; }
-        public DateTimeOffset LastLoginAt { get; private set; } = DateTime.UtcNow;
-        public DateOnly LastLoginDate => DateOnly.FromDateTime(LastLoginAt.UtcDateTime);
-        public TimeOnly LastLoginTime => TimeOnly.FromDateTime(LastLoginAt.UtcDateTime);
+        public required string Role { get; set; }
+        public DateTimeOffset? LastLoginAt { get; set; }
+        public DateOnly? LastLoginDate => LastLoginAt.HasValue ? DateOnly.FromDateTime(LastLoginAt.Value.UtcDateTime) : null;
+        public TimeOnly? LastLoginTime => LastLoginAt.HasValue ? TimeOnly.FromDateTime(LastLoginAt.Value.UtcDateTime) : null;
         public DateTimeOffset? LastLogoutAt { get; set; }
         public DateOnly? LastLogoutDate => LastLogoutAt.HasValue ? DateOnly.FromDateTime(LastLogoutAt.Value.UtcDateTime) : null;
         public TimeOnly? LastLogoutTime => LastLogoutAt.HasValue ? TimeOnly.FromDateTime(LastLogoutAt.Value.UtcDateTime) : null;

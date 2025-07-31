@@ -41,14 +41,18 @@ namespace Infrastructure.Repositories.UserRepositories
         public async Task<ResponseDetail<GetWriterDetailDTO>> AddWriter(PostWriterDetailDTO writerDetail)
         {
             using var transaction = await dbContext.Database.BeginTransactionAsync();
-            var writerEmailExist = await dbContext.Writers.AnyAsync(w => w.Email == writerDetail.Email);
-
-            if (writerEmailExist)
-            {
-                return ResponseDetail<GetWriterDetailDTO>.Failed($"Writer with email {writerDetail.Email} already exists", 409, "Conflict");
-            }
             try
             {
+                var writerAccount = await dbContext.AuthProfiles.Select(x => new { x.Email, x.IsDeleted }).FirstOrDefaultAsync(w => w.Email == writerDetail.Email);
+
+                if (writerAccount?.IsDeleted == true)
+                {
+                    return ResponseDetail<GetWriterDetailDTO>.Failed($"Profile with email {writerDetail.Email} already exists and just needs to be reactivated", 409, "Account needs to be reactivated");
+                }
+                if (writerAccount is not null)
+                {
+                    return ResponseDetail<GetWriterDetailDTO>.Failed($"Profile with email {writerDetail.Email} already exists", 409, "Conflict");
+                }
                 var writer = new Writer
                 {
                     FirstName = writerDetail.FirstName,
@@ -88,6 +92,7 @@ namespace Infrastructure.Repositories.UserRepositories
                     {
                         Email = writerDetail.Email,
                         Password = BCrypt.Net.BCrypt.HashPassword(writerDetail.Password),
+                        Role = "Writer",
                     },
                     Wallet = new Wallet
                     {
@@ -95,14 +100,13 @@ namespace Infrastructure.Repositories.UserRepositories
                     },
                 };
 
-                var userDirectoryName = $"{writer.FirstName}_{writer.LastName}-{writer.Id}";
+                var userDirectoryName = $"Writer_{writer.FirstName}_{writer.LastName}-{writer.PhoneNumber}";
                 var documentId = await fileService.ProcessDocumentForUpload(userDirectoryName, writerDetail.VerificationDocument);
 
-                if (documentId.Data.ToString() == null)
+                if (documentId.Data == Guid.Empty)
                 {
-                    logger.LogError($"Error uploading verification document: for writer {writer.Id} ");
-                    await transaction.RollbackAsync();
-                    return ResponseDetail<GetWriterDetailDTO>.Failed("Error uploading verification document: for writer {writer.Id}");
+                    logger.LogError($"Error uploading KYC document {writerDetail.FirstName} {writerDetail.LastName} ");
+                    return ResponseDetail<GetWriterDetailDTO>.Failed($"An error occurred while uploading the KYC document for: {writerDetail.FirstName} {writerDetail.LastName}", 500, "UnexpectedError");
                 }
                 writer.VerificationDocumentID = documentId.Data;
 
@@ -112,18 +116,17 @@ namespace Infrastructure.Repositories.UserRepositories
                 if (writerRes < 1)
                 {
                     logger.LogError($"Error saving writer profile {writer.FirstName} {writer.LastName} to the database");
-                    await transaction.RollbackAsync();
                     return ResponseDetail<GetWriterDetailDTO>.Failed($"Error saving writer profile {writer.FirstName} {writer.LastName} to the database");
                 }
-
-                await transaction.CommitAsync();
 
                 var token = RandomNumberGenerator.GetInt32(100000, 999999);
 
                 cache.Set($"Writer_Verification_Token_{writer.Id}", token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
 
-                var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(writer.Email, writer.FirstName, "");
+                var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(writer.Email, writer.FirstName, token.ToString());
                 BackgroundJob.Enqueue(() => hangfire.SendMailAsync(verificationMail));
+
+                await transaction.CommitAsync();
 
                 var writerProfile = new GetWriterDetailDTO
                 {
@@ -183,10 +186,15 @@ namespace Infrastructure.Repositories.UserRepositories
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
                     SlidingExpiration = TimeSpan.FromMinutes(3),
-                    Priority = CacheItemPriority.High
                 };
                 cache.Set($"Writer_Profile{writer.Id}", writerProfile, options);
                 return ResponseDetail<GetWriterDetailDTO>.Successful(writerProfile, "Writer profile created successfully", 201);
+            }
+            catch (DbUpdateException dbEx)
+            {
+                await transaction.RollbackAsync();
+                logger.LogError($"A database update exception was thrown while creating a writer profile: {dbEx.InnerException}", dbEx.Message);
+                return ResponseDetail<GetWriterDetailDTO>.Failed(dbEx.InnerException?.Message ?? "Database update error", dbEx.HResult, "Database Update Error");
             }
             catch (Exception ex)
             {
@@ -198,6 +206,7 @@ namespace Infrastructure.Repositories.UserRepositories
 
         public Task<ResponseDetail<bool>> DeleteWriter(Guid writerId)
         {
+            //Set as deleted and delete login profile
             throw new NotImplementedException();
         }
 

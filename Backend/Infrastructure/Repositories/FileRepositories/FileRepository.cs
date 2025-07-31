@@ -1,6 +1,7 @@
 ﻿using Infrastructure.DataContext;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Services.BackgroudServices;
 using Services.FileStorageServices.Interfaces;
 using SharedModule.Settings;
 using SharedModule.Utils;
@@ -19,13 +20,15 @@ namespace Infrastructure.Repositories.FileRepositories
         private readonly AppSettings settings;
         private readonly Secrets secrets;
         private readonly ILogger<FileRepository> logger;
-        public FileRepository(IFileStorageService fileStorageService, BaraContext baraContext, IOptions<AppSettings> settings, IOptions<Secrets> secrets, ILogger<FileRepository> logger)
+        private readonly HangfireJobs hangfire;
+        public FileRepository(IFileStorageService fileStorageService, BaraContext baraContext, IOptions<AppSettings> settings, IOptions<Secrets> secrets, ILogger<FileRepository> logger, HangfireJobs hangfire)
         {
             storageService = fileStorageService;
             context = baraContext;
             this.settings = settings.Value;
             this.secrets = secrets.Value;
             this.logger = logger;
+            this.hangfire = hangfire;
         }
 
         public async Task<ResponseDetail<Guid>> ProcessDocumentForUpload(string userDirectoryName, PostDocumentDetailDTO documentDetail)
@@ -40,8 +43,8 @@ namespace Infrastructure.Repositories.FileRepositories
                     return ResponseDetail<Guid>.Failed($"Document exceeds limit of {limit}", 413, "File Limit Exceeded");
                 }
 
-                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
-                var allowedMimeTypes = new[] { "application/pdf", "image/jpeg", "image/png" };
+                var allowedExtensions = new[] { ".pdf" };
+                var allowedMimeTypes = new[] { "application/pdf" };
 
                 var fileName = file.FileName.Trim();
                 var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
@@ -54,7 +57,7 @@ namespace Infrastructure.Repositories.FileRepositories
                                                                     $"Allowed Extensions are: {string.Join(", ", allowedExtensions)}..." +
                                                                     $"\n Allowed mime types are: {string.Join(", ", allowedMimeTypes)}", 415, "Invalid File Type");
                 }
-
+                //Call hangfire for background job to verify document 
                 var uploadScript = await storageService.UploadDocumentAsync(userDirectoryName, file);
                 if (uploadScript == false)
                 {

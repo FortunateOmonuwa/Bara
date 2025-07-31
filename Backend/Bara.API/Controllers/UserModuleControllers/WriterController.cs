@@ -17,7 +17,7 @@ namespace Bara.API.Controllers.UserControllers
             this.writerService = writerService;
         }
 
-        [HttpPost("AddWriter")]
+        [HttpPost]
         public async Task<IActionResult> AddWriter([FromForm] PostWriterDetailDTO writerDetail)
         {
             try
@@ -38,7 +38,7 @@ namespace Bara.API.Controllers.UserControllers
             }
             catch (Exception ex)
             {
-                logger.LogError($"An exception was thrown at {ex.Source} while adding a writer {writerDetail.FirstName} {writerDetail.LastName}.", ex);
+                logger.LogError($"An exception was thrown at {ex.Source} while creating a new writer profile: {writerDetail.FirstName} {writerDetail.LastName}.", ex);
                 return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500);
             }
         }
