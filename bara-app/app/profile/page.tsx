@@ -7,12 +7,13 @@ import Image from "next/image";
 import LocationForm from "@/components/LocationForm";
 import IdentityVerificationForm from "@/components/IdentityVerificationForm";
 
+// Type for the tab values
+type TabType = "personal" | "location" | "identity";
+
 export default function ProfilePage() {
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<
-    "personal" | "location" | "identity"
-  >("personal");
+  const [activeTab, setActiveTab] = useState<TabType>("personal");
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -33,6 +34,23 @@ export default function ProfilePage() {
     router.push("/dashboard");
   };
 
+  const handleSkip = () => {
+    if (activeTab === "personal") {
+      setActiveTab("location");
+    } else if (activeTab === "location") {
+      setActiveTab("identity");
+    } else {
+      router.push("/dashboard"); // Final step
+    }
+  };
+
+  const isPersonalInfoComplete =
+    formData.firstName &&
+    formData.lastName &&
+    formData.company &&
+    formData.phone &&
+    formData.nin;
+
   return (
     <div className="fixed inset-0 bg-[#1a0000] bg-opacity-80 flex items-center justify-center z-50 p-4">
       <form
@@ -49,122 +67,78 @@ export default function ProfilePage() {
 
         {/* Tabs */}
         <div className="flex border-b border-gray-300 text-sm font-medium text-gray-500 space-x-6">
-          <button
-            type="button"
-            onClick={() => setActiveTab("personal")}
-            className="relative px-4 pt-2 pb-3 text-sm"
-          >
-            <span
-              className={`${
-                activeTab === "personal" ? "text-[#810306]" : "text-gray-500"
-              }`}
+          {(["personal", "location", "identity"] as TabType[]).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className="relative px-4 pt-2 pb-3 text-sm"
             >
-              Personal information
-            </span>
-            {activeTab === "personal" && (
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-full bg-[#810306] rounded-tr-2xl rounded-tl-2xl" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("location")}
-            className="relative px-4 pt-2 pb-3 text-sm"
-          >
-            <span
-              className={`${
-                activeTab === "location" ? "text-[#810306]" : "text-gray-500"
-              }`}
-            >
-              Location details
-            </span>
-            {activeTab === "location" && (
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-full bg-[#810306] rounded-tr-2xl rounded-tl-2xl" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("identity")}
-            className="relative px-4 pt-2 pb-3 text-sm"
-          >
-            <span
-              className={`${
-                activeTab === "identity" ? "text-[#810306]" : "text-gray-500"
-              }`}
-            >
-              Identity verification
-            </span>
-            {activeTab === "identity" && (
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-full bg-[#810306] rounded-tr-2xl rounded-tl-2xl" />
-            )}
-          </button>
+              <span
+                className={`${
+                  activeTab === tab ? "text-[#810306]" : "text-gray-500"
+                }`}
+              >
+                {tab === "personal"
+                  ? "Personal information"
+                  : tab === "location"
+                  ? "Location details"
+                  : "Identity verification"}
+              </span>
+              {activeTab === tab && (
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-full bg-[#810306] rounded-tr-2xl rounded-tl-2xl" />
+              )}
+            </button>
+          ))}
         </div>
 
         {/* Form Sections */}
         {activeTab === "personal" && (
           <>
-            {/* Input Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col">
-                <label
-                  htmlFor="firstName"
-                  className="text-sm text-[#22242A] font-semibold mb-1"
-                >
+                <label className="text-sm font-semibold text-[#22242A] mb-1">
                   First name
                 </label>
                 <input
                   type="text"
-                  id="firstName"
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="border border-[#ABADB2] p-3 rounded-md w-full"
+                  className="border border-[#ABADB2] p-3 rounded-md"
                 />
               </div>
 
               <div className="flex flex-col">
-                <label
-                  htmlFor="lastName"
-                  className="text-sm text-[#22242A] font-semibold mb-1"
-                >
+                <label className="text-sm font-semibold text-[#22242A] mb-1">
                   Last name
                 </label>
                 <input
                   type="text"
-                  id="lastName"
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="border border-[#ABADB2] p-3 rounded-md w-full"
+                  className="border border-[#ABADB2] p-3 rounded-md"
                 />
               </div>
 
               <div className="flex flex-col md:col-span-2">
-                <label
-                  htmlFor="company"
-                  className="text-sm text-[#22242A] font-semibold mb-1"
-                >
+                <label className="text-sm font-semibold text-[#22242A] mb-1">
                   Company/Studio
                 </label>
                 <input
                   type="text"
-                  id="company"
                   name="company"
                   value={formData.company}
                   onChange={handleChange}
-                  className="border border-[#ABADB2] p-3 rounded-md w-full"
+                  className="border border-[#ABADB2] p-3 rounded-md"
                 />
               </div>
             </div>
 
-            {/* Phone and NIN */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col">
-                <label
-                  htmlFor="phone"
-                  className="text-sm text-[#22242A] font-semibold mb-1"
-                >
+                <label className="text-sm font-semibold text-[#22242A] mb-1">
                   Phone number
                 </label>
                 <div className="flex items-center border border-[#ABADB2] rounded-md px-3 py-2">
@@ -186,7 +160,6 @@ export default function ProfilePage() {
                   </div>
                   <input
                     type="text"
-                    id="phone"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
@@ -196,19 +169,15 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex flex-col">
-                <label
-                  htmlFor="nin"
-                  className="text-sm text-[#22242A] font-semibold mb-1"
-                >
+                <label className="text-sm font-semibold text-[#22242A] mb-1">
                   NIN
                 </label>
                 <input
                   type="text"
-                  id="nin"
                   name="nin"
                   value={formData.nin}
                   onChange={handleChange}
-                  className="border border-[#ABADB2] p-3 rounded-md w-full"
+                  className="border border-[#ABADB2] p-3 rounded-md"
                 />
               </div>
             </div>
@@ -216,34 +185,23 @@ export default function ProfilePage() {
         )}
 
         {activeTab === "location" && <LocationForm />}
-
         {activeTab === "identity" && <IdentityVerificationForm />}
 
-        {/* Buttons */}
-        {/* Buttons */}
+        {/* Action Buttons */}
         <div className="flex justify-end gap-4 pt-4">
           <button
             type="button"
-            onClick={() => router.push("/dashboard")}
+            onClick={handleSkip}
             className="px-8 py-2 border-2 border-[#810306] text-[#810306] rounded-md font-semibold"
           >
             Skip
           </button>
+
           <button
             type="submit"
-            disabled={
-              !formData.firstName ||
-              !formData.lastName ||
-              !formData.company ||
-              !formData.phone ||
-              !formData.nin
-            }
+            disabled={!isPersonalInfoComplete}
             className={`px-8 py-2 rounded-md font-semibold ${
-              formData.firstName &&
-              formData.lastName &&
-              formData.company &&
-              formData.phone &&
-              formData.nin
+              isPersonalInfoComplete
                 ? "bg-[#810306] text-white"
                 : "bg-[#F5F5F5] text-[#858990] cursor-not-allowed"
             }`}

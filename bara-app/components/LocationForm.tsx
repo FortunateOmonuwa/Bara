@@ -21,7 +21,7 @@ export default function LocationForm() {
   };
 
   return (
-    <div className="text-[#22242A] text-sm">
+    <div className="text-[#22242A] text-sm mt-8">
       {/* First row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         {/* Country */}
@@ -47,6 +47,7 @@ export default function LocationForm() {
               className="w-full border border-[#ABADB2] rounded-md px-10 py-2 appearance-none bg-white text-sm"
             >
               <option value="Nigeria">Nigeria</option>
+              <option value="Ghana">Ghana</option>
             </select>
 
             {/* Dropdown arrow */}
