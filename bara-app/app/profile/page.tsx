@@ -66,7 +66,7 @@ export default function ProfilePage() {
         </h1>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-300 text-sm font-medium text-gray-500 space-x-6">
+        <div className="flex border-b border-gray-300 text-sm font-medium text-[#858990] space-x-6">
           {(["personal", "location", "identity"] as TabType[]).map((tab) => (
             <button
               key={tab}
@@ -76,7 +76,7 @@ export default function ProfilePage() {
             >
               <span
                 className={`${
-                  activeTab === tab ? "text-[#810306]" : "text-gray-500"
+                  activeTab === tab ? "text-[#810306]" : "text-[#858990]"
                 }`}
               >
                 {tab === "personal"
