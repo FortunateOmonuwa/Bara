@@ -21,7 +21,7 @@ namespace UserModule.Interfaces.UserInterfaces
         /// </summary>
         /// <param name="userId"></param>
         /// <returns>a true or false value</returns>
-        Task<ResponseDetail<bool>> UnBlackListUser(Guid userId);
+        Task<ResponseDetail<bool>> RemoveUserFromBlackList(Guid userId);
 
         /// <summary>
         /// Retrieves details of all blacklisted users.

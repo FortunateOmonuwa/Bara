@@ -10,6 +10,8 @@ using Services.BackgroudServices;
 using Services.ExternalAPI_Integration;
 using Services.FileStorageServices.CloudinaryStorage;
 using Services.FileStorageServices.Interfaces;
+using Services.MailingService;
+using Services.MailingService.SendGrid;
 using Services.YouVerifyIntegration;
 using SharedModule.Settings;
 using System.Text.Json.Serialization;
@@ -57,13 +59,13 @@ builder.Host.UseSerilog((context, config) => config.ReadFrom.Configuration(conte
 builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IYouVerifyService, YouVerifyService>();
-builder.Services.AddScoped<ExternalApiIntegrationService>();
-builder.Services.AddScoped<IFileStorageService, CloudinaryService>();
-builder.Services.AddScoped<IFileService, FileRepository>();
-
-builder.Services.AddScoped<IWriterService, WriterRepository>();
-builder.Services.AddScoped<IScriptService, ScriptRepository>();
-
+builder.Services.AddTransient<ExternalApiIntegrationService>();
+builder.Services.AddTransient<IFileStorageService, CloudinaryService>();
+builder.Services.AddTransient<IFileService, FileRepository>();
+builder.Services.AddTransient<IMailService, SendGridService>();
+builder.Services.AddTransient<IWriterService, WriterRepository>();
+builder.Services.AddTransient<IScriptService, ScriptRepository>();
+builder.Services.AddTransient<IProducerService, ProducerRepository>();
 builder.Services.AddHttpClient("YouVerify", client =>
 {
     client.BaseAddress = new Uri($"{builder.Configuration["AppSettings:YouVerifyBaseUrl"]}");
