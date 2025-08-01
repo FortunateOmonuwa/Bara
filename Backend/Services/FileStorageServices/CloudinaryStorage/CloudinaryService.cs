@@ -27,12 +27,29 @@ namespace Services.FileStorageServices.CloudinaryStorage
             this.logger = logger;
             BaseFolder = secrets.Value.CloudinaryFolderName;
         }
-        public Task<bool> DeleteAsync(Guid fileId)
+        public async Task<bool> DeleteAsync(string path)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var publicId = Path.ChangeExtension(path, null);
+
+                var deletionParams = new DeletionParams(publicId)
+                {
+                    ResourceType = ResourceType.Raw
+                };
+                var cloudinary = new Cloudinary(new Account(secrets.CloudinaryName, secrets.CloudinaryAPIKEY, secrets.CloudinaryAPISecret));
+                var result = await cloudinary.DestroyAsync(deletionParams);
+
+                return result.Result == "ok";
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Cloudinary deletion failed: {ex.Message}");
+                return false;
+            }
         }
 
-        public Task<Stream> DownloadAsync(Guid fileId)
+        public Task<Stream> DownloadAsync(string path)
         {
             throw new NotImplementedException();
         }

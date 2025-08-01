@@ -9,10 +9,10 @@ namespace Bara.API.Controllers
     /// <summary>
     /// This controller is used to handle requests to external clients.
     /// </summary>
-    public class ExternalClientController : ControllerBase
+    public class WebHookController : ControllerBase
     {
         private readonly IYouVerifyService youVerify;
-        public ExternalClientController(IYouVerifyService youVerifyService)
+        public WebHookController(IYouVerifyService youVerifyService)
         {
 
         }

@@ -5,7 +5,7 @@ using SharedModule.Utils;
 
 namespace Bara.API.Controllers.ScriptModuleControllers
 {
-    [Route("api/[controller]")]
+    [Route("api/script")]
     [ApiController]
     public class ScriptController : ControllerBase
     {
@@ -79,6 +79,29 @@ namespace Bara.API.Controllers.ScriptModuleControllers
             catch (Exception ex)
             {
                 logger.LogError($"An exception was thrown at {ex.Source} while fetching scripts", ex);
+                return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500, "Internal Server Error");
+            }
+        }
+
+        [HttpDelete("delete/{scriptId}/{writerId}")]
+        public async Task<IActionResult> DeleteScript(Guid scriptId, Guid writerId)
+        {
+            try
+            {
+                var response = await scriptService.DeleteScript(scriptId, writerId);
+                if (response.IsSuccess is false && response.StatusCode == 500)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, response);
+                }
+                else if (response.IsSuccess == false)
+                {
+                    return BadRequest(response);
+                }
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"An exception was thrown at {ex.Source} while deleting script", ex);
                 return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500, "Internal Server Error");
             }
         }

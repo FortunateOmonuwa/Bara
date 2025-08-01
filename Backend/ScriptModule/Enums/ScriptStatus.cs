@@ -8,7 +8,7 @@
         Available,
         InNegotiation,
         Sold,
-        Refunded
+        Deleted
     }
 
 }

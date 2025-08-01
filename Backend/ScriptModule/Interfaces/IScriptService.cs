@@ -33,7 +33,7 @@ namespace ScriptModule.Interfaces
         /// </summary>
         /// <param name="scriptId">The ID of the script to be retrieved</param>
         /// <returns>A script file</returns>
-        Task<ResponseDetail<byte[]>> GetScriptFile(Guid scriptId);
+        Task<ResponseDetail<byte[]>> DownloadScript(Guid scriptId);
 
         /// <summary>
         /// Adds a new script.
@@ -56,7 +56,7 @@ namespace ScriptModule.Interfaces
         /// </summary>
         /// <param name="scriptId">Represents the id of the script to be deleted</param>
         /// <param name="writerId">Represents the id of the writer</param>
-        Task<ResponseDetail<bool>> DeleteScript(Guid scriptId, Guid? writerId);
+        Task<ResponseDetail<bool>> DeleteScript(Guid scriptId, Guid writerId);
 
         /// <summary>
         /// Updates the status of a script 
