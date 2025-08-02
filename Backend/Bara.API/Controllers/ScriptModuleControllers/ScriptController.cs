@@ -40,8 +40,8 @@ namespace Bara.API.Controllers.ScriptModuleControllers
             }
             catch (Exception ex)
             {
-                logger.LogError($"An exception was thrown at {ex.Source} while adding a script for writer {writerId}.", ex);
-                return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500, "Internal Server Error");
+                logger.LogError($"An exception:  {ex.GetType().Name}  was thrown at  {ex.Source}  while adding a script...\nBase Exception: {ex.GetBaseException().GetType()}", $"Exception Code: {ex.HResult}");
+                return (IActionResult)ResponseDetail<IActionResult>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
 
@@ -59,8 +59,8 @@ namespace Bara.API.Controllers.ScriptModuleControllers
             }
             catch (Exception ex)
             {
-                logger.LogError($"An exception was thrown at {ex.Source} while fetching scripts for writer with Id:{writerId}.", ex);
-                return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500, "Internal Server Error");
+                logger.LogError($"An exception:  {ex.GetType().Name}  was thrown at  {ex.Source}  while fetching scripts for writer...\nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
+                return (IActionResult)ResponseDetail<IActionResult>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
 
@@ -78,8 +78,8 @@ namespace Bara.API.Controllers.ScriptModuleControllers
             }
             catch (Exception ex)
             {
-                logger.LogError($"An exception was thrown at {ex.Source} while fetching scripts", ex);
-                return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500, "Internal Server Error");
+                logger.LogError($"An exception: {ex.GetType().Name} was thrown at {ex.Source} while fetching scripts...\nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
+                return (IActionResult)ResponseDetail<IActionResult>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
 
@@ -101,9 +101,31 @@ namespace Bara.API.Controllers.ScriptModuleControllers
             }
             catch (Exception ex)
             {
-                logger.LogError($"An exception was thrown at {ex.Source} while deleting script", ex);
-                return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500, "Internal Server Error");
+                logger.LogError($"An exception: {ex.GetType().Name} was thrown at {ex.Source} while deleting script...\nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
+                return (IActionResult)ResponseDetail<IActionResult>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
+
+        [HttpGet("{scriptId}")]
+        public async Task<IActionResult> Download(Guid scriptId)
+        {
+            try
+            {
+                var result = await scriptService.DownloadScript(scriptId);
+
+                if (!result.IsSuccess || result.Data == null)
+                {
+                    return StatusCode(result.StatusCode, result);
+                }
+
+                return File(result.Data.File, result.Data.ContentType, "script.pdf");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"An exception: {ex.GetType().Name} was thrown at {ex.Source} while downloading a script...\nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
+                return (IActionResult)ResponseDetail<IActionResult>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
+            }
+        }
+
     }
 }

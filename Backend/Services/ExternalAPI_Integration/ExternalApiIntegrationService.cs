@@ -17,19 +17,48 @@ namespace Services.ExternalAPI_Integration
 
         public async Task<HttpResponseMessage> SendPostRequest(StringContent jsonBody, string url, Dictionary<string, string>? keyValuePairs = null, string clientName = "default")
         {
-            var client = httpClient.CreateClient(clientName);
-
-            if (keyValuePairs != null)
+            try
             {
-                foreach (var kvp in keyValuePairs)
-                {
-                    if (!client.DefaultRequestHeaders.Contains(kvp.Key))
-                        client.DefaultRequestHeaders.Add(kvp.Key, kvp.Value);
-                }
-            }
+                var client = httpClient.CreateClient(clientName);
 
-            var response = await client.PostAsync(url, jsonBody);
-            return response;
+                if (keyValuePairs != null)
+                {
+                    foreach (var kvp in keyValuePairs)
+                    {
+                        if (!client.DefaultRequestHeaders.Contains(kvp.Key))
+                            client.DefaultRequestHeaders.Add(kvp.Key, kvp.Value);
+                    }
+                }
+
+                var response = await client.PostAsync(url, jsonBody);
+                return response;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<HttpResponseMessage> GetRequest(string url, Dictionary<string, string>? keyValuePairs = null, string clientName = "default")
+        {
+            try
+            {
+                var client = httpClient.CreateClient(clientName);
+                if (keyValuePairs != null)
+                {
+                    foreach (var kvp in keyValuePairs)
+                    {
+                        if (!client.DefaultRequestHeaders.Contains(kvp.Key))
+                            client.DefaultRequestHeaders.Add(kvp.Key, kvp.Value);
+                    }
+                }
+                var res = await client.GetAsync(url);
+                return res;
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }

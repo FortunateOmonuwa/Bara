@@ -10,6 +10,8 @@ namespace UserModule.Utilities
         private static partial Regex EmailRegex();
         [GeneratedRegex("^[0-9]{11}$")]
         private static partial Regex PhoneRegex();
+        [GeneratedRegex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\da-zA-Z]).{8,}$\r\n")]
+        private static partial Regex PasswordRegex();
         public static bool IsValidMail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
@@ -36,6 +38,11 @@ namespace UserModule.Utilities
             if (string.IsNullOrWhiteSpace(phoneNumber))
                 return false;
             return PhoneRegex().IsMatch(phoneNumber);
+        }
+
+        public static bool IsAcceptablePasswordFormat(string password)
+        {
+            return PasswordRegex().IsMatch(password);
         }
     }
 }

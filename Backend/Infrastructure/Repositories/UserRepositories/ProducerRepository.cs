@@ -10,10 +10,12 @@ using Shared.Models;
 using SharedModule.DTOs.AddressDTOs;
 using SharedModule.Utils;
 using System.Security.Cryptography;
+using TransactionModule.DTOs;
 using TransactionModule.Models;
 using UserModule.DTOs.ProducerDTOs;
 using UserModule.Interfaces.UserInterfaces;
 using UserModule.Models;
+using UserModule.Utilities;
 
 namespace Infrastructure.Repositories.UserRepositories
 {
@@ -37,9 +39,26 @@ namespace Infrastructure.Repositories.UserRepositories
             var transaction = dbContext.Database.BeginTransaction();
             try
             {
+                var email = producerDetailDTO.Email.Trim().ToLowerInvariant();
+                var emailValidation = RegexValidations.IsValidMail(email);
+                var phoneNumberValidation = RegexValidations.IsValidPhoneNumber(producerDetailDTO.PhoneNumber);
+                var nameValidation = RegexValidations.IsValidName(producerDetailDTO.FirstName, producerDetailDTO.LastName, producerDetailDTO.MiddleName ?? "");
+                var passwordValidation = RegexValidations.IsAcceptablePasswordFormat(producerDetailDTO.Password);
+                var validationErrors = new List<string>();
+
+                if (!emailValidation) validationErrors.Add("Invalid email");
+                if (!phoneNumberValidation) validationErrors.Add("Invalid phone number");
+                if (!nameValidation) validationErrors.Add("Names can only contain alphabets");
+                if (!passwordValidation) validationErrors.Add("Password must be strong");
+
+                if (validationErrors.Count > 0)
+                {
+                    return ResponseDetail<GetProducerDetailDTO>.Failed(string.Join(" | ", validationErrors));
+                }
+
                 var producerAccount = await dbContext.AuthProfiles
                                                             .Select(x => new { x.Email, x.IsDeleted })
-                                                            .FirstOrDefaultAsync(x => x.Email == producerDetailDTO.Email);
+                                                            .FirstOrDefaultAsync(x => x.Email == email);
                 if (producerAccount?.IsDeleted == true)
                 {
                     return ResponseDetail<GetProducerDetailDTO>.Failed("A profile with this email already exists and just needs to be Reactivated", 409, "Account Needs Reactivation");
@@ -50,10 +69,10 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
                 var newProducerProfile = new Producer
                 {
-                    Email = producerDetailDTO.Email,
-                    FirstName = producerDetailDTO.FirstName,
-                    LastName = producerDetailDTO.LastName,
-                    MiddleName = producerDetailDTO.MiddleName,
+                    Email = email,
+                    FirstName = producerDetailDTO.FirstName.ToUpperInvariant(),
+                    LastName = producerDetailDTO.LastName.ToUpperInvariant(),
+                    MiddleName = producerDetailDTO.MiddleName?.ToUpperInvariant() ?? "",
                     PhoneNumber = producerDetailDTO.PhoneNumber,
                     Bio = producerDetailDTO.Bio,
                     Gender = producerDetailDTO.Gender,
@@ -61,16 +80,16 @@ namespace Infrastructure.Repositories.UserRepositories
                     Role = "Producer",
                     Address = new Address
                     {
-                        City = producerDetailDTO.AddressDetail.City,
-                        Country = producerDetailDTO.AddressDetail.Country,
-                        State = producerDetailDTO.AddressDetail.State,
-                        Street = producerDetailDTO.AddressDetail.Street,
+                        City = producerDetailDTO.AddressDetail.City.ToUpperInvariant(),
+                        Country = producerDetailDTO.AddressDetail.Country.ToUpperInvariant(),
+                        State = producerDetailDTO.AddressDetail.State.ToUpperInvariant(),
+                        Street = producerDetailDTO.AddressDetail.Street.ToUpperInvariant(),
                         PostalCode = producerDetailDTO.AddressDetail.PostalCode,
-                        AdditionalDetails = producerDetailDTO.AddressDetail.AdditionalDetails,
+                        AdditionalDetails = producerDetailDTO.AddressDetail.AdditionalDetails.ToUpperInvariant(),
                     },
                     AuthProfile = new AuthProfile
                     {
-                        Email = producerDetailDTO.Email,
+                        Email = email,
                         Password = BCrypt.Net.BCrypt.HashPassword(producerDetailDTO.Password),
                         Role = "Producer",
                     },
@@ -82,7 +101,7 @@ namespace Infrastructure.Repositories.UserRepositories
 
                 var userDirectoryName = $"Producer_{newProducerProfile.FirstName}_{newProducerProfile.LastName}-{newProducerProfile.PhoneNumber}";
                 var documentId = await fileService.ProcessDocumentForUpload(userDirectoryName, producerDetailDTO.VerificationDocument);
-                if (documentId.Data.ToString() == null)
+                if (documentId.Data == Guid.Empty || documentId == null)
                 {
                     logger.LogError($"An error occured while uploading KYC document for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}");
                     return ResponseDetail<GetProducerDetailDTO>.Failed($"An error occured while uploading KYC document for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}", 500, "Unexpected Error");
@@ -124,7 +143,6 @@ namespace Infrastructure.Repositories.UserRepositories
                         PostalCode = newProducerProfile.Address.PostalCode,
                         AdditionalDetails = newProducerProfile.Address.AdditionalDetails,
                     },
-                    IsDeleted = newProducerProfile.IsDeleted,
                     IsEmailVerified = newProducerProfile.IsEmailVerified,
                     IsVerified = newProducerProfile.IsVerified,
                     PhoneNumber = newProducerProfile.PhoneNumber,
@@ -142,14 +160,14 @@ namespace Infrastructure.Repositories.UserRepositories
             catch (DbUpdateException dbEx)
             {
                 await transaction.RollbackAsync();
-                logger.LogError($"A database update exception was thrown while creating an account for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}: {dbEx.InnerException}", dbEx.Message);
-                return ResponseDetail<GetProducerDetailDTO>.Failed(dbEx.InnerException?.Message ?? "Database update error", dbEx.HResult, "Database Update Error");
+                logger.LogError($"A database update exception: {dbEx.GetType().Name} was thrown while creating an account for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}... Base Exception: {dbEx.GetBaseException().GetType()}", $"Exception Code: {dbEx.HResult}");
+                return ResponseDetail<GetProducerDetailDTO>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                logger.LogError($"An exception {ex.InnerException} was thrown while creating a writer profile", ex.Message);
-                return ResponseDetail<GetProducerDetailDTO>.Failed(ex.Message, ex.HResult, "Caught Exception");
+                logger.LogError($"An exception: {ex.GetType().Name} was thrown while creating a producer profile... \nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}", ex.Message);
+                return ResponseDetail<GetProducerDetailDTO>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
 
@@ -159,9 +177,62 @@ namespace Infrastructure.Repositories.UserRepositories
             throw new NotImplementedException();
         }
 
-        public Task<ResponseDetail<GetProducerDetailDTO>> GetProducer(Guid producerId)
+        public async Task<ResponseDetail<GetProducerDetailDTO>> GetProducer(Guid producerId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var producer = await dbContext.Producers.Where(x => x.IsDeleted == false).
+                                    Select(x => new GetProducerDetailDTO
+                                    {
+                                        Id = x.Id,
+                                        Email = x.Email,
+                                        FirstName = x.FirstName,
+                                        LastName = x.LastName,
+                                        Name = $"{x.FirstName} {x.LastName}",
+                                        Bio = x.Bio,
+                                        MiddleName = x.MiddleName ?? "-",
+                                        Address = new AddressDetail
+                                        {
+                                            City = x.Address.City,
+                                            Country = x.Address.Country,
+                                            State = x.Address.State,
+                                            Street = x.Address.Street,
+                                            AdditionalDetails = x.Address.AdditionalDetails ?? "-",
+                                            PostalCode = x.Address.PostalCode ?? "-",
+                                        },
+                                        Role = x.Role,
+                                        IsEmailVerified = x.IsEmailVerified,
+                                        IsVerified = x.IsVerified,
+                                        Wallet = new GetWalletDetailDTO
+                                        {
+                                            Balance = x.Wallet.Balance,
+                                            Currency = x.Wallet.Currency,
+                                            CurrencySymbol = x.Wallet.CurrencySymbol,
+                                            LockedBalance = x.Wallet.LockedBalance,
+                                            Id = x.Id,
+                                            UserId = x.Id
+                                        },
+                                        IsBlacklisted = x.IsBlacklisted,
+                                        CreatedAt = x.CreatedAt,
+                                        DateCreated = x.DateCreated,
+                                        TimeCreated = x.TimeCreated,
+                                        DateModified = x.DateModified,
+                                        ModifiedAt = x.ModifiedAt,
+                                        PhoneNumber = x.PhoneNumber,
+                                        TimeModified = x.TimeModified,
+                                        VerificationStatus = x.VerificationStatus,
+                                    }).FirstOrDefaultAsync(x => x.Id == producerId);
+                if (producer is null)
+                {
+                    return ResponseDetail<GetProducerDetailDTO>.Failed($"Producer with ID:{producerId} does not exist", 404, "Not Found");
+                }
+                return ResponseDetail<GetProducerDetailDTO>.Successful(producer);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"An exception {ex.GetType().FullName} was thrown while fetching producer's profile...\n Base Exception: {ex.GetBaseException().GetType().FullName}", ex.Message);
+                return ResponseDetail<GetProducerDetailDTO>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
+            }
         }
 
         public Task<ResponseDetail<GetProducerDetailDTO>> UpdateProducer(PostProducerDetailDTO producerDetailDTO, Guid producerId)

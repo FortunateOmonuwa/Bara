@@ -9,5 +9,7 @@
         public string CloudinaryURL { get; set; }
         public string CloudinaryName { get; set; }
         public string CloudinaryFolderName { get; set; }
+        public string JwtSickRit { get; set; }
+        public List<string> Issuers { get; set; }
     }
 }
