@@ -1,4 +1,5 @@
 ﻿using SharedModule.DTOs.AddressDTOs;
+using TransactionModule.DTOs;
 using UserModule.Enums;
 
 namespace UserModule.DTOs.ProducerDTOs
@@ -35,8 +36,15 @@ namespace UserModule.DTOs.ProducerDTOs
         public bool IsVerified { get; init; }
         public VerificationStatus VerificationStatus { get; init; }
         public bool IsBlacklisted { get; init; }
-        public bool IsDeleted { get; init; }
+        public string Role { get; init; }
         public string Bio { get; init; }
+        public GetWalletDetailDTO Wallet { get; init; }
+        public DateTimeOffset CreatedAt { get; init; }
+        public DateOnly DateCreated { get; init; }
+        public TimeOnly TimeCreated { get; init; }
+        public DateTimeOffset? ModifiedAt { get; init; }
+        public DateOnly? DateModified { get; init; }
+        public TimeOnly? TimeModified { get; init; }
     }
 
 }

@@ -36,7 +36,7 @@ namespace Infrastructure.Repositories.ScriptRepositories
         {
             try
             {
-                var writer = await dbContext.Writers.FindAsync(writerId);
+                var writer = await dbContext.Writers.Select(x => new { x.Id, x.FirstName, x.LastName }).FirstOrDefaultAsync(x => x.Id == writerId);
                 if (writer is null)
                 {
                     return ResponseDetail<Script>.Failed($"Writer with profileId {writerId} does not exist");
@@ -88,8 +88,9 @@ namespace Infrastructure.Repositories.ScriptRepositories
                     ProofUrl = scriptDetails.ProofUrl,
                     RegistrationBody = scriptDetails.RegistrationBody,
                     Synopsis = scriptDetails.Synopsis,
-                    Title = scriptDetails.Title,
+                    Title = scriptDetails.Title.ToUpper(),
                     WriterId = writerId,
+                    WriterName = $"{writer.FirstName}-{writer.LastName}",
                     Path = $"{secrets.CloudinaryFolderName}/{userDirectoryName}/scripts/{scriptName}",
                     Url = $"{settings.CloudinaryBaseURL}/{secrets.CloudinaryFolderName}/{userDirectoryName}/scripts/{scriptName}"
                 };
@@ -129,8 +130,8 @@ namespace Infrastructure.Repositories.ScriptRepositories
             }
             catch (Exception ex)
             {
-                logger.LogError($"An exception {ex.InnerException} was thrown while adding a script", ex.Message);
-                return ResponseDetail<Script>.Failed(ex.Message, ex.HResult, "Caught Exception");
+                logger.LogError($"An exception was thrown while adding a script, \nException: {ex.GetType().Name}\n Base Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
+                return ResponseDetail<Script>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
 
@@ -177,8 +178,8 @@ namespace Infrastructure.Repositories.ScriptRepositories
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error deleting script with ID {scriptId}. Exception: {ex.Message}");
-                return ResponseDetail<bool>.Failed("An error occurred while deleting the script", 500, "Internal Error");
+                logger.LogError($"An exception was thrown while deleting script. \nException: {ex.GetType().Name}\n Base Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
+                return ResponseDetail<bool>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
 
@@ -217,8 +218,8 @@ namespace Infrastructure.Repositories.ScriptRepositories
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error retrieving script with ID {scriptId}. Exception: {ex.Message}");
-                return ResponseDetail<Script>.Failed("An error occurred while retrieving the script", 500, "Internal Error");
+                logger.LogError($"An exception was thrown while script... \nException: {ex.GetType().Name}\n Base Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
+                return ResponseDetail<Script>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
 
@@ -265,8 +266,8 @@ namespace Infrastructure.Repositories.ScriptRepositories
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error: {ex.InnerException}", ex.Message);
-                return ResponseDetail<List<Script>>.Failed(ex.Message, ex.HResult, "Caught Exception");
+                logger.LogError($"An exception {ex.GetType().Name} while fetching scripts...\n Base Exception{ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
+                return ResponseDetail<List<Script>>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
 
@@ -309,19 +310,36 @@ namespace Infrastructure.Repositories.ScriptRepositories
             }
             catch (Exception ex)
             {
-                logger.LogError($"An exception {ex.InnerException} was thrown while retrieving scripts for writer: {writerId}", ex.Message);
-                return ResponseDetail<List<Script>>.Failed(ex.Message, ex.HResult, "Caught Exception");
+                logger.LogError($"An exception {ex.InnerException} was thrown while retrieving scripts for writer: {writerId}... \nBase Exception{ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
+                return ResponseDetail<List<Script>>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
 
-        public Task<ResponseDetail<byte[]>> DownloadScript(Guid scriptId)
+        public async Task<ResponseDetail<GetScriptDTO>> DownloadScript(Guid scriptId)
         {
-            //var script = await dbContext.Scripts.FindAsync(scriptId);
-            //if (script is null) ?? ResponseDetail
+            try
+            {
+                var script = await dbContext.Scripts.FindAsync(scriptId);
+                if (script == null)
+                {
+                    return ResponseDetail<GetScriptDTO>.Failed($"Script with id {scriptId} doesn't exist", 404, "Not Found");
+                }
 
-            //var fileStream = await cloudinary.DownloadAsync(script.Path);
-            //return File(fileStream, "application/pdf", Path.GetFileName(script.Path));
-            throw new NotImplementedException();
+                var (stream, contentType) = await cloudinary.DownloadAsync(script.Path);
+                var fileBytes = stream.ToArray();
+
+                return ResponseDetail<GetScriptDTO>.Successful(new GetScriptDTO
+                {
+                    ContentType = contentType,
+                    File = fileBytes,
+                    Name = script.Title
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"An exception {ex.GetType().Name} was thrown while downloading script with ID: {scriptId}... Base Exception {ex.GetBaseException().GetType().Name}", ex.Message);
+                return ResponseDetail<GetScriptDTO>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
+            }
         }
 
         public Task<ResponseDetail<Script>> UpdateScript(PostScriptDetailDTO scriptDetails, Guid writerId, Guid scriptId)

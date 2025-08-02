@@ -37,9 +37,9 @@ namespace UserModule.DTOs.WriterDTOs
         public bool IsPremium { get; init; }
         public AddressDetail? Address { get; init; }
         public bool IsVerified { get; init; }
-        public string? VerificationStatus { get; init; }
+        public string VerificationStatus { get; init; }
         public bool IsBlacklisted { get; init; }
-        public bool IsDeleted { get; init; }
+        public string Role { get; init; }
         public List<GetServiceDetailDTO>? Services { get; init; }
         public GetWalletDetailDTO Wallet { get; init; }
         public DateTimeOffset CreatedAt { get; init; }

@@ -3,7 +3,7 @@ using SharedModule.Utils;
 using UserModule.DTOs.WriterDTOs;
 using UserModule.Interfaces.UserInterfaces;
 
-namespace Bara.API.Controllers.UserControllers
+namespace Bara.API.Controllers.UserModuleControllers
 {
     [Route("api/writer")]
     [ApiController]
@@ -38,8 +38,27 @@ namespace Bara.API.Controllers.UserControllers
             }
             catch (Exception ex)
             {
-                logger.LogError($"An exception was thrown at {ex.Source} while creating a new writer profile: {writerDetail.FirstName} {writerDetail.LastName}.", ex);
-                return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500);
+                logger.LogError($"An exception {ex.GetType()} was thrown at {ex.Source} while creating a new writer profile: {writerDetail.FirstName} {writerDetail.LastName}...\nBase Exception {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
+                return (IActionResult)ResponseDetail<IActionResult>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected Error");
+            }
+        }
+        [HttpGet("profile/{writerId}")]
+        public async Task<IActionResult> GetProducerDetail(Guid writerId)
+        {
+            try
+            {
+                var res = await writerService.GetWriterDetail(writerId);
+                if (res.IsSuccess is false)
+                {
+                    return BadRequest(res);
+                }
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"An exception {ex.GetType().Name} was thrown at {ex.Source} while fetching writer profile..." +
+                    $"\nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}", ex.Message);
+                return (IActionResult)ResponseDetail<IActionResult>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected Error");
             }
         }
     }

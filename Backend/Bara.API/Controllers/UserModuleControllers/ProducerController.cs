@@ -39,8 +39,28 @@ namespace Bara.API.Controllers.UserModuleControllers
             }
             catch (Exception ex)
             {
-                logger.LogError($"An exception was thrown at {ex.Source} while creating new producer profile: {producerDetail.FirstName} {producerDetail.LastName}.", ex);
-                return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500);
+                logger.LogError($"An exception {ex.GetType().Name} was thrown at {ex.Source} while creating new producer profile: {producerDetail.FirstName} {producerDetail.LastName}..." +
+                    $"\nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}", ex.Message);
+                return (IActionResult)ResponseDetail<IActionResult>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
+            }
+        }
+        [HttpGet("profile/{producerId}")]
+        public async Task<IActionResult> GetProducerDetail(Guid producerId)
+        {
+            try
+            {
+                var res = await producerService.GetProducer(producerId);
+                if (res.IsSuccess is false)
+                {
+                    return BadRequest(res);
+                }
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"An exception {ex.GetType().Name} was thrown at {ex.Source} while fetching producer profile..." +
+                    $"\nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}", ex.Message);
+                return (IActionResult)ResponseDetail<IActionResult>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
     }

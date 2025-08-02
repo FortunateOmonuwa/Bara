@@ -41,6 +41,7 @@ namespace ScriptModule.Models
         public string? ProofUrl { get; set; }
         [ForeignKey("Writer")]
         public Guid? WriterId { get; set; }
+        public required string WriterName { get; set; }
         public ScriptStatus Status { get; set; } = ScriptStatus.Available;
         //public List<SharedScript> SharedScripts { get; set; } = [];
     }

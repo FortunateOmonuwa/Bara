@@ -26,14 +26,14 @@ namespace ScriptModule.Interfaces
         /// Retrieves all scripts details
         /// </summary>
         /// <returns>A list of scripts details</returns>
-        Task<ResponseDetail<List<Script>>> GetScripts(int pageNumber, int pageSize); //Remember to create 2 endpoints... one for all scripts, second for premium members.
+        Task<ResponseDetail<List<Script>>> GetScripts(int pageNumber, int pageSize);
 
         /// <summary>
         /// Retrieves the actual script
         /// </summary>
         /// <param name="scriptId">The ID of the script to be retrieved</param>
         /// <returns>A script file</returns>
-        Task<ResponseDetail<byte[]>> DownloadScript(Guid scriptId);
+        Task<ResponseDetail<GetScriptDTO>> DownloadScript(Guid scriptId);
 
         /// <summary>
         /// Adds a new script.
