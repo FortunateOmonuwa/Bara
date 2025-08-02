@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 
 const options = [
@@ -9,39 +9,40 @@ const options = [
   "Driver’s license",
 ];
 
-export default function IdentityVerificationForm() {
-  const [documentType, setDocumentType] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadComplete, setUploadComplete] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+interface IdentityFormProps {
+  form: {
+    documentType: string;
+    file: File | null;
+  };
+  setForm: React.Dispatch<
+    React.SetStateAction<{
+      documentType: string;
+      file: File | null;
+    }>
+  >;
+}
 
+export default function IdentityVerificationForm({
+  form,
+  setForm,
+}: IdentityFormProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false); 
   const handleSelect = (option: string) => {
-    setDocumentType(option);
+    setForm((prev) => ({ ...prev, documentType: option }));
     setDropdownOpen(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
-      setUploadedFile(file);
-      setUploadComplete(true);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      setForm((prev) => ({ ...prev, file }));
     }
   };
 
   const handleBrowseClick = () => {
     fileInputRef.current?.click();
   };
-
-  useEffect(() => {
-    return () => {
-      // Clean up preview URL to avoid memory leaks
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
 
   return (
     <div className="space-y-6 pt-2">
@@ -52,13 +53,13 @@ export default function IdentityVerificationForm() {
         </label>
         <div
           className="relative cursor-pointer"
-          onClick={() => setDropdownOpen(!dropdownOpen)}
+          onClick={() => setDropdownOpen((prev) => !prev)} // ✅ Toggle dropdown
         >
           <input
             type="text"
             placeholder="Select document type"
-            className="w-full border border-[#ABADB2] p-3 rounded-md pr-10 text-sm text-[#22242A] placeholder:text-[#9CA3AF] cursor-pointer focus:!border-[#800000] focus:outline-none"
-            value={documentType}
+            className="w-full border border-[#ABADB2] focus:border-[#800000] focus:outline-none p-3 rounded-md pr-10 text-sm text-[#22242A] placeholder:text-[#9CA3AF] cursor-pointer"
+            value={form.documentType}
             readOnly
           />
           <Image
@@ -79,7 +80,7 @@ export default function IdentityVerificationForm() {
                 onClick={() => handleSelect(option)}
               >
                 <div className="w-4 h-4 mr-2 rounded-full border border-[#ABADB2] flex items-center justify-center">
-                  {documentType === option && (
+                  {form.documentType === option && (
                     <div className="w-2 h-2 bg-[#800000] rounded-full" />
                   )}
                 </div>
@@ -96,7 +97,7 @@ export default function IdentityVerificationForm() {
           Upload selected proof of identity
         </label>
 
-        {uploadComplete && uploadedFile && previewUrl ? (
+        {form.file ? (
           <div className="border-2 border-dashed border-[#ABADB2] rounded-md p-4 bg-[#F5F5F5]">
             <div className="flex flex-col items-center space-y-3">
               <Image
@@ -109,7 +110,7 @@ export default function IdentityVerificationForm() {
                 Upload complete
               </span>
               <Image
-                src={previewUrl}
+                src={URL.createObjectURL(form.file)}
                 alt="Uploaded preview"
                 width={60}
                 height={100}
@@ -120,8 +121,8 @@ export default function IdentityVerificationForm() {
           </div>
         ) : (
           <div
-            className="w-full h-40 border-2 border-dashed border-[#ABADB2] rounded-md bg-[#F5F5F5] flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-100 transition"
             onClick={handleBrowseClick}
+            className="w-full h-40 border-2 border-dashed border-[#ABADB2] rounded-md bg-[#F5F5F5] flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-100 transition"
           >
             <p className="text-sm text-[#333740]">
               Drag and drop file (png, jpeg) here
@@ -132,9 +133,6 @@ export default function IdentityVerificationForm() {
                 Browse
               </span>
             </p>
-            {uploadedFile && (
-              <p className="mt-2 text-xs text-[#555]">{uploadedFile.name}</p>
-            )}
           </div>
         )}
 

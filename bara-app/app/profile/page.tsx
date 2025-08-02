@@ -7,20 +7,35 @@ import Image from "next/image";
 import LocationForm from "@/components/LocationForm";
 import IdentityVerificationForm from "@/components/IdentityVerificationForm";
 
-// Type for the tab values
 type TabType = "personal" | "location" | "identity";
 
 export default function ProfilePage() {
   const router = useRouter();
-
   const [activeTab, setActiveTab] = useState<TabType>("personal");
 
+  // Personal info state
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     company: "",
     phone: "",
     nin: "",
+  });
+
+  // Location state
+  const [locationForm, setLocationForm] = useState({
+    country: "Nigeria",
+    state: "",
+    city: "",
+    houseNumber: "",
+    street: "",
+    zipCode: "",
+  });
+
+  // Identity verification state
+  const [identityForm, setIdentityForm] = useState({
+    documentType: "",
+    file: null as File | null,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,8 +45,25 @@ export default function ProfilePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Profile Data:", formData);
-    router.push("/dashboard");
+
+    if (activeTab === "personal" && isPersonalInfoComplete) {
+      setActiveTab("location");
+      return;
+    }
+
+    if (activeTab === "location" && isLocationInfoComplete) {
+      setActiveTab("identity");
+      return;
+    }
+
+    if (activeTab === "identity" && isIdentityInfoComplete) {
+      console.log("Submitted All Data:", {
+        personal: formData,
+        location: locationForm,
+        identity: identityForm,
+      });
+      router.push("/dashboard");
+    }
   };
 
   const handleSkip = () => {
@@ -40,10 +72,11 @@ export default function ProfilePage() {
     } else if (activeTab === "location") {
       setActiveTab("identity");
     } else {
-      router.push("/dashboard"); // Final step
+      router.push("/dashboard");
     }
   };
 
+  // Check completion status
   const isPersonalInfoComplete =
     formData.firstName &&
     formData.lastName &&
@@ -51,21 +84,33 @@ export default function ProfilePage() {
     formData.phone &&
     formData.nin;
 
+  const isLocationInfoComplete =
+    locationForm.country &&
+    locationForm.state &&
+    locationForm.city &&
+    locationForm.houseNumber &&
+    locationForm.street &&
+    locationForm.zipCode;
+
+  const isIdentityInfoComplete = identityForm.documentType && identityForm.file;
+
+  const isCurrentStepComplete =
+    (activeTab === "personal" && isPersonalInfoComplete) ||
+    (activeTab === "location" && isLocationInfoComplete) ||
+    (activeTab === "identity" && isIdentityInfoComplete);
+
   return (
     <div className="fixed inset-0 bg-[#1a0000] bg-opacity-80 flex items-center justify-center z-50 p-4">
       <form
         onSubmit={handleSubmit}
         className="bg-white rounded-lg shadow-lg p-10 w-full max-w-3xl space-y-2"
       >
-        {/* Logo */}
         <Logo />
 
-        {/* Title */}
         <h1 className="text-xl md:text-2xl font-medium text-[#22242A]">
           Set up your profile
         </h1>
 
-        {/* Tabs */}
         <div className="flex border-b border-gray-300 text-sm font-medium text-[#858990] space-x-6">
           {(["personal", "location", "identity"] as TabType[]).map((tab) => (
             <button
@@ -184,8 +229,15 @@ export default function ProfilePage() {
           </>
         )}
 
-        {activeTab === "location" && <LocationForm />}
-        {activeTab === "identity" && <IdentityVerificationForm />}
+        {activeTab === "location" && (
+          <LocationForm form={locationForm} setForm={setLocationForm} />
+        )}
+        {activeTab === "identity" && (
+          <IdentityVerificationForm
+            form={identityForm}
+            setForm={setIdentityForm}
+          />
+        )}
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-4 pt-4">
@@ -199,14 +251,14 @@ export default function ProfilePage() {
 
           <button
             type="submit"
-            disabled={!isPersonalInfoComplete}
+            disabled={!isCurrentStepComplete}
             className={`px-8 py-2 rounded-md font-semibold ${
-              isPersonalInfoComplete
+              isCurrentStepComplete
                 ? "bg-[#810306] text-white"
                 : "bg-[#F5F5F5] text-[#858990] cursor-not-allowed"
             }`}
           >
-            Save
+            {activeTab === "identity" ? "Get Started" : "Save"}
           </button>
         </div>
       </form>
