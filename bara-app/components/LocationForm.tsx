@@ -1,18 +1,30 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 
-export default function LocationForm() {
-  const [form, setForm] = useState({
-    country: "Nigeria",
-    state: "",
-    city: "",
-    houseNumber: "",
-    street: "",
-    zipCode: "",
-  });
+interface LocationFormProps {
+  form: {
+    country: string;
+    state: string;
+    city: string;
+    houseNumber: string;
+    street: string;
+    zipCode: string;
+  };
+  setForm: Dispatch<
+    SetStateAction<{
+      country: string;
+      state: string;
+      city: string;
+      houseNumber: string;
+      street: string;
+      zipCode: string;
+    }>
+  >;
+}
 
+export default function LocationForm({ form, setForm }: LocationFormProps) {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
