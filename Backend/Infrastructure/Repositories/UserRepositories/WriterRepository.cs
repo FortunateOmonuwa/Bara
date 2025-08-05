@@ -93,7 +93,6 @@ namespace Infrastructure.Repositories.UserRepositories
                     Gender = writerDetail.Gender,
                     IsPremiumMember = writerDetail.IsPremiumMember,
                     MiddleName = writerDetail.MiddleName?.ToUpperInvariant() ?? "",
-                    Role = "Writer",
                     Services = writerDetail.PostServiceDetail?
                                 .Select(dto => new Service
                                 {
@@ -113,6 +112,7 @@ namespace Infrastructure.Repositories.UserRepositories
                         Email = email,
                         Password = BCrypt.Net.BCrypt.HashPassword(writerDetail.Password),
                         Role = "Writer",
+                        FullName = $"{writerDetail.FirstName} {writerDetail.LastName}".ToUpperInvariant()
                     },
                     Wallet = new Wallet
                     {
@@ -141,7 +141,8 @@ namespace Infrastructure.Repositories.UserRepositories
 
                 var token = RandomNumberGenerator.GetInt32(100000, 999999);
 
-                cache.Set($"Writer_Verification_Token_{writer.Id}", token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+                cache.Set($"User_Verification_Token_{writer.Id}", token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+                Console.WriteLine($"Writer_Verification_Token_{writer.FirstName} {writer.LastName}", token);
 
                 var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(writer.Email, writer.FirstName, token.ToString());
                 BackgroundJob.Enqueue(() => hangfire.SendMailAsync(verificationMail));
@@ -158,9 +159,10 @@ namespace Infrastructure.Repositories.UserRepositories
                     Bio = writer.Bio,
                     Email = writer.Email,
                     PhoneNumber = writer.PhoneNumber,
-                    IsBlacklisted = writer.IsBlacklisted,
-                    IsEmailVerified = writer.IsEmailVerified,
-                    IsVerified = writer.IsVerified,
+                    IsBlacklisted = writer.AuthProfile.IsDeleted,
+                    IsEmailVerified = writer.AuthProfile.IsEmailVerified,
+                    IsVerified = writer.AuthProfile.IsVerified,
+                    Role = writer.AuthProfile.Role,
                     IsPremium = writer.IsPremiumMember,
                     VerificationStatus = writer.VerificationStatus.ToString(),
                     Address = new AddressDetail
@@ -233,7 +235,7 @@ namespace Infrastructure.Repositories.UserRepositories
         {
             try
             {
-                var writerProfile = await dbContext.Writers.Where(x => x.IsDeleted == false).
+                var writerProfile = await dbContext.Writers.Where(x => x.AuthProfile.IsDeleted == false).
                                     Select(x => new GetWriterDetailDTO
                                     {
                                         Id = x.Id,
@@ -267,9 +269,7 @@ namespace Infrastructure.Repositories.UserRepositories
                                             AdditionalDetails = x.Address.AdditionalDetails ?? "-",
                                             PostalCode = x.Address.PostalCode ?? "-",
                                         },
-                                        Role = x.Role,
-                                        IsEmailVerified = x.IsEmailVerified,
-                                        IsVerified = x.IsVerified,
+                                        Role = x.AuthProfile.Role,
                                         Wallet = new GetWalletDetailDTO
                                         {
                                             Balance = x.Wallet.Balance,
@@ -279,11 +279,13 @@ namespace Infrastructure.Repositories.UserRepositories
                                             Id = x.Id,
                                             UserId = x.Id
                                         },
-                                        IsBlacklisted = x.IsBlacklisted,
+                                        IsBlacklisted = x.AuthProfile.IsDeleted,
                                         CreatedAt = x.CreatedAt,
                                         DateCreated = x.DateCreated,
                                         TimeCreated = x.TimeCreated,
                                         DateModified = x.DateModified,
+                                        IsEmailVerified = x.AuthProfile.IsEmailVerified,
+                                        IsVerified = x.AuthProfile.IsVerified,
                                         ModifiedAt = x.ModifiedAt,
                                         PhoneNumber = x.PhoneNumber,
                                         TimeModified = x.TimeModified,

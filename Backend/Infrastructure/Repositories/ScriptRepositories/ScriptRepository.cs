@@ -36,10 +36,14 @@ namespace Infrastructure.Repositories.ScriptRepositories
         {
             try
             {
-                var writer = await dbContext.Writers.Select(x => new { x.Id, x.FirstName, x.LastName }).FirstOrDefaultAsync(x => x.Id == writerId);
+                var writer = await dbContext.Writers.Select(x => new { x.Id, x.FirstName, x.LastName, x.AuthProfile.IsVerified }).FirstOrDefaultAsync(x => x.Id == writerId);
                 if (writer is null)
                 {
                     return ResponseDetail<Script>.Failed($"Writer with profileId {writerId} does not exist");
+                }
+                if (writer.IsVerified is false)
+                {
+                    return ResponseDetail<Script>.Failed($"You can't access this resource yet because your account has not been verified", 403, "Forbidden");
                 }
 
                 var script = scriptDetails.File;
@@ -234,7 +238,8 @@ namespace Infrastructure.Repositories.ScriptRepositories
                     {
                         PremiumStatus = x.IsPremiumMember,
                         x.Scripts,
-                        x.CreatedAt
+                        x.CreatedAt,
+                        x.AuthProfile,
                     }).ToListAsync();
 
                     allScripts = writer

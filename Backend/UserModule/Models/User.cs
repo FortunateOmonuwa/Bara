@@ -8,45 +8,129 @@ using UserModule.Enums;
 namespace UserModule.Models
 {
     /// <summary>
-    /// Defines the base User entity
+    /// Represents the core user entity in the system, capturing identity, profile,
+    /// verification, contact details, and related relationships like wallet and authentication.
     /// </summary>
     public class User : BaseEntity
     {
+        /// <summary>
+        /// The user's first name.
+        /// </summary>
         [DataType(DataType.Text), Column(TypeName = "Nvarchar(60)")]
         public required string FirstName { get; set; }
+
+        /// <summary>
+        /// The user's last name.
+        /// </summary>
         [DataType(DataType.Text), Column(TypeName = "Nvarchar(60)")]
         public required string LastName { get; set; }
+
+        /// <summary>
+        /// The user's optional middle name.
+        /// </summary>
         [DataType(DataType.Text), Column(TypeName = "Nvarchar(60)")]
         public string MiddleName { get; set; } = "";
+
+        /// <summary>
+        /// The user's email address.
+        /// Must be in valid email format.
+        /// </summary>
         [RegularExpression("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$\r\n", ErrorMessage = "Please enter a valid Email Address"), DataType(DataType.EmailAddress)]
         public required string Email { get; set; }
+
+        /// <summary>
+        /// The user's phone number.
+        /// Must be a valid international or local number (10 to 15 digits)..With country code.
+        /// </summary>
         [RegularExpression("^(?!0+$)(\\+\\d{1,3}[- ]?)?(?!0+$)\\d{10,15}$", ErrorMessage = "Please enter valid phone no."), DataType(DataType.PhoneNumber)]
         public required string PhoneNumber { get; set; }
+
+        /// <summary>
+        /// A brief biography or description provided by the user.
+        /// </summary>
         [DataType(DataType.Text), Column(TypeName = "Nvarchar(200)")]
         public virtual string Bio { get; set; } = string.Empty;
-        public bool IsEmailVerified { get; set; }
-        public string Role { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The user's gender.
+        /// </summary>
         public required Gender Gender { get; set; }
+
+        /// <summary>
+        /// The user's date of birth.
+        /// </summary>
         public required DateOnly DateOfBirth { get; set; }
+
+        /// <summary>
+        /// Foreign key reference to the user's address.
+        /// </summary>
         [ForeignKey(nameof(Address))]
         public Guid AddressId { get; set; }
+
+        /// <summary>
+        /// The user's physical address.
+        /// </summary>
         public required Address Address { get; set; }
+
+        /// <summary>
+        /// Foreign key reference to the user's verification document.
+        /// </summary>
         [ForeignKey(nameof(VerificationDocument))]
         public Guid VerificationDocumentID { get; set; }
+
+        /// <summary>
+        /// The verification document uploaded by the user for identity verification.
+        /// </summary>
         public Document? VerificationDocument { get; set; }
+
+        /// <summary>
+        /// The current verification status of the user.
+        /// </summary>
         public VerificationStatus VerificationStatus { get; set; } = VerificationStatus.Pending;
-        public bool IsVerified { get; set; }
-        public bool IsBlacklisted { get; set; }
+
+        /// <summary>
+        /// Foreign key reference to the user's wallet.
+        /// </summary>
         [ForeignKey(nameof(Wallet))]
         public Guid WalletId { get; set; }
+
+        /// <summary>
+        /// The user's digital wallet used for transactions.
+        /// </summary>
         public Wallet Wallet { get; set; } = new Wallet();
+
+        /// <summary>
+        /// Foreign key reference to the user's authentication profile.
+        /// </summary>
         [ForeignKey(nameof(AuthProfile))]
         public Guid AuthProfileId { get; set; }
-        public AuthProfile AuthProfile { get; set; }
-        public bool IsDeleted { get; set; } = false;
+
+        /// <summary>
+        /// The user's authentication profile, containing security-related info.
+        /// </summary>
+        public required AuthProfile AuthProfile { get; set; }
+
+        /// <summary>
+        /// A list of all transactions associated with the user.
+        /// </summary>
         public List<Transaction> Transactions { get; set; } = [];
+
+        /// <summary>
+        /// Timestamp indicating when the user was soft-deleted.
+        /// Null if not deleted.
+        /// </summary>
         public DateTimeOffset? DeletedAt { get; set; }
+
+        /// <summary>
+        /// Extracted date component from <see cref="DeletedAt"/>.
+        /// Defaults to <see cref="DateOnly.MinValue"/> if not deleted.
+        /// </summary>
         public DateOnly DeletedAtDate => DeletedAt.HasValue ? DateOnly.FromDateTime(DeletedAt.Value.UtcDateTime) : DateOnly.MinValue;
+
+        /// <summary>
+        /// Extracted time component from <see cref="DeletedAt"/>.
+        /// Defaults to <see cref="TimeOnly.MinValue"/> if not deleted.
+        /// </summary>
         public TimeOnly DeletedAtTime => DeletedAt.HasValue ? TimeOnly.FromDateTime(DeletedAt.Value.UtcDateTime) : TimeOnly.MinValue;
     }
 }

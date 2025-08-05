@@ -9,10 +9,6 @@ namespace UserModule.configs.ModelBuilderConfig
         public void Configure(EntityTypeBuilder<Writer> builder)
         {
             //builder.HasKey(x => x.Id);
-            builder.HasIndex(u => u.IsBlacklisted);
-            builder.HasIndex(u => u.IsVerified);
-            builder.HasIndex(u => u.IsEmailVerified);
-            builder.HasIndex(u => u.IsDeleted);
             builder.HasIndex(u => u.Email).IsUnique();
             builder.Property(u => u.VerificationStatus)
                 .HasConversion<string>();

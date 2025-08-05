@@ -77,7 +77,6 @@ namespace Infrastructure.Repositories.UserRepositories
                     Bio = producerDetailDTO.Bio,
                     Gender = producerDetailDTO.Gender,
                     DateOfBirth = producerDetailDTO.DateOfBirth,
-                    Role = "Producer",
                     Address = new Address
                     {
                         City = producerDetailDTO.AddressDetail.City.ToUpperInvariant(),
@@ -92,6 +91,7 @@ namespace Infrastructure.Repositories.UserRepositories
                         Email = email,
                         Password = BCrypt.Net.BCrypt.HashPassword(producerDetailDTO.Password),
                         Role = "Producer",
+                        FullName = $"{producerDetailDTO.FirstName} {producerDetailDTO.LastName}".ToUpperInvariant()
                     },
                     Wallet = new Wallet
                     {
@@ -117,7 +117,8 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
 
                 var token = RandomNumberGenerator.GetInt32(100000, 999999);
-                cache.Set($"Producer_Verification_Token_{newProducerProfile.Id}", token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+                cache.Set($"User_Verification_Token_{newProducerProfile.Id}", token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+                Console.WriteLine($"Producer_Verification_Token_{producerDetailDTO.FirstName} {producerDetailDTO.LastName}", token);
 
                 var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(newProducerProfile.Email, newProducerProfile.FirstName, token.ToString());
                 BackgroundJob.Enqueue<HangfireJobs>(x => x.SendMailAsync(verificationMail));
@@ -133,7 +134,7 @@ namespace Infrastructure.Repositories.UserRepositories
                     MiddleName = newProducerProfile.MiddleName,
                     Name = $"{newProducerProfile.FirstName} {newProducerProfile.LastName}",
                     Bio = newProducerProfile.Bio,
-                    IsBlacklisted = newProducerProfile.IsBlacklisted,
+                    IsBlacklisted = newProducerProfile.AuthProfile.IsDeleted,
                     Address = new AddressDetail
                     {
                         City = newProducerProfile.Address.City,
@@ -143,8 +144,8 @@ namespace Infrastructure.Repositories.UserRepositories
                         PostalCode = newProducerProfile.Address.PostalCode,
                         AdditionalDetails = newProducerProfile.Address.AdditionalDetails,
                     },
-                    IsEmailVerified = newProducerProfile.IsEmailVerified,
-                    IsVerified = newProducerProfile.IsVerified,
+                    IsEmailVerified = newProducerProfile.AuthProfile.IsDeleted,
+                    IsVerified = newProducerProfile.AuthProfile.IsDeleted,
                     PhoneNumber = newProducerProfile.PhoneNumber,
                     VerificationStatus = newProducerProfile.VerificationStatus
                 };
@@ -181,7 +182,7 @@ namespace Infrastructure.Repositories.UserRepositories
         {
             try
             {
-                var producer = await dbContext.Producers.Where(x => x.IsDeleted == false).
+                var producer = await dbContext.Producers.Where(x => x.AuthProfile.IsDeleted == false).
                                     Select(x => new GetProducerDetailDTO
                                     {
                                         Id = x.Id,
@@ -200,9 +201,9 @@ namespace Infrastructure.Repositories.UserRepositories
                                             AdditionalDetails = x.Address.AdditionalDetails ?? "-",
                                             PostalCode = x.Address.PostalCode ?? "-",
                                         },
-                                        Role = x.Role,
-                                        IsEmailVerified = x.IsEmailVerified,
-                                        IsVerified = x.IsVerified,
+                                        Role = x.AuthProfile.Role,
+                                        IsEmailVerified = x.AuthProfile.IsDeleted,
+                                        IsVerified = x.AuthProfile.IsDeleted,
                                         Wallet = new GetWalletDetailDTO
                                         {
                                             Balance = x.Wallet.Balance,
@@ -212,7 +213,7 @@ namespace Infrastructure.Repositories.UserRepositories
                                             Id = x.Id,
                                             UserId = x.Id
                                         },
-                                        IsBlacklisted = x.IsBlacklisted,
+                                        IsBlacklisted = x.AuthProfile.IsDeleted,
                                         CreatedAt = x.CreatedAt,
                                         DateCreated = x.DateCreated,
                                         TimeCreated = x.TimeCreated,
