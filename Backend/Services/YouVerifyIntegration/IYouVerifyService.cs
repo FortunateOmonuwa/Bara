@@ -1,11 +1,18 @@
 ﻿namespace Services.YouVerifyIntegration
 {
     /// <summary>
-    /// Represents the contracts used to verify a user document on YouVerify
+    /// Represents the contract for verifying user documents via YouVerify.
     /// </summary>
     public interface IYouVerifyService
     {
-        Task<YouVerifyResponse> VerifyDocumentAsync(YouVerify_KYC_DTO details);
-        //Task<ResponseDetail<YouVerifyResponse>> VerifyInternationalPassAsync(YouVerify_KYC_DTO details);
+        /// <summary>
+        /// Sends a verification request to YouVerify using provided user details.
+        /// </summary>
+        /// <param name="details">The user details and document information required for verification.</param>
+        /// <returns>A <see cref="YouVerifyResponse"/> containing the verification outcome and data.</returns>
+        Task<YouVerifyResponse> VerifyDocumentAsync(YouVerifyKycDto details);
+
+        // Task<ResponseDetail<YouVerifyResponse>> VerifyInternationalPassAsync(YouVerifyKycDto details);
     }
+
 }

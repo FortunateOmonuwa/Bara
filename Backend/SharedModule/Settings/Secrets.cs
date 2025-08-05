@@ -11,5 +11,6 @@
         public string CloudinaryFolderName { get; set; }
         public string JwtSickRit { get; set; }
         public List<string> Issuers { get; set; }
+        public string IpInfoKey { get; set; }
     }
 }
