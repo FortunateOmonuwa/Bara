@@ -5,50 +5,124 @@ using UserModule.DTOs.ServiceDTOs;
 namespace UserModule.DTOs.WriterDTOs
 {
     /// <summary>
-    /// Represents the details of a writer, including personal information, contact details, and verification status.
+    /// Represents the details of a writer, including personal information,
+    /// contact details, verification status, services offered, and account metadata.
     /// </summary>
-    /// <param name="Id"></param>
-    /// <param name="Name"></param>
-    /// <param name="FirstName"></param>
-    /// <param name="LastName"></param>
-    /// <param name="MiddleName"></param>
-    /// <param name="Email"></param>
-    /// <param name="PhoneNumber"></param>
-    /// <param name="Bio"></param>
-    /// <param name="IsEmailVerified"></param>
-    /// <param name="IsPremium"></param>
-    /// <param name="Address"></param>
-    /// <param name="IsVerified"></param>
-    /// <param name="VerificationStatus"></param>
-    /// <param name="IsBlacklisted"></param>
-    /// <param name="IsDeleted"></param>
-    /// <param name="Services"></param>
     public class GetWriterDetailDTO
     {
+        /// <summary>
+        /// The unique identifier of the writer.
+        /// </summary>
         public Guid Id { get; init; }
+
+        /// <summary>
+        /// The full display name of the writer.
+        /// </summary>
         public string? Name { get; init; }
+
+        /// <summary>
+        /// The writer's first name.
+        /// </summary>
         public string? FirstName { get; init; }
+
+        /// <summary>
+        /// The writer's last name.
+        /// </summary>
         public string? LastName { get; init; }
+
+        /// <summary>
+        /// The writer's middle name, if provided.
+        /// </summary>
         public string? MiddleName { get; init; }
+
+        /// <summary>
+        /// The writer's email address.
+        /// </summary>
         public string? Email { get; init; }
+
+        /// <summary>
+        /// The writer's phone number.
+        /// </summary>
         public string? PhoneNumber { get; init; }
+
+        /// <summary>
+        /// A short bio or description about the writer.
+        /// </summary>
         public string? Bio { get; init; }
+
+        /// <summary>
+        /// Indicates whether the writer's email has been verified.
+        /// </summary>
         public bool IsEmailVerified { get; init; }
+
+        /// <summary>
+        /// Indicates whether the writer is a premium member.
+        /// </summary>
         public bool IsPremium { get; init; }
+
+        /// <summary>
+        /// The writer’s physical or contact address.
+        /// </summary>
         public AddressDetail? Address { get; init; }
+
+        /// <summary>
+        /// Indicates whether the writer has completed the verification process.
+        /// </summary>
         public bool IsVerified { get; init; }
-        public string? VerificationStatus { get; init; }
+
+        /// <summary>
+        /// The current verification status of the writer (e.g., Pending, Approved, Rejected).
+        /// </summary>
+        public string VerificationStatus { get; init; }
+
+        /// <summary>
+        /// Indicates whether the writer has been blacklisted.
+        /// </summary>
         public bool IsBlacklisted { get; init; }
-        public bool IsDeleted { get; init; }
+
+        /// <summary>
+        /// The role assigned to the writer (e.g., "Writer").
+        /// </summary>
+        public string Role { get; init; }
+
+        /// <summary>
+        /// A list of services the writer provides (e.g., editing, proofreading).
+        /// </summary>
         public List<GetServiceDetailDTO>? Services { get; init; }
+
+        /// <summary>
+        /// The writer’s wallet details, including balance and currency.
+        /// </summary>
         public GetWalletDetailDTO Wallet { get; init; }
+
+        /// <summary>
+        /// The exact timestamp when the writer was created in the system.
+        /// </summary>
         public DateTimeOffset CreatedAt { get; init; }
+
+        /// <summary>
+        /// The date component of the writer's creation timestamp.
+        /// </summary>
         public DateOnly DateCreated { get; init; }
+
+        /// <summary>
+        /// The time component of the writer's creation timestamp.
+        /// </summary>
         public TimeOnly TimeCreated { get; init; }
+
+        /// <summary>
+        /// The timestamp of the last modification to the writer's record.
+        /// </summary>
         public DateTimeOffset? ModifiedAt { get; init; }
+
+        /// <summary>
+        /// The date component of the writer's last modification timestamp.
+        /// </summary>
         public DateOnly? DateModified { get; init; }
+
+        /// <summary>
+        /// The time component of the writer's last modification timestamp.
+        /// </summary>
         public TimeOnly? TimeModified { get; init; }
     }
-
-
 }

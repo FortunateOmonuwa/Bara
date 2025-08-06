@@ -44,5 +44,16 @@
                 Error = error
             };
         }
+        public static ResponseDetail<T> Failed(T data, string message = "Operation Failed", int statusCode = 400, string? error = null)
+        {
+            return new ResponseDetail<T>
+            {
+                IsSuccess = false,
+                Message = message,
+                StatusCode = statusCode,
+                Error = error,
+                Data = data
+            };
+        }
     }
 }

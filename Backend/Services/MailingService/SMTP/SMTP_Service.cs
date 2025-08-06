@@ -14,7 +14,7 @@ namespace Services.MailingService.SMTP
         private readonly AppSettings settings = appSettings.Value;
         private readonly ILogger<SMTP_Service> logger = logger;
 
-        public async Task<ResponseDetail<string>> SendMail(MailRequestDTO mail)
+        public async Task<ResponseDetail<bool>> SendMail(MailRequestDTO mail)
         {
             try
             {
@@ -66,12 +66,12 @@ namespace Services.MailingService.SMTP
                 client.Disconnect(true);
 
                 logger.LogInformation($"Mail to {mail.Receiver} was successfully sent");
-                return ResponseDetail<string>.Successful("MailSent");
+                return ResponseDetail<bool>.Successful(true);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, $"An exception occurred while sending mail to {mail?.Receiver}");
-                return ResponseDetail<string>.Failed(ex.Message, ex.HResult, "Caught Exception");
+                return ResponseDetail<bool>.Failed(ex.Message, ex.HResult, "Caught Exception");
             }
         }
     }

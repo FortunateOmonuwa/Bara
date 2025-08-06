@@ -17,6 +17,17 @@ namespace Bara.API.Controllers.UserModuleControllers
             this.logger = logger;
         }
 
+        /// <summary>
+        /// Creates a new producer profile on the platform.
+        /// </summary>
+        /// <param name="producerDetail">
+        /// The detailed information required to register a producer, including personal info, contact details, and optionally a profile image or document.
+        /// </param>
+        /// <returns>
+        /// Returns a 200 OK with the created producer’s details if successful,
+        /// 400 Bad Request if the model state is invalid or the creation fails due to user-side issues,
+        /// or 500 Internal Server Error if the server encounters an unexpected problem.
+        /// </returns>
         [HttpPost]
         public async Task<IActionResult> AddProducer([FromForm] PostProducerDetailDTO producerDetail)
         {
@@ -39,8 +50,39 @@ namespace Bara.API.Controllers.UserModuleControllers
             }
             catch (Exception ex)
             {
-                logger.LogError($"An exception was thrown at {ex.Source} while creating new producer profile: {producerDetail.FirstName} {producerDetail.LastName}.", ex);
-                return (IActionResult)ResponseDetail<IActionResult>.Failed(ex.Message, 500);
+                logger.LogError($"An exception {ex.GetType().Name} was thrown at {ex.Source} while creating new producer profile: {producerDetail.FirstName} {producerDetail.LastName}..." +
+                    $"\nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}", ex.Message);
+                return StatusCode(500, ResponseDetail<string>.Failed("Your request failed...", 500, "Error"));
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the complete profile of a specific producer using their unique identifier.
+        /// </summary>
+        /// <param name="producerId">
+        /// The unique ID of the producer whose profile is to be fetched.
+        /// </param>
+        /// <returns>
+        /// Returns a 200 OK with the producer's profile details if found,
+        /// or 400 Bad Request if the producer does not exist or if an error occurs.
+        /// </returns>
+        [HttpGet("profile/{producerId}")]
+        public async Task<IActionResult> GetProducerDetail(Guid producerId)
+        {
+            try
+            {
+                var res = await producerService.GetProducer(producerId);
+                if (res.IsSuccess is false)
+                {
+                    return BadRequest(res);
+                }
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"An exception {ex.GetType().Name} was thrown at {ex.Source} while fetching producer profile..." +
+                    $"\nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}", ex.Message);
+                return StatusCode(500, ResponseDetail<string>.Failed("Your request failed...", 500, "Error"));
             }
         }
     }

@@ -18,6 +18,7 @@ using UserModule.DTOs.ServiceDTOs;
 using UserModule.DTOs.WriterDTOs;
 using UserModule.Interfaces.UserInterfaces;
 using UserModule.Models;
+using UserModule.Utilities;
 
 namespace Infrastructure.Repositories.UserRepositories
 {
@@ -29,6 +30,7 @@ namespace Infrastructure.Repositories.UserRepositories
         private readonly IFileService fileService;
         private readonly HangfireJobs hangfire;
         private readonly IMemoryCache cache;
+
         public WriterRepository(BaraContext dbContext, ILogger<WriterRepository> logger, IOptions<AppSettings> appSettings, IFileService fileService, HangfireJobs hangfireJobs, IMemoryCache memoryCache)
         {
             this.dbContext = dbContext;
@@ -38,12 +40,30 @@ namespace Infrastructure.Repositories.UserRepositories
             hangfire = hangfireJobs;
             cache = memoryCache;
         }
+
         public async Task<ResponseDetail<GetWriterDetailDTO>> AddWriter(PostWriterDetailDTO writerDetail)
         {
             using var transaction = await dbContext.Database.BeginTransactionAsync();
             try
             {
-                var writerAccount = await dbContext.AuthProfiles.Select(x => new { x.Email, x.IsDeleted }).FirstOrDefaultAsync(w => w.Email == writerDetail.Email);
+                var email = writerDetail.Email.Trim().ToLowerInvariant();
+                var emailValidation = RegexValidations.IsValidMail(email);
+                var phoneNumberValidation = RegexValidations.IsValidPhoneNumber(writerDetail.PhoneNumber);
+                var nameValidation = RegexValidations.IsValidName(writerDetail.FirstName, writerDetail.LastName, writerDetail.MiddleName ?? "");
+                var passwordValidation = RegexValidations.IsAcceptablePasswordFormat(writerDetail.Password);
+                var validationErrors = new List<string>();
+
+                if (!emailValidation) validationErrors.Add("Invalid email");
+                if (!phoneNumberValidation) validationErrors.Add("Invalid phone number");
+                if (!nameValidation) validationErrors.Add("Names can only contain alphabets");
+                if (!passwordValidation) validationErrors.Add("Password must be strong");
+
+                if (validationErrors.Count > 0)
+                {
+                    return ResponseDetail<GetWriterDetailDTO>.Failed(string.Join(" | ", validationErrors));
+                }
+
+                var writerAccount = await dbContext.AuthProfiles.Select(x => new { x.Email, x.IsDeleted }).FirstOrDefaultAsync(w => w.Email == email);
 
                 if (writerAccount?.IsDeleted == true)
                 {
@@ -55,25 +75,24 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
                 var writer = new Writer
                 {
-                    FirstName = writerDetail.FirstName,
-                    LastName = writerDetail.LastName,
-                    Email = writerDetail.Email,
+                    FirstName = writerDetail.FirstName.ToUpperInvariant(),
+                    LastName = writerDetail.LastName.ToUpperInvariant(),
+                    Email = email,
                     PhoneNumber = writerDetail.PhoneNumber,
                     Bio = writerDetail.Bio,
                     DateOfBirth = writerDetail.DateOfBirth,
                     Address = new Address
                     {
-                        City = writerDetail.AddressDetail.City,
-                        State = writerDetail.AddressDetail.State,
-                        Country = writerDetail.AddressDetail.Country,
-                        PostalCode = writerDetail.AddressDetail.PostalCode,
-                        Street = writerDetail.AddressDetail.Street,
+                        City = writerDetail.AddressDetail.City.ToUpperInvariant(),
+                        State = writerDetail.AddressDetail.State.ToUpperInvariant(),
+                        Country = writerDetail.AddressDetail.Country.ToUpperInvariant(),
+                        PostalCode = writerDetail.AddressDetail.PostalCode.ToUpperInvariant(),
+                        Street = writerDetail.AddressDetail.Street.ToUpperInvariant(),
                         AdditionalDetails = writerDetail.AddressDetail.AdditionalDetails
                     },
                     Gender = writerDetail.Gender,
                     IsPremiumMember = writerDetail.IsPremiumMember,
-                    MiddleName = writerDetail.MiddleName,
-                    Role = "Writer",
+                    MiddleName = writerDetail.MiddleName?.ToUpperInvariant() ?? "",
                     Services = writerDetail.PostServiceDetail?
                                 .Select(dto => new Service
                                 {
@@ -90,9 +109,10 @@ namespace Infrastructure.Repositories.UserRepositories
                                 .ToList() ?? [],
                     AuthProfile = new AuthProfile
                     {
-                        Email = writerDetail.Email,
+                        Email = email,
                         Password = BCrypt.Net.BCrypt.HashPassword(writerDetail.Password),
                         Role = "Writer",
+                        FullName = $"{writerDetail.FirstName} {writerDetail.LastName}".ToUpperInvariant()
                     },
                     Wallet = new Wallet
                     {
@@ -103,7 +123,7 @@ namespace Infrastructure.Repositories.UserRepositories
                 var userDirectoryName = $"Writer_{writer.FirstName}_{writer.LastName}-{writer.PhoneNumber}";
                 var documentId = await fileService.ProcessDocumentForUpload(userDirectoryName, writerDetail.VerificationDocument);
 
-                if (documentId.Data == Guid.Empty)
+                if (documentId.Data == Guid.Empty || documentId == null)
                 {
                     logger.LogError($"Error uploading KYC document {writerDetail.FirstName} {writerDetail.LastName} ");
                     return ResponseDetail<GetWriterDetailDTO>.Failed($"An error occurred while uploading the KYC document for: {writerDetail.FirstName} {writerDetail.LastName}", 500, "UnexpectedError");
@@ -121,7 +141,8 @@ namespace Infrastructure.Repositories.UserRepositories
 
                 var token = RandomNumberGenerator.GetInt32(100000, 999999);
 
-                cache.Set($"Writer_Verification_Token_{writer.Id}", token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+                cache.Set($"User_Verification_Token_{writer.Id}", token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+                Console.WriteLine($"Writer_Verification_Token_{writer.FirstName} {writer.LastName}", token);
 
                 var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(writer.Email, writer.FirstName, token.ToString());
                 BackgroundJob.Enqueue(() => hangfire.SendMailAsync(verificationMail));
@@ -133,15 +154,15 @@ namespace Infrastructure.Repositories.UserRepositories
                     Id = writer.Id,
                     FirstName = writer.FirstName,
                     LastName = writer.LastName,
-                    MiddleName = writer.MiddleName ?? "",
-                    Name = $"{writer.FirstName} {writer.LastName} {writer.MiddleName ?? ""}",
+                    MiddleName = writer.MiddleName,
+                    Name = $"{writer.FirstName} {writer.LastName} {writer.MiddleName}",
                     Bio = writer.Bio,
                     Email = writer.Email,
                     PhoneNumber = writer.PhoneNumber,
-                    IsBlacklisted = writer.IsBlacklisted,
-                    IsDeleted = writer.IsDeleted,
-                    IsEmailVerified = writer.IsEmailVerified,
-                    IsVerified = writer.IsVerified,
+                    IsBlacklisted = writer.AuthProfile.IsDeleted,
+                    IsEmailVerified = writer.AuthProfile.IsEmailVerified,
+                    IsVerified = writer.AuthProfile.IsVerified,
+                    Role = writer.AuthProfile.Role,
                     IsPremium = writer.IsPremiumMember,
                     VerificationStatus = writer.VerificationStatus.ToString(),
                     Address = new AddressDetail
@@ -193,14 +214,14 @@ namespace Infrastructure.Repositories.UserRepositories
             catch (DbUpdateException dbEx)
             {
                 await transaction.RollbackAsync();
-                logger.LogError($"A database update exception was thrown while creating a writer profile: {dbEx.InnerException}", dbEx.Message);
-                return ResponseDetail<GetWriterDetailDTO>.Failed(dbEx.InnerException?.Message ?? "Database update error", dbEx.HResult, "Database Update Error");
+                logger.LogError($"A database update exception was thrown while creating a writer profile: {dbEx.GetType().Name}", dbEx.Message);
+                return ResponseDetail<GetWriterDetailDTO>.Failed("An Db update exception was thrown while saving writer profile", dbEx.HResult, "Database Update Error");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                logger.LogError($"An exception {ex.InnerException} was thrown while creating a writer profile", ex.Message);
-                return ResponseDetail<GetWriterDetailDTO>.Failed(ex.Message, ex.HResult, "Caught Exception");
+                logger.LogError($"An exception {ex.GetType().FullName} was thrown while creating a writer profile...\n Base Exception: {ex.GetBaseException().GetType().FullName}", ex.Message);
+                return ResponseDetail<GetWriterDetailDTO>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
 
@@ -210,9 +231,77 @@ namespace Infrastructure.Repositories.UserRepositories
             throw new NotImplementedException();
         }
 
-        public Task<ResponseDetail<GetWriterDetailDTO>> GetWriterDetail(Guid writerId)
+        public async Task<ResponseDetail<GetWriterDetailDTO>> GetWriterDetail(Guid writerId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var writerProfile = await dbContext.Writers.Where(x => x.AuthProfile.IsDeleted == false).
+                                    Select(x => new GetWriterDetailDTO
+                                    {
+                                        Id = x.Id,
+                                        Email = x.Email,
+                                        FirstName = x.FirstName,
+                                        LastName = x.LastName,
+                                        Name = $"{x.FirstName} {x.LastName}",
+                                        Bio = x.Bio,
+                                        IsPremium = x.IsPremiumMember,
+                                        MiddleName = x.MiddleName ?? "-",
+                                        Services = x.Services.Select(x => new GetServiceDetailDTO
+                                        {
+                                            Id = x.Id,
+                                            Name = x.Name,
+                                            Currency = x.Currency,
+                                            CurrencySymbol = x.CurrencySymbol,
+                                            Description = x.Description,
+                                            Genre = x.Genre,
+                                            IPDealType = x.IPDealType,
+                                            MaxPrice = x.MaxPrice,
+                                            MinPrice = x.MinPrice,
+                                            PaymentType = x.PaymentType,
+                                            SharePercentage = x.SharePercentage
+                                        }).ToList(),
+                                        Address = new AddressDetail
+                                        {
+                                            City = x.Address.City,
+                                            Country = x.Address.Country,
+                                            State = x.Address.State,
+                                            Street = x.Address.Street,
+                                            AdditionalDetails = x.Address.AdditionalDetails ?? "-",
+                                            PostalCode = x.Address.PostalCode ?? "-",
+                                        },
+                                        Role = x.AuthProfile.Role,
+                                        Wallet = new GetWalletDetailDTO
+                                        {
+                                            Balance = x.Wallet.Balance,
+                                            Currency = x.Wallet.Currency,
+                                            CurrencySymbol = x.Wallet.CurrencySymbol,
+                                            LockedBalance = x.Wallet.LockedBalance,
+                                            Id = x.Id,
+                                            UserId = x.Id
+                                        },
+                                        IsBlacklisted = x.AuthProfile.IsDeleted,
+                                        CreatedAt = x.CreatedAt,
+                                        DateCreated = x.DateCreated,
+                                        TimeCreated = x.TimeCreated,
+                                        DateModified = x.DateModified,
+                                        IsEmailVerified = x.AuthProfile.IsEmailVerified,
+                                        IsVerified = x.AuthProfile.IsVerified,
+                                        ModifiedAt = x.ModifiedAt,
+                                        PhoneNumber = x.PhoneNumber,
+                                        TimeModified = x.TimeModified,
+                                        VerificationStatus = x.VerificationStatus.ToString()
+                                    }).FirstOrDefaultAsync(x => x.Id == writerId);
+                if (writerProfile == null)
+                {
+                    return ResponseDetail<GetWriterDetailDTO>.Failed($"Writer with ID:{writerId} does not exist", 404, "Not Found");
+                }
+                return ResponseDetail<GetWriterDetailDTO>.Successful(writerProfile);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"An exception {ex.GetType().FullName} was thrown while fetching writer profile...\n Base Exception: {ex.GetBaseException().GetType().FullName}", ex.Message);
+                return ResponseDetail<GetWriterDetailDTO>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
+            }
         }
 
         public Task<ResponseDetail<List<GetWriterDetailDTO>>> GetWriters(int pageNumber, int pageSize)
