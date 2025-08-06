@@ -82,7 +82,8 @@ namespace Infrastructure.Repositories.FileRepositories
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                logger.LogError($"An exception: {ex.GetType().Name} was thrown while processing the document...\nBase Exception: {ex.GetBaseException().GetType()}", $"Exception Code: {ex.HResult}");
+                return ResponseDetail<Guid>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
     }

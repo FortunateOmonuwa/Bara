@@ -5,32 +5,63 @@ using UserModule.Enums;
 namespace UserModule.DTOs.ProducerDTOs
 {
     /// <summary>
-    /// Defines the details of a producer to be posted or updated.
+    /// Represents the information required to create or update a producer profile.
     /// </summary>
-    /// <param name="FirstName"></param>
-    /// <param name="LastName"></param>
-    /// <param name="MiddleName"></param>
-    /// <param name="Email"></param>
-    /// <param name="Password"></param>
-    /// <param name="PhoneNumber"></param>
-    /// <param name="Role"></param>
-    /// <param name="IsPremium"></param>
-    /// <param name="AddressDetail"></param>
-    /// <param name="VerificationDocument"></param>
-    /// <param name="Bio"></param>
     public record PostProducerDetailDTO
     {
+        /// <summary>
+        /// The first name of the producer.
+        /// </summary>
         public required string FirstName { get; init; }
+
+        /// <summary>
+        /// The last name (surname) of the producer.
+        /// </summary>
         public required string LastName { get; init; }
+
+        /// <summary>
+        /// The middle name of the producer, if applicable.
+        /// </summary>
         public string MiddleName { get; init; } = string.Empty;
+
+        /// <summary>
+        /// The producer's email address. This will be used for authentication and communication.
+        /// </summary>
         public required string Email { get; init; }
+
+        /// <summary>
+        /// The producer's account password.
+        /// </summary>
         public required string Password { get; init; }
+
+        /// <summary>
+        /// The producer's phone number.
+        /// </summary>
         public required string PhoneNumber { get; init; }
+
+        /// <summary>
+        /// The date of birth of the producer.
+        /// </summary>
         public required DateOnly DateOfBirth { get; init; }
+
+        /// <summary>
+        /// The gender of the producer.
+        /// </summary>
         public required Gender Gender { get; init; }
+
+        /// <summary>
+        /// The address details of the producer.
+        /// </summary>
         public required AddressDetail AddressDetail { get; init; }
+
+        /// <summary>
+        /// The verification document required for validating the producer's identity.
+        /// </summary>
         public required PostDocumentDetailDTO VerificationDocument { get; init; }
+
+        /// <summary>
+        /// A short biography or description about the producer.
+        /// </summary>
         public string Bio { get; init; } = "";
     }
-
 }

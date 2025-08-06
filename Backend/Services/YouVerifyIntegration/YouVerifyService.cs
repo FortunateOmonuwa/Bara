@@ -32,7 +32,7 @@ namespace Services.YouVerifyIntegration
             Drivers_License_URL = $"{settings.YouVerify_Drivers_License_VerificationUrl}";
         }
 
-        public async Task<YouVerifyResponse> VerifyDocumentAsync(YouVerify_KYC_DTO details)
+        public async Task<YouVerifyResponse> VerifyDocumentAsync(YouVerifyKycDto details)
         {
             var url = details.Type switch
             {
@@ -48,16 +48,12 @@ namespace Services.YouVerifyIntegration
                 {
                     id = details.Id,
                     isSubjectConsent = true,
-                    premiumBVN = false,
-                    metadata = new { requestId = Guid.NewGuid().ToString() }
                 },
                 "International_Passport" => new
                 {
                     id = details.Id,
                     isSubjectConsent = true,
                     lastName = details.LastName,
-                    premiumBVN = false,
-                    metadata = new { requestId = Guid.NewGuid().ToString() }
                 },
                 _ => throw new ArgumentException($"Unsupported document type: {details.Type}")
             };

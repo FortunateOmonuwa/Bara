@@ -1,8 +1,10 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Services.ExternalAPI_Integration;
 using Services.FileStorageServices.Interfaces;
 using SharedModule.Settings;
 using System.Net;
@@ -18,14 +20,16 @@ namespace Services.FileStorageServices.CloudinaryStorage
         private readonly AppSettings settings;
         private readonly Secrets secrets;
         private readonly ILogger<CloudinaryService> logger;
+        private readonly ExternalApiIntegrationService integrationService;
         private readonly string BaseFolder = "";
-        public CloudinaryService(IOptions<Secrets> secrets, IOptions<AppSettings> appSettings, ILogger<CloudinaryService> logger)
+        public CloudinaryService(IOptions<Secrets> secrets, IOptions<AppSettings> appSettings, ILogger<CloudinaryService> logger, ExternalApiIntegrationService externalApiIntegrationService)
         {
             this.secrets = secrets.Value;
             settings = appSettings.Value;
             CloudinaryBaseURL = $"{settings.CloudinaryBaseURL}/{secrets.Value.CloudinaryName}";
             this.logger = logger;
             BaseFolder = secrets.Value.CloudinaryFolderName;
+            integrationService = externalApiIntegrationService;
         }
         public async Task<bool> DeleteAsync(string path)
         {
@@ -44,14 +48,41 @@ namespace Services.FileStorageServices.CloudinaryStorage
             }
             catch (Exception ex)
             {
-                logger.LogError($"Cloudinary deletion failed: {ex.Message}");
+                logger.LogError($"An exception: {ex.GetType().Name} was thrown while deleting file from path {path}...\nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
                 return false;
             }
         }
 
-        public Task<Stream> DownloadAsync(string path)
+        public async Task<(MemoryStream?, string)> DownloadAsync(string path)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var cloudinary = new Cloudinary(new Account(secrets.CloudinaryName, secrets.CloudinaryAPIKEY, secrets.CloudinaryAPISecret));
+                var publicId = Path.ChangeExtension(path, null);
+
+                var resourceUrl = cloudinary.Api.Url.BuildUrl(publicId);
+                var response = await integrationService.GetRequest(resourceUrl);
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogWarning($"Cloudinary download failed with status {response.StatusCode} for {resourceUrl}");
+                    return default;
+                }
+                var stream = await response.Content.ReadAsStreamAsync();
+                var contentHeader = new FileExtensionContentTypeProvider();
+                if (!contentHeader.TryGetContentType(path, out var contentType))
+                {
+                    contentType = "application/octet-stream";
+                }
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                return (memoryStream, contentType);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"An exception: {ex.GetType().Name} was thrown while downloading a file from {path} on Cloudinary...\n" +
+                    $"Base Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}", ex.Message);
+                return default;
+            }
         }
 
         public async Task<bool> UploadDocumentAsync(string userDirectoryName, IFormFile file)
@@ -73,7 +104,7 @@ namespace Services.FileStorageServices.CloudinaryStorage
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error uploading document to Cloudinary for {userDirectoryName}", ex.Message);
+                logger.LogError($"An exception: {ex.GetType().Name} was thrown while uploading to Cloudinary for {userDirectoryName}...\nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
                 return false;
             }
         }
@@ -96,7 +127,7 @@ namespace Services.FileStorageServices.CloudinaryStorage
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error uploading script titled {file.Name} to Cloudinary for {userDirectoryName}", ex.Message);
+                logger.LogError($"An exception: {ex.GetType().Name} was thrown while uploading to Cloudinary for {userDirectoryName}...\nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}");
                 return false;
             }
         }

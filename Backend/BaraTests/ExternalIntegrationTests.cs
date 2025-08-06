@@ -10,17 +10,16 @@ namespace BaraTests
         [Fact]
         public async Task TestYouVerifyKYCUseCase()
         {
-            await TestYouVerifyKYC("BVN", "11111111111", "omonuwa");
-            await TestYouVerifyKYC("NIN", "00000000000", "omonuwa");
+            await TestYouVerifyKYC("BVN", "11111111111");
+            await TestYouVerifyKYC("NIN", "00000000000");
         }
 
-        internal async Task TestYouVerifyKYC(string type, string id, string lastName)
+        internal async Task TestYouVerifyKYC(string type, string id)
         {
-            var kycDto = new YouVerify_KYC_DTO
+            var kycDto = new YouVerifyKycDto
             {
                 Id = id,
                 Type = type,
-                LastName = lastName,
                 IsSubjectConsent = true
             };
 

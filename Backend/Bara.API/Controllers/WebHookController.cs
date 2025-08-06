@@ -14,7 +14,7 @@ namespace Bara.API.Controllers
         private readonly IYouVerifyService youVerify;
         public WebHookController(IYouVerifyService youVerifyService)
         {
-
+            youVerify = youVerifyService;
         }
     }
 }

@@ -4,44 +4,60 @@ using UserModule.DTOs.WriterDTOs;
 namespace UserModule.Interfaces.UserInterfaces
 {
     /// <summary>
-    /// Defines the interface for writer services, providing methods to manage writers' details.
+    /// Provides writer-related services such as registration, profile updates, deletion, and retrieval.
     /// </summary>
     public interface IWriterService
     {
         /// <summary>
-        /// Creates a new writer detail with the provided information.
+        /// Registers a new writer with the provided profile information, services, address, and verification document.
         /// </summary>
-        /// <param name="writerDetail"></param>
-        /// <returns></returns>
+        /// <param name="writerDetail">
+        /// A <see cref="PostWriterDetailDTO"/> containing the writer’s full name, email, password, bio, gender, date of birth, 
+        /// premium membership flag, address details, verification document, and optionally, offered services.
+        /// </param>
+        /// <returns>
+        /// A <see cref="ResponseDetail{T}"/> containing the full created profile in <see cref="GetWriterDetailDTO"/> format.
+        /// </returns>
         Task<ResponseDetail<GetWriterDetailDTO>> AddWriter(PostWriterDetailDTO writerDetail);
+
         /// <summary>
-        /// Retrieves the details of a writer by their ID.
+        /// Retrieves a specific writer's profile by their unique identifier.
         /// </summary>
-        /// <param name="writerId"> Represents the writer id of the writer being retrieved</param>
-        /// <returns>A writer's detail</returns>
+        /// <param name="writerId">The unique ID of the writer to retrieve.</param>
+        /// <returns>
+        /// A <see cref="ResponseDetail{T}"/> containing the writer’s full profile in <see cref="GetWriterDetailDTO"/> format.
+        /// </returns>
         Task<ResponseDetail<GetWriterDetailDTO>> GetWriterDetail(Guid writerId);
 
         /// <summary>
-        /// Retrieves a list of writers with pagination support.
+        /// Retrieves a paginated list of writers with their profile information.
         /// </summary>
-        /// <param name="pageNumber"></param>
-        /// <param name="pageSize"></param>
-        /// <returns></returns>
+        /// <param name="pageNumber">The page number to fetch.</param>
+        /// <param name="pageSize">The number of records per page.</param>
+        /// <returns>
+        /// A <see cref="ResponseDetail{T}"/> containing a list of <see cref="GetWriterDetailDTO"/> objects.
+        /// </returns>
         Task<ResponseDetail<List<GetWriterDetailDTO>>> GetWriters(int pageNumber, int pageSize);
 
         /// <summary>
-        /// Updates a new writer detail with the provided information.
+        /// Updates an existing writer’s profile using the provided new details.
         /// </summary>
-        /// <param name="writerId"></param>
-        /// <param name="updateWriterDetail">Represents the new params used to update a writer's detail </param>
-        /// <returns>The updated writer's detail</returns>
+        /// <param name="writerId">The unique identifier of the writer to update.</param>
+        /// <param name="updateWriterDetail">
+        /// A <see cref="PostWriterDetailDTO"/> containing the updated information such as name, bio, address, premium status, etc.
+        /// </param>
+        /// <returns>
+        /// A <see cref="ResponseDetail{T}"/> containing the updated writer profile in <see cref="GetWriterDetailDTO"/> format.
+        /// </returns>
         Task<ResponseDetail<GetWriterDetailDTO>> UpdateWriterDetail(Guid writerId, PostWriterDetailDTO updateWriterDetail);
 
         /// <summary>
-        /// Deletes a writer by their ID.
+        /// Permanently deletes a writer’s profile by their unique identifier.
         /// </summary>
-        /// <param name="writerId"></param>
-        /// <returns></returns>
+        /// <param name="writerId">The ID of the writer to delete.</param>
+        /// <returns>
+        /// A <see cref="ResponseDetail{T}"/> indicating whether the deletion was successful.
+        /// </returns>
         Task<ResponseDetail<bool>> DeleteWriter(Guid writerId);
     }
 }

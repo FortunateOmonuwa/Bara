@@ -3,7 +3,10 @@ using Infrastructure.DataContext;
 using Infrastructure.Repositories.FileRepositories;
 using Infrastructure.Repositories.ScriptRepositories;
 using Infrastructure.Repositories.UserRepositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using ScriptModule.Interfaces;
 using Serilog;
 using Services.BackgroudServices;
@@ -14,7 +17,10 @@ using Services.MailingService;
 using Services.MailingService.SendGrid;
 using Services.YouVerifyIntegration;
 using SharedModule.Settings;
+using SharedModule.Utils;
+using System.Text;
 using System.Text.Json.Serialization;
+using TransactionModule;
 using UserModule.Interfaces.UserInterfaces;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -66,6 +72,27 @@ builder.Services.AddTransient<IMailService, SendGridService>();
 builder.Services.AddTransient<IWriterService, WriterRepository>();
 builder.Services.AddTransient<IScriptService, ScriptRepository>();
 builder.Services.AddTransient<IProducerService, ProducerRepository>();
+builder.Services.AddTransient<IAuthService, IAuthService>();
+builder.Services.AddScoped(typeof(LogHelper<>));
+
+
+//var retryPolicy = HttpPolicyExtensions
+//    .HandleTransientHttpError()
+//    .OrResult(msg => (int)msg.StatusCode == 429) 
+//    .WaitAndRetryAsync(
+//        retryCount: 3,
+//        sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), 
+//        onRetry: (outcome, timespan, retryAttempt, context) =>
+//        {
+//            Console.WriteLine($"Retrying... Attempt {retryAttempt}");
+//        });
+//builder.Services.AddHttpClient("default", client =>
+//{
+//    client.Timeout = TimeSpan.FromSeconds(30);
+//    client.DefaultRequestHeaders.Add("Accept", "application/json");
+//})
+//.AddPolicyHandler(retryPolicy);
+
 builder.Services.AddHttpClient("YouVerify", client =>
 {
     client.BaseAddress = new Uri($"{builder.Configuration["AppSettings:YouVerifyBaseUrl"]}");
@@ -76,6 +103,61 @@ builder.Services.AddHttpClient("YouVerify", client =>
 builder.Services.AddHttpClient("Cloudinary", client =>
 {
     client.BaseAddress = new Uri($"{builder.Configuration["AppSettings:CloudinaryBaseUrl"]}/{builder.Configuration["Secrets:CloudinaryName"]}");
+});
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes($"{builder.Configuration["Secrets: JwtSickCrit"]}")),
+        ValidIssuers = [builder.Configuration["Secrets:Issuers"]]
+    };
+});
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("Bara", new OpenApiInfo { Title = "Bara-API" });
+
+    var basePath = AppContext.BaseDirectory;
+    var xmlDocs = Directory.GetFiles(basePath, "*.xml");
+
+    foreach (var xmlPath in xmlDocs)
+    {
+        options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+    }
+
+    options.AddSecurityDefinition(name: "Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "JWT Bearer Token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer",
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            []
+        }
+    });
+
 });
 var app = builder.Build();
 

@@ -29,7 +29,9 @@ namespace BaraTests.Utils
 
         // JWT
         public static string SecretKey { get; set; }
-        public static string Issuer { get; set; }
+        public static string JwtSickRit { get; set; }
+        public static List<string> Issuers { get; set; }
+        public static string IpInfoKey { get; set; }
 
         //TEST CREDENTIALS
         static TestHelper()
@@ -56,7 +58,9 @@ namespace BaraTests.Utils
             SMTP_DisplayName = configuration["SMTP_DisplayName"];
             SMTP_Password = configuration["SMTP_Password"];
             SecretKey = configuration["SecretKey"];
-            Issuer = configuration["Issuer"];
+            //Issuers = configuration["Issuers"];
+            JwtSickRit = configuration["JwtSickRit"];
+            IpInfoKey = configuration["IpInfoKey"];
         }
     }
 }
