@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 
 interface PaymentSuccessModalProps {
   onClose: () => void;
@@ -27,12 +28,7 @@ export default function PaymentSuccessModal({
             onClick={onClose}
             className="absolute top-6 left-6 flex items-center gap-2 text-sm font-bold text-[#22242A]"
           >
-            <Image
-              src="/Arrow_left.png" 
-              alt="Back"
-              width={16}
-              height={16}
-            />
+            <Image src="/Arrow_left.png" alt="Back" width={16} height={16} />
             Continue exploring scripts
           </button>
 
@@ -72,12 +68,18 @@ export default function PaymentSuccessModal({
 
           {/* buttons */}
           <div className="flex flex-col items-center gap-4">
-            <button className="bg-[#810306] hover:bg-[#1a0000] text-white py-3 px-28 rounded-md text-sm font-medium">
+            <Link
+              href="/dashboard/scripts/ViewSynopsis"
+              className="bg-[#810306] hover:bg-[#1a0000] text-white py-3 px-28 rounded-md text-sm font-medium text-center"
+            >
               View synopsis
-            </button>
-            <button className="border border-[#810306] text-[#810306] py-3 px-30 rounded-md text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#fff5f5]">
+            </Link>
+            <Link
+              href="/dashboard/scripts/ViewScript"
+              className="border border-[#810306] text-[#810306] py-3 px-30 rounded-md text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#fff5f5]"
+            >
               View script
-            </button>
+            </Link>
           </div>
         </div>
       </div>
