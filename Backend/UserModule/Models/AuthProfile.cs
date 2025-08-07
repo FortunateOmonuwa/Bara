@@ -41,11 +41,6 @@ namespace UserModule.Models
         public bool IsVerified { get; set; }
 
         /// <summary>
-        /// Indicates whether the user has been blacklisted due to policy violations or suspicious activity.
-        /// </summary>
-        public bool IsBlacklisted { get; set; }
-
-        /// <summary>
         /// Indicates whether the user's email address has been verified.
         /// </summary>
         public bool IsEmailVerified { get; set; }

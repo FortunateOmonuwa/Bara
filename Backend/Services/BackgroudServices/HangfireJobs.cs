@@ -1,6 +1,8 @@
 ﻿using Hangfire;
 using Microsoft.Extensions.Logging;
 using Services.MailingService;
+using Services.YouVerifyIntegration;
+using SharedModule.Utils;
 using IMailService = Services.MailingService.IMailService;
 
 namespace Services.BackgroudServices
@@ -12,10 +14,14 @@ namespace Services.BackgroudServices
     {
         private readonly ILogger<HangfireJobs> logger;
         private readonly IMailService mailService;
-        public HangfireJobs(IMailService mailService, ILogger<HangfireJobs> logger)
+        private readonly IYouVerifyService youVerify;
+        private readonly LogHelper<HangfireJobs> logHelper;
+        public HangfireJobs(IMailService mailService, ILogger<HangfireJobs> logger, IYouVerifyService youVerify, LogHelper<HangfireJobs> logHelper)
         {
             this.mailService = mailService;
             this.logger = logger;
+            this.youVerify = youVerify;
+            this.logHelper = logHelper;
         }
 
         [AutomaticRetry(Attempts = 3, DelaysInSeconds = [10, 30, 60])]
@@ -32,6 +38,21 @@ namespace Services.BackgroudServices
             catch (Exception ex)
             {
                 logger.LogError(ex, $"An error occurred while sending email to {mail.Receiver}");
+            }
+        }
+        public async Task StartKycProcess(YouVerifyKycDto payload)
+        {
+            try
+            {
+                var res = await youVerify.VerifyIdentificationNumberAsync(payload);
+                if (!res.Success)
+                {
+                    logger.LogError($"Failure verifying user on YouVerify: {res.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, "Verifying user on Youverify's service");
             }
         }
     }

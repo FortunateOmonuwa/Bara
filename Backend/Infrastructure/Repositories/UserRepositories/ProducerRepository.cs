@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Services.BackgroudServices;
 using Services.FileStorageServices.Interfaces;
 using Services.MailingService;
+using Services.YouVerifyIntegration;
 using Shared.Models;
 using SharedModule.DTOs.AddressDTOs;
 using SharedModule.Utils;
@@ -91,7 +92,7 @@ namespace Infrastructure.Repositories.UserRepositories
                         Email = email,
                         Password = BCrypt.Net.BCrypt.HashPassword(producerDetailDTO.Password),
                         Role = "Producer",
-                        FullName = $"{producerDetailDTO.FirstName} {producerDetailDTO.LastName}".ToUpperInvariant()
+                        FullName = $"{producerDetailDTO.FirstName} {producerDetailDTO.LastName}".ToUpperInvariant(),
                     },
                     Wallet = new Wallet
                     {
@@ -122,6 +123,13 @@ namespace Infrastructure.Repositories.UserRepositories
 
                 var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(newProducerProfile.Email, newProducerProfile.FirstName, token.ToString());
                 BackgroundJob.Enqueue<HangfireJobs>(x => x.SendMailAsync(verificationMail));
+
+                var kycDetail = new YouVerifyKycDto
+                {
+                    Id = producerDetailDTO.VerificationDocument.VerificationNumber,
+                    Type = producerDetailDTO.VerificationDocument.Type.ToString()
+                };
+                BackgroundJob.Enqueue(() => hangfire.StartKycProcess(kycDetail));
 
                 await transaction.CommitAsync();
 

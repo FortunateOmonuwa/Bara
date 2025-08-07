@@ -23,11 +23,9 @@ namespace BaraTests
                 IsSubjectConsent = true
             };
 
-            var response = await youVerify.VerifyDocumentAsync(kycDto);
+            var response = await youVerify.VerifyIdentificationNumberAsync(kycDto);
             Assert.NotNull(response);
-            Assert.Equal("success", response.Message);
             Assert.True(response.Success);
-            Assert.NotNull(response.Data);
         }
 
         #endregion

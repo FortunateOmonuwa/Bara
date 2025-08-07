@@ -15,12 +15,12 @@ using Services.FileStorageServices.CloudinaryStorage;
 using Services.FileStorageServices.Interfaces;
 using Services.MailingService;
 using Services.MailingService.SendGrid;
+using Services.SignalR;
 using Services.YouVerifyIntegration;
 using SharedModule.Settings;
 using SharedModule.Utils;
 using System.Text;
 using System.Text.Json.Serialization;
-using TransactionModule;
 using UserModule.Interfaces.UserInterfaces;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -72,10 +72,10 @@ builder.Services.AddTransient<IMailService, SendGridService>();
 builder.Services.AddTransient<IWriterService, WriterRepository>();
 builder.Services.AddTransient<IScriptService, ScriptRepository>();
 builder.Services.AddTransient<IProducerService, ProducerRepository>();
-builder.Services.AddTransient<IAuthService, IAuthService>();
+builder.Services.AddTransient<IAuthService, AuthRepository>();
 builder.Services.AddScoped(typeof(LogHelper<>));
 
-
+builder.Services.AddSignalR();
 //var retryPolicy = HttpPolicyExtensions
 //    .HandleTransientHttpError()
 //    .OrResult(msg => (int)msg.StatusCode == 429) 
@@ -114,12 +114,33 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes($"{builder.Configuration["Secrets: JwtSickCrit"]}")),
-        ValidIssuers = [builder.Configuration["Secrets:Issuers"]]
+        ValidIssuers = [builder.Configuration["Secrets:Issuers"]],
+        RoleClaimType = "Role",
+        NameClaimType = "UserId",
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["AccessToken"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notification"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorizationBuilder()
+.AddPolicy("VerifiedOnly", policy =>
+{
+    policy.RequireClaim("VerificationStatus", "Verified");
 });
 
 builder.Services.AddSwaggerGen(options =>
@@ -167,7 +188,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.MapHub<NotificationHub>("/notification");
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 

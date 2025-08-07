@@ -32,7 +32,7 @@ namespace Services.YouVerifyIntegration
             Drivers_License_URL = $"{settings.YouVerify_Drivers_License_VerificationUrl}";
         }
 
-        public async Task<YouVerifyResponse> VerifyDocumentAsync(YouVerifyKycDto details)
+        public async Task<YouVerifyKickoffResponse> VerifyIdentificationNumberAsync(YouVerifyKycDto details)
         {
             var url = details.Type switch
             {
@@ -69,10 +69,23 @@ namespace Services.YouVerifyIntegration
                 var errorResponse = await request.Content.ReadAsStringAsync();
                 var error = JsonConvert.DeserializeObject<YouVerifyErrorResponse>(errorResponse)
                     ?? throw new HttpRequestException("An error occurred while deserializing the response from You Verify");
-                return new YouVerifyResponse { Success = error.Success, StatusCode = error.StatusCode, Message = error.Message };
+                return new YouVerifyKickoffResponse
+                {
+                    Status = "error",
+                    Message = error.Message
+                };
+                //return new YouVerifyResponse { Success = error.Success, StatusCode = error.StatusCode, Message = error.Message };
             }
-            var response = await request.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<YouVerifyResponse>(response) ?? throw new HttpRequestException("An error occured while serializing the response from You Verify");
+            // var response = await request.Content.ReadAsStringAsync();
+
+            // var youVerifyResponse = JsonConvert.DeserializeObject<YouVerifyResponse>(response);
+
+            return new YouVerifyKickoffResponse
+            {
+                Success = true,
+                Status = "pending",
+                Message = "Verification started, waiting for completion"
+            };
         }
     }
 }

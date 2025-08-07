@@ -9,8 +9,8 @@
         /// Sends a verification request to YouVerify using provided user details.
         /// </summary>
         /// <param name="details">The user details and document information required for verification.</param>
-        /// <returns>A <see cref="YouVerifyResponse"/> containing the verification outcome and data.</returns>
-        Task<YouVerifyResponse> VerifyDocumentAsync(YouVerifyKycDto details);
+        /// <returns>A <see cref="YouVerifyKickoffResponse"/> containing the verification outcome.</returns>
+        Task<YouVerifyKickoffResponse> VerifyIdentificationNumberAsync(YouVerifyKycDto details);
 
         // Task<ResponseDetail<YouVerifyResponse>> VerifyInternationalPassAsync(YouVerifyKycDto details);
     }

@@ -42,7 +42,7 @@ namespace Infrastructure.DataContext
         //public DbSet<ScriptWritingPostApplicant> Applicants { get; set; }
         public DbSet<Escrow> EscrowOperations { get; set; }
         public DbSet<BlackListedUser> BlackListedUsers { get; set; }
-
+        public DbSet<User> User { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

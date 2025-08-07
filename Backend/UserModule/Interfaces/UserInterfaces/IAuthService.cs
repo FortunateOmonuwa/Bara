@@ -27,7 +27,7 @@ namespace UserModule.Interfaces.UserInterfaces
         /// </summary>
         /// <param name="userId">The unique identifier of the user to log out.</param>
         /// <returns>A response indicating whether the logout was successful.</returns>
-        Task<ResponseDetail<bool>> Logout(Guid userId);
+        Task Logout(Guid userId);
 
         /// <summary>
         /// Verifies a login attempt using a device and token-based challenge-response mechanism.
