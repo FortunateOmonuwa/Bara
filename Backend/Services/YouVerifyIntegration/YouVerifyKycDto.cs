@@ -25,7 +25,7 @@
         /// </summary>
         public bool IsSubjectConsent { get; init; } = true;
 
-        public required Guid UserId { get; init; }
+        public Guid UserId { get; init; }
         public int RetryCount { get; set; } = 0;
     }
 }

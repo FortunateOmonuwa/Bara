@@ -10,6 +10,7 @@ using Services.MailingService;
 using Services.YouVerifyIntegration;
 using Shared.Models;
 using SharedModule.DTOs.AddressDTOs;
+using SharedModule.Models;
 using SharedModule.Settings;
 using SharedModule.Utils;
 using System.Security.Cryptography;
@@ -117,7 +118,10 @@ namespace Infrastructure.Repositories.UserRepositories
                     },
                     Wallet = new Wallet
                     {
-                        Balance = 0,
+                        TotalBalance = 0,
+                        AvailableBalance = 0,
+                        LockedBalance = 0,
+                        Currency = Currency.NAIRA,
                     },
                 };
 
@@ -200,7 +204,8 @@ namespace Infrastructure.Repositories.UserRepositories
                     Wallet = new GetWalletDetailDTO
                     {
                         Id = writer.Wallet.Id,
-                        Balance = writer.Wallet.Balance,
+                        Balance = writer.Wallet.TotalBalance,
+                        LockedBalance = writer.Wallet.LockedBalance,
                         Currency = writer.Wallet.Currency,
                         CurrencySymbol = writer.Wallet.CurrencySymbol,
                         UserId = writer.Id
@@ -282,11 +287,11 @@ namespace Infrastructure.Repositories.UserRepositories
                                         Role = x.AuthProfile.Role,
                                         Wallet = new GetWalletDetailDTO
                                         {
-                                            Balance = x.Wallet.Balance,
+                                            Balance = x.Wallet.TotalBalance,
                                             Currency = x.Wallet.Currency,
                                             CurrencySymbol = x.Wallet.CurrencySymbol,
                                             LockedBalance = x.Wallet.LockedBalance,
-                                            Id = x.Id,
+                                            Id = x.Wallet.Id,
                                             UserId = x.Id
                                         },
                                         IsBlacklisted = x.AuthProfile.IsDeleted,
