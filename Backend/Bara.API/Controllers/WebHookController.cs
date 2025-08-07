@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Services;
 using Services.YouVerifyIntegration;
@@ -61,6 +62,7 @@ namespace Bara.API.Controllers
         //    }
         //}
 
+        [Authorize(Roles = "Admin, Producer, Writer")]
         [HttpPost("youverify")]
         public async Task<IActionResult> ReceiveKycVerificationResponse()
         {
@@ -103,6 +105,16 @@ namespace Bara.API.Controllers
                 logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, "Receiving KYC verification response from YouVerify");
                 return BadRequest(new { message = "An error occurred while processing the request." });
             }
+        }
+
+        /// <summary>
+        /// This endpoint is used to perfrom a health check.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("test")]
+        public IActionResult Test()
+        {
+            return Ok("App is working!");
         }
     }
 }

@@ -24,5 +24,8 @@
         /// Indicates whether the subject has consented to the verification.
         /// </summary>
         public bool IsSubjectConsent { get; init; } = true;
+
+        public required Guid UserId { get; init; }
+        public int RetryCount { get; set; } = 0;
     }
 }

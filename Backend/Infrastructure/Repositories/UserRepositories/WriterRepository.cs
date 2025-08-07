@@ -151,7 +151,9 @@ namespace Infrastructure.Repositories.UserRepositories
                 var kycDetail = new YouVerifyKycDto
                 {
                     Id = writerDetail.VerificationDocument.VerificationNumber,
-                    Type = writerDetail.VerificationDocument.Type.ToString()
+                    Type = writerDetail.VerificationDocument.Type.ToString(),
+                    UserId = writer.Id,
+                    LastName = writer.LastName,
                 };
                 BackgroundJob.Enqueue(() => hangfire.StartKycProcess(kycDetail));
 
