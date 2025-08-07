@@ -92,7 +92,6 @@ namespace BaraTests
 
         private PostScriptDetailDTO CreateValidScriptDetailDTO()
         {
-            // Create a simple test file
             var fileContent = "Test script content"u8.ToArray();
             var stream = new MemoryStream(fileContent);
             var formFile = new FormFile(stream, 0, fileContent.Length, "Script", "test-script.pdf")
