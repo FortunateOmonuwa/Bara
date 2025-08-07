@@ -19,10 +19,6 @@ namespace UserModule.Models
         /// </summary>
         public List<Service> Services { get; set; } = [];
         public List<Script> Scripts { get; set; } = [];
-        /// <summary>
-        /// The list of all the scripts shared between the writer and producers
-        /// </summary>
-        public List<SharedScript> SharedScripts { get; set; } = [];
         //public List<ScriptWritingPostApplicant> Applicarions { get; set; } = [];
     }
 }

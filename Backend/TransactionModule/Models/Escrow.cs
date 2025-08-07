@@ -9,8 +9,11 @@ namespace TransactionModule.Models
         //[Key]
         //public Guid Id { get; set; }
         [ForeignKey(nameof(Transaction))]
-        public required Guid TransactionId { get; set; }
-        public required Transaction Transaction { get; set; }
+        public Guid? TransactionId { get; set; }
+        public Transaction? Transaction { get; set; }
+        [ForeignKey(nameof(Wallet))]
+        public Guid? WalletId { get; set; }
+        public Wallet? Wallet { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
         public EscrowStatus Status { get; set; }
