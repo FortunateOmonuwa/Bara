@@ -1,5 +1,6 @@
 ﻿using SharedModule.Models;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using UserModule.Enums;
 
 namespace UserModule.Models
@@ -52,5 +53,8 @@ namespace UserModule.Models
         /// The size of the uploaded file in bytes.
         /// </summary>
         public long Size { get; set; }
+
+        [ForeignKey(nameof(User))]
+        public Guid UserId { get; set; }
     }
 }

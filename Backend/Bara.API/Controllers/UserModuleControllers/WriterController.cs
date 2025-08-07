@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SharedModule.Utils;
 using UserModule.DTOs.WriterDTOs;
 using UserModule.Interfaces.UserInterfaces;
@@ -67,7 +68,8 @@ namespace Bara.API.Controllers.UserModuleControllers
         /// or 500 Internal Server Error if an unexpected error happens.
         /// </returns>
         [HttpGet("profile/{writerId}")]
-        public async Task<IActionResult> GetProducerDetail(Guid writerId)
+        [Authorize(Roles = "Writer, Admin", Policy = "Verified")]
+        public async Task<IActionResult> GetWriterDetail(Guid writerId)
         {
             try
             {

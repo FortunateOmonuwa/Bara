@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ScriptModule.DTOs;
 using ScriptModule.Interfaces;
 using SharedModule.Utils;
@@ -33,6 +34,7 @@ namespace Bara.API.Controllers.ScriptModuleControllers
         /// </returns>
 
         [HttpPost("{writerId}")]
+        [Authorize(Roles = "Writer", Policy = "Verified")]
         public async Task<IActionResult> AddScript([FromForm] PostScriptDetailDTO scriptDetail, Guid writerId)
         {
             try
@@ -79,6 +81,7 @@ namespace Bara.API.Controllers.ScriptModuleControllers
         /// </returns>
 
         [HttpGet("scripts/writer/{writerId}/{pageNumber}/{pageSize}")]
+        [Authorize(Roles = "Writer, Admin", Policy = "Verified")]
         public async Task<IActionResult> GetScriptsByWriterId(Guid writerId, int pageNumber, int pageSize)
         {
             try
@@ -147,6 +150,7 @@ namespace Bara.API.Controllers.ScriptModuleControllers
         /// </returns>
 
         [HttpDelete("delete/{scriptId}/{writerId}")]
+        [Authorize(Roles = "Writer, Admin", Policy = "Verified")]
         public async Task<IActionResult> DeleteScript(Guid scriptId, Guid writerId)
         {
             try
@@ -181,6 +185,7 @@ namespace Bara.API.Controllers.ScriptModuleControllers
         /// </returns>
 
         [HttpGet("{scriptId}")]
+        [Authorize(Roles = "Writer, Admin, Producer", Policy = "Verified")]
         public async Task<IActionResult> Download(Guid scriptId)
         {
             try

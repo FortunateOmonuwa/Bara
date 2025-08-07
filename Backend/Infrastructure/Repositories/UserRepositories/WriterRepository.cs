@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Services.BackgroudServices;
 using Services.FileStorageServices.Interfaces;
 using Services.MailingService;
+using Services.YouVerifyIntegration;
 using Shared.Models;
 using SharedModule.DTOs.AddressDTOs;
 using SharedModule.Settings;
@@ -147,6 +148,13 @@ namespace Infrastructure.Repositories.UserRepositories
                 var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(writer.Email, writer.FirstName, token.ToString());
                 BackgroundJob.Enqueue(() => hangfire.SendMailAsync(verificationMail));
 
+                var kycDetail = new YouVerifyKycDto
+                {
+                    Id = writerDetail.VerificationDocument.VerificationNumber,
+                    Type = writerDetail.VerificationDocument.Type.ToString()
+                };
+                BackgroundJob.Enqueue(() => hangfire.StartKycProcess(kycDetail));
+
                 await transaction.CommitAsync();
 
                 var writerProfile = new GetWriterDetailDTO
@@ -159,7 +167,7 @@ namespace Infrastructure.Repositories.UserRepositories
                     Bio = writer.Bio,
                     Email = writer.Email,
                     PhoneNumber = writer.PhoneNumber,
-                    IsBlacklisted = writer.AuthProfile.IsDeleted,
+                    IsBlacklisted = writer.IsDeleted,
                     IsEmailVerified = writer.AuthProfile.IsEmailVerified,
                     IsVerified = writer.AuthProfile.IsVerified,
                     Role = writer.AuthProfile.Role,

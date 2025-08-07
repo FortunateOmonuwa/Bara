@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SharedModule.Utils;
 using UserModule.DTOs.ProducerDTOs;
 using UserModule.Interfaces.UserInterfaces;
@@ -67,6 +68,7 @@ namespace Bara.API.Controllers.UserModuleControllers
         /// or 400 Bad Request if the producer does not exist or if an error occurs.
         /// </returns>
         [HttpGet("profile/{producerId}")]
+        [Authorize(Roles = "Producer, Admin", Policy = "Verified")]
         public async Task<IActionResult> GetProducerDetail(Guid producerId)
         {
             try

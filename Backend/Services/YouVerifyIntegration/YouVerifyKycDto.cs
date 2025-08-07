@@ -8,12 +8,12 @@
         /// <summary>
         /// The unique identifier for the subject (e.g., BVN, NIN, etc.).
         /// </summary>
-        public string Id { get; init; } = default!;
+        public required string Id { get; init; }
 
         /// <summary>
         /// The document type for verification (e.g., "bvn", "nin", "passport").
         /// </summary>
-        public string Type { get; init; } = default!;
+        public required string Type { get; init; }
 
         /// <summary>
         /// The last name of the subject for additional identity matching.

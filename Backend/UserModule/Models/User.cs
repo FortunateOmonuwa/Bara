@@ -68,6 +68,16 @@ namespace UserModule.Models
         public Guid AddressId { get; set; }
 
         /// <summary>
+        /// Indicates whether the user has been blacklisted due to policy violations or suspicious activity.
+        /// </summary>
+        public bool IsBlacklisted { get; set; }
+
+        /// <summary>
+        /// Indicates whether the user account is marked as deleted.
+        /// </summary>
+        public bool IsDeleted { get; set; }
+
+        /// <summary>
         /// The user's physical address.
         /// </summary>
         public required Address Address { get; set; }
@@ -81,7 +91,7 @@ namespace UserModule.Models
         /// <summary>
         /// The verification document uploaded by the user for identity verification.
         /// </summary>
-        public Document? VerificationDocument { get; set; }
+        public Document VerificationDocument { get; set; }
 
         /// <summary>
         /// The current verification status of the user.

@@ -9,6 +9,17 @@ namespace UserModule.Interfaces.UserInterfaces
     public interface IUserService
     {
         /// <summary>
+        /// Updates a users kyc verification status using the verification id number
+        /// </summary>
+        /// <param name="verificationIdNumber"></param>
+        /// <param name="isSuccessful"></param>
+        /// <param name="dateOfBirth"></param>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="verificationType"></param>
+        /// <returns></returns>
+        Task<ResponseDetail<bool>> UpdateUserVerificationStatus(string verificationIdNumber, string dateOfBirth, bool isSuccessful, string firstName, string lastName, string verificationType);
+        /// <summary>
         /// Adds a user to the blacklist with an optional reason.
         /// </summary>
         /// <param name="userId"></param>

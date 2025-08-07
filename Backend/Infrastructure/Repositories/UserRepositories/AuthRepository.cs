@@ -65,6 +65,7 @@ namespace Infrastructure.Repositories.UserRepositories
                 if (!confirmPassword)
                 {
                     user.LoginAttempts += 1;
+                    user.ModifiedAt = DateTimeOffset.UtcNow;
                     response.WrongLoginAttempts = user.LoginAttempts;
                     dbContext.AuthProfiles.Update(user);
                     await dbContext.SaveChangesAsync();
@@ -104,6 +105,7 @@ namespace Infrastructure.Repositories.UserRepositories
                     {
                         response.WrongLoginAttempts = user.LoginAttempts;
                         user.LoginAttempts = 0;
+                        user.ModifiedAt = DateTimeOffset.UtcNow;
                         dbContext.AuthProfiles.Update(user);
                         await dbContext.SaveChangesAsync();
                     }
@@ -111,12 +113,13 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
                 else
                 {
-                    var accessToken = GenerateJwtToken(user.Role, user.IsVerified ? "Verified" : "Unverified");
+                    var accessToken = GenerateJwtToken(user.Role, user.IsVerified ? "Verified" : "Unverified", user.UserId);
 
                     response.AccessToken = accessToken;
                     response.WrongLoginAttempts = user.LoginAttempts;
                     user.LoginAttempts = 0;
                     user.LastLoginAt = DateTimeOffset.UtcNow;
+                    user.ModifiedAt = DateTimeOffset.UtcNow;
 
                     dbContext.AuthProfiles.Update(user);
                     await dbContext.SaveChangesAsync();
@@ -140,9 +143,40 @@ namespace Infrastructure.Repositories.UserRepositories
         }
 
 
-        public Task<ResponseDetail<bool>> Logout(Guid userId)
+        public async Task Logout(Guid userId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var user = await dbContext.AuthProfiles.FindAsync(userId);
+                if (user == null)
+                {
+                    logger.LogWarning($"User with ID {userId} not found during logout attempt.");
+                    return;
+                }
+                user.LastLogoutAt = DateTimeOffset.UtcNow;
+                user.ModifiedAt = DateTimeOffset.UtcNow;
+                dbContext.AuthProfiles.Update(user);
+                await dbContext.SaveChangesAsync();
+
+                logger.LogInformation($"User: {user.FullName} has been logged out successfully.");
+
+                var cacheKey = $"User_Login_Token_{user.UserId}";
+                if (cache.TryGetValue(cacheKey, out string verificationToken))
+                {
+                    cache.Remove(cacheKey);
+                    logger.LogInformation("Removed login token for user: {name} with ID: {userId}", user.FullName, user.UserId);
+                    return;
+                }
+                else
+                {
+                    logger.LogWarning($"No login token found for user: {user.FullName} with ID: {user.UserId}");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, $"Logging out user with ID {userId}", ex.Message);
+            }
         }
 
         public async Task<ResponseDetail<string>> ResendVerificationToken(string email)
@@ -197,12 +231,13 @@ namespace Infrastructure.Repositories.UserRepositories
                         return ResponseDetail<bool>.Failed("Operation failed because of invalid or expired token... Please try again");
                     }
                     user.IsEmailVerified = true;
+                    user.ModifiedAt = DateTimeOffset.UtcNow;
                     cache.Remove(cacheKey);
 
                     dbContext.AuthProfiles.Update(user);
                     await dbContext.SaveChangesAsync();
+                    return ResponseDetail<bool>.Successful(true, "Email verified successfully");
                 }
-                return ResponseDetail<bool>.Successful(true, "Email verified successfully");
             }
             catch (Exception ex)
             {
@@ -235,13 +270,14 @@ namespace Infrastructure.Repositories.UserRepositories
                     return ResponseDetail<LoginResponseDTO>.Failed("Operation can't be completed at the moment because the token is invalid or expired", 403, "Forbidden");
                 }
                 cache.Remove(cacheKey);
-                var jwt_token = GenerateJwtToken(user.Role, user.IsVerified ? "Verified" : "Unverified");
+                var jwt_token = GenerateJwtToken(user.Role, user.IsVerified ? "Verified" : "Unverified", user.UserId);
                 var (Ip, Country) = await externalService.GetIpAndCountryAsync(secrets.IpInfoKey);
 
                 response.AccessToken = jwt_token;
                 user.LastLoginDevice = loginDetails.Device;
                 user.LastLoginIPAddress = Ip;
                 user.LastLoginAt = DateTimeOffset.UtcNow;
+                user.ModifiedAt = DateTimeOffset.UtcNow;
 
                 dbContext.AuthProfiles.Update(user);
                 await dbContext.SaveChangesAsync();
@@ -286,10 +322,11 @@ namespace Infrastructure.Repositories.UserRepositories
             }
         }
 
-        private string GenerateJwtToken(string role, string verificationStatus)
+        private string GenerateJwtToken(string role, string verificationStatus, Guid userId)
         {
             var claims = new List<Claim>
             {
+                new("UserId", userId.ToString()),
                 new ("Role", role),
                 new("VerificationStatus", verificationStatus)
             };
@@ -302,6 +339,13 @@ namespace Infrastructure.Repositories.UserRepositories
                 claims: claims,
                 expires: DateTime.Now.AddMinutes(60)
                 );
+            //SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+            //{
+            //    Issuer = settings.Issuer,
+            //    Subject = new ClaimsIdentity(claims),
+            //    Expires = DateTime.UtcNow.AddMinutes(60),
+            //    SigningCredentials = signingCred
+            //};
 
             var finalToken = new JwtSecurityTokenHandler().WriteToken(token);
             return finalToken;
