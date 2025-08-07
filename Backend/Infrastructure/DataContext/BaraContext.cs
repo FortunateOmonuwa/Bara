@@ -13,12 +13,10 @@ namespace Infrastructure.DataContext
         {
             Scripts = Set<Script>();
             Transactions = Set<Transaction>();
-            SharedScripts = Set<SharedScript>();
             Wallets = Set<Wallet>();
             Producers = Set<Producer>();
             Writers = Set<Writer>();
             AuthProfiles = Set<AuthProfile>();
-            Roles = Set<Role>();
             Services = Set<Service>();
             Documents = Set<Document>();
             Addresses = Set<Address>();
@@ -29,12 +27,10 @@ namespace Infrastructure.DataContext
 
         public DbSet<Script> Scripts { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
-        public DbSet<SharedScript> SharedScripts { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Producer> Producers { get; set; }
         public DbSet<Writer> Writers { get; set; }
         public DbSet<AuthProfile> AuthProfiles { get; set; }
-        public DbSet<Role> Roles { get; set; }
         public DbSet<Service> Services { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<Address> Addresses { get; set; }
@@ -42,7 +38,7 @@ namespace Infrastructure.DataContext
         //public DbSet<ScriptWritingPostApplicant> Applicants { get; set; }
         public DbSet<Escrow> EscrowOperations { get; set; }
         public DbSet<BlackListedUser> BlackListedUsers { get; set; }
-        public DbSet<User> User { get; set; }
+        public DbSet<User> Users { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

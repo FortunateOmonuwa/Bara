@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(BaraContext))]
-    [Migration("20250714152532_Add Premium Property To Writer")]
-    partial class AddPremiumPropertyToWriter
+    [Migration("20250807222741_Initial migration")]
+    partial class Initialmigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,6 +37,10 @@ namespace Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Genre")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -56,9 +60,12 @@ namespace Infrastructure.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("OwnershipRights")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -86,8 +93,19 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("Nvarchar(100)");
 
+                    b.Property<DateTimeOffset>("UploadedOn")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid?>("WriterId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WriterName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -102,73 +120,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("WriterId");
 
                     b.ToTable("Scripts");
-                });
-
-            modelBuilder.Entity("ScriptModule.Models.ScriptPDF", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("FileExtension")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Path")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ScriptID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("UploadedOn")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ScriptID")
-                        .IsUnique();
-
-                    b.ToTable("ScriptPDFs");
-                });
-
-            modelBuilder.Entity("ScriptModule.Models.SharedScript", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("EncryptedScriptUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ProducerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ScriptId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("SharedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("WriterId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProducerId");
-
-                    b.HasIndex("ScriptId");
-
-                    b.HasIndex("WriterId");
-
-                    b.ToTable("SharedScripts");
                 });
 
             modelBuilder.Entity("Shared.Models.Address", b =>
@@ -243,12 +194,17 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid>("TransactionId")
+                    b.Property<Guid?>("TransactionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("WalletId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("TransactionId");
+
+                    b.HasIndex("WalletId");
 
                     b.ToTable("EscrowOperations");
                 });
@@ -295,6 +251,13 @@ namespace Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Fee")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("GatewayResponse")
                         .HasColumnType("nvarchar(max)");
 
@@ -307,7 +270,7 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("PaymentDetailId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ProducerId")
+                    b.Property<Guid?>("ProducerId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ReferenceId")
@@ -332,7 +295,7 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("WalletID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("WriterId")
+                    b.Property<Guid?>("WriterId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -356,21 +319,26 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal>("Balance")
+                    b.Property<decimal>("AvailableBalance")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Currency")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("LockedBalance")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTimeOffset?>("ModifiedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal>("TotalBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -390,17 +358,72 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTimeOffset>("LastLoginAt")
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsEmailVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LastLoginAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastLoginDevice")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastLoginIPAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset?>("LastLogoutAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("LoginAttempts")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("ModifiedAt")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Password")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AuthProfiles");
+                });
+
+            modelBuilder.Entity("UserModule.Models.BlackListedUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("BlackListedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Reason")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
@@ -410,7 +433,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuthProfiles");
+                    b.ToTable("BlackListedUsers");
                 });
 
             modelBuilder.Entity("UserModule.Models.Document", b =>
@@ -451,46 +474,18 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.ToTable("Documents");
                 });
 
-            modelBuilder.Entity("UserModule.Models.Role", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Roles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Admin"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Writer"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Producer"
-                        });
-                });
-
-            modelBuilder.Entity("UserModule.Models.Services", b =>
+            modelBuilder.Entity("UserModule.Models.Service", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -498,6 +493,10 @@ namespace Infrastructure.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -552,12 +551,18 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("AddressId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("AuthProfileId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Bio")
                         .IsRequired()
                         .HasColumnType("Nvarchar(200)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly>("DateOfBirth")
+                        .HasColumnType("date");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("datetimeoffset");
@@ -575,16 +580,14 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("Nvarchar(60)");
 
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<bool>("IsBlacklisted")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsEmailVerified")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsVerified")
                         .HasColumnType("bit");
 
                     b.Property<string>("LastName")
@@ -602,12 +605,12 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid>("VerificationDocumentID")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("VerificationStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("WalletId")
                         .HasColumnType("uniqueidentifier");
@@ -616,11 +619,22 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("AddressId");
 
+                    b.HasIndex("AuthProfileId");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Gender");
+
+                    b.HasIndex("Id");
+
+                    b.HasIndex("IsBlacklisted");
+
                     b.HasIndex("VerificationDocumentID");
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("User");
+                    b.ToTable("Users");
 
                     b.HasDiscriminator().HasValue("User");
 
@@ -631,16 +645,7 @@ namespace Infrastructure.Migrations
                 {
                     b.HasBaseType("UserModule.Models.User");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("IsBlacklisted");
-
                     b.HasIndex("IsDeleted");
-
-                    b.HasIndex("IsEmailVerified");
-
-                    b.HasIndex("IsVerified");
 
                     b.HasDiscriminator().HasValue("Producer");
                 });
@@ -652,16 +657,7 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("IsPremiumMember")
                         .HasColumnType("bit");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("IsBlacklisted");
-
                     b.HasIndex("IsDeleted");
-
-                    b.HasIndex("IsEmailVerified");
-
-                    b.HasIndex("IsVerified");
 
                     b.HasDiscriminator().HasValue("Writer");
                 });
@@ -677,47 +673,19 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("WriterId");
                 });
 
-            modelBuilder.Entity("ScriptModule.Models.ScriptPDF", b =>
-                {
-                    b.HasOne("ScriptModule.Models.Script", null)
-                        .WithOne("File")
-                        .HasForeignKey("ScriptModule.Models.ScriptPDF", "ScriptID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ScriptModule.Models.SharedScript", b =>
-                {
-                    b.HasOne("UserModule.Models.Producer", null)
-                        .WithMany("SharedScripts")
-                        .HasForeignKey("ProducerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ScriptModule.Models.Script", "Script")
-                        .WithMany("SharedScripts")
-                        .HasForeignKey("ScriptId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("UserModule.Models.Writer", null)
-                        .WithMany("SharedScripts")
-                        .HasForeignKey("WriterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Script");
-                });
-
             modelBuilder.Entity("TransactionModule.Models.Escrow", b =>
                 {
                     b.HasOne("TransactionModule.Models.Transaction", "Transaction")
                         .WithMany()
-                        .HasForeignKey("TransactionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("TransactionId");
+
+                    b.HasOne("TransactionModule.Models.Wallet", "Wallet")
+                        .WithMany()
+                        .HasForeignKey("WalletId");
 
                     b.Navigation("Transaction");
+
+                    b.Navigation("Wallet");
                 });
 
             modelBuilder.Entity("TransactionModule.Models.Transaction", b =>
@@ -739,7 +707,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("Wallet");
                 });
 
-            modelBuilder.Entity("UserModule.Models.AuthProfile", b =>
+            modelBuilder.Entity("UserModule.Models.BlackListedUser", b =>
                 {
                     b.HasOne("UserModule.Models.User", "User")
                         .WithMany()
@@ -750,7 +718,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("UserModule.Models.Services", b =>
+            modelBuilder.Entity("UserModule.Models.Service", b =>
                 {
                     b.HasOne("UserModule.Models.Writer", "ScriptWriter")
                         .WithMany("Services")
@@ -769,6 +737,12 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("UserModule.Models.AuthProfile", "AuthProfile")
+                        .WithMany()
+                        .HasForeignKey("AuthProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("UserModule.Models.Document", "VerificationDocument")
                         .WithMany()
                         .HasForeignKey("VerificationDocumentID")
@@ -783,17 +757,11 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Address");
 
+                    b.Navigation("AuthProfile");
+
                     b.Navigation("VerificationDocument");
 
                     b.Navigation("Wallet");
-                });
-
-            modelBuilder.Entity("ScriptModule.Models.Script", b =>
-                {
-                    b.Navigation("File")
-                        .IsRequired();
-
-                    b.Navigation("SharedScripts");
                 });
 
             modelBuilder.Entity("UserModule.Models.User", b =>
@@ -804,8 +772,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("UserModule.Models.Producer", b =>
                 {
                     b.Navigation("PurchasedScripts");
-
-                    b.Navigation("SharedScripts");
                 });
 
             modelBuilder.Entity("UserModule.Models.Writer", b =>
@@ -813,8 +779,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Scripts");
 
                     b.Navigation("Services");
-
-                    b.Navigation("SharedScripts");
                 });
 #pragma warning restore 612, 618
         }

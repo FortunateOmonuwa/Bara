@@ -49,7 +49,7 @@ namespace Infrastructure.Repositories.UserRepositories
             string name = "";
             try
             {
-                var user = await dbContext.User
+                var user = await dbContext.Users
                     .Include(x => x.VerificationDocument)
                     .Include(x => x.AuthProfile)
                     .FirstOrDefaultAsync(x => x.VerificationDocument.IdentificationNumber == verificationIdNumber);
