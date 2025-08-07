@@ -4,7 +4,6 @@ using SharedModule.DTOs.AddressDTOs;
 using UserModule.DTOs.DocumentDTOs;
 using UserModule.DTOs.WriterDTOs;
 using UserModule.Enums;
-using Xunit;
 
 namespace BaraTests.UserTests
 {
@@ -18,8 +17,6 @@ namespace BaraTests.UserTests
             var result = await writerService.AddWriter(writerDetail);
 
             Assert.NotNull(result);
-            // The result will depend on validation and whether email already exists
-            // Add assertions based on your expected behavior
         }
 
         [Fact]
@@ -49,7 +46,6 @@ namespace BaraTests.UserTests
 
         private PostWriterDetailDTO CreateValidWriterDetailDTO()
         {
-            // Create a simple test file
             var fileContent = "Test document content"u8.ToArray();
             var stream = new MemoryStream(fileContent);
             var formFile = new FormFile(stream, 0, fileContent.Length, "Document", "test-document.pdf")
@@ -63,7 +59,7 @@ namespace BaraTests.UserTests
                 FirstName = "John",
                 LastName = "Doe",
                 MiddleName = "Michael",
-                Email = $"john.doe.{Guid.NewGuid()}@example.com", // Unique email
+                Email = $"john.doe.{Guid.NewGuid()}@example.com",
                 Password = "StrongPassword123!",
                 PhoneNumber = "+2348012345678",
                 Bio = "Experienced script writer",

@@ -2,7 +2,6 @@ using BaraTests.Utils;
 using Microsoft.AspNetCore.Http;
 using ScriptModule.DTOs;
 using ScriptModule.Enums;
-using Xunit;
 
 namespace BaraTests
 {
@@ -11,13 +10,12 @@ namespace BaraTests
         [Fact]
         public async Task AddScript_WithValidData_ShouldReturnSuccessfulResponse()
         {
-            var writerId = Guid.NewGuid(); // This would need to be a real writer ID in your test database
+            var writerId = Guid.NewGuid();
             var scriptDetail = CreateValidScriptDetailDTO();
 
             var result = await scriptService.AddScript(scriptDetail, writerId);
 
             Assert.NotNull(result);
-            // Result will depend on whether writer exists and is verified
         }
 
         [Fact]
@@ -64,7 +62,7 @@ namespace BaraTests
 
             Assert.NotNull(result);
             Assert.True(result.IsSuccess);
-            Assert.Equal(204, result.StatusCode); // No content
+            Assert.Equal(204, result.StatusCode);
         }
 
         [Fact]

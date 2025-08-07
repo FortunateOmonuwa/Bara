@@ -4,7 +4,6 @@ using SharedModule.DTOs.AddressDTOs;
 using UserModule.DTOs.DocumentDTOs;
 using UserModule.DTOs.ProducerDTOs;
 using UserModule.Enums;
-using Xunit;
 
 namespace BaraTests.UserTests
 {
@@ -18,8 +17,6 @@ namespace BaraTests.UserTests
             var result = await producerService.AddProducer(producerDetail);
 
             Assert.NotNull(result);
-            // The result will depend on validation and whether email already exists
-            // Add assertions based on your expected behavior
         }
 
         [Fact]
@@ -49,7 +46,6 @@ namespace BaraTests.UserTests
 
         private PostProducerDetailDTO CreateValidProducerDetailDTO()
         {
-            // Create a simple test file
             var fileContent = "Test document content"u8.ToArray();
             var stream = new MemoryStream(fileContent);
             var formFile = new FormFile(stream, 0, fileContent.Length, "Document", "test-document.pdf")
@@ -63,7 +59,7 @@ namespace BaraTests.UserTests
                 FirstName = "Jane",
                 LastName = "Smith",
                 MiddleName = "Marie",
-                Email = $"jane.smith.{Guid.NewGuid()}@example.com", // Unique email
+                Email = $"jane.smith.{Guid.NewGuid()}@example.com",
                 Password = "StrongPassword123!",
                 PhoneNumber = "+2348012345678",
                 Bio = "Experienced film producer",
@@ -82,7 +78,7 @@ namespace BaraTests.UserTests
                 {
                     Document = formFile,
                     Type = DocumentType.NIN,
-                    VerificationNumber = "12345678901"
+                    VerificationNumber = "111111111"
                 }
             };
         }

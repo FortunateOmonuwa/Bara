@@ -2,7 +2,6 @@ using BaraTests.Utils;
 using Microsoft.AspNetCore.Http;
 using UserModule.DTOs.DocumentDTOs;
 using UserModule.Enums;
-using Xunit;
 
 namespace BaraTests
 {
@@ -95,7 +94,6 @@ namespace BaraTests
 
         private PostDocumentDetailDTO CreateDocumentDetailDTO(DocumentType type, string verificationNumber)
         {
-            // Create a simple test PDF file
             var fileContent = "Test document content"u8.ToArray();
             var stream = new MemoryStream(fileContent);
             var formFile = new FormFile(stream, 0, fileContent.Length, "Document", "test-document.pdf")
@@ -114,7 +112,6 @@ namespace BaraTests
 
         private PostDocumentDetailDTO CreateInvalidDocumentDetailDTO()
         {
-            // Create a test file with invalid extension
             var fileContent = "Test document content"u8.ToArray();
             var stream = new MemoryStream(fileContent);
             var formFile = new FormFile(stream, 0, fileContent.Length, "Document", "document.txt")

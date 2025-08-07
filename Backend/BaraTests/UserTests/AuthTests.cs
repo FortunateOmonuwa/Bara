@@ -8,8 +8,6 @@ namespace BaraTests.UserTests
         [Fact]
         public async Task Login_WithValidCredentials_ShouldReturnSuccessfulResponse()
         {
-            // This test requires a user to exist in the database
-            // You may need to create a test user first or use an existing one
             var loginRequest = new AuthRequestDTO
             {
                 Email = "test@example.com",
@@ -19,10 +17,8 @@ namespace BaraTests.UserTests
 
             var result = await authService.Login(loginRequest);
 
-            // Assert based on whether user exists or not
             Assert.NotNull(result);
             Assert.True(result.IsSuccess);
-            // Add more specific assertions based on your test data
         }
 
         [Fact]

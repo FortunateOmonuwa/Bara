@@ -1,5 +1,4 @@
 using BaraTests.Utils;
-using Xunit;
 
 namespace BaraTests.UserTests
 {
@@ -8,7 +7,6 @@ namespace BaraTests.UserTests
         [Fact]
         public async Task UpdateUserVerificationStatus_WithValidData_ShouldReturnSuccessfulResponse()
         {
-            // This test requires existing user data in the database
             var verificationIdNumber = "12345678901";
             var dateOfBirth = "1990-01-01";
             var firstName = "John";
@@ -16,32 +14,31 @@ namespace BaraTests.UserTests
             var type = "BVN";
 
             var result = await userService.UpdateUserVerificationStatus(
-                verificationIdNumber, 
-                dateOfBirth, 
-                true, // isSuccessful
-                firstName, 
-                lastName, 
+                verificationIdNumber,
+                dateOfBirth,
+                true,
+                firstName,
+                lastName,
                 type);
 
             Assert.NotNull(result);
-            // Result will depend on whether user exists with matching data
         }
 
         [Fact]
         public async Task UpdateUserVerificationStatus_WithNonExistentUser_ShouldReturnFailure()
         {
-            var verificationIdNumber = "99999999999"; // Non-existent ID
+            var verificationIdNumber = "99999999999";
             var dateOfBirth = "1990-01-01";
             var firstName = "John";
             var lastName = "Doe";
             var type = "BVN";
 
             var result = await userService.UpdateUserVerificationStatus(
-                verificationIdNumber, 
-                dateOfBirth, 
-                true, 
-                firstName, 
-                lastName, 
+                verificationIdNumber,
+                dateOfBirth,
+                true,
+                firstName,
+                lastName,
                 type);
 
             Assert.NotNull(result);
@@ -59,11 +56,11 @@ namespace BaraTests.UserTests
             var type = "BVN";
 
             var result = await userService.UpdateUserVerificationStatus(
-                verificationIdNumber, 
-                dateOfBirth, 
-                false, // isSuccessful = false
-                firstName, 
-                lastName, 
+                verificationIdNumber,
+                dateOfBirth,
+                false,
+                firstName,
+                lastName,
                 type);
 
             Assert.NotNull(result);
