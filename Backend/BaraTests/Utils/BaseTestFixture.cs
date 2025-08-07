@@ -22,6 +22,7 @@ namespace BaraTests.Utils
         protected readonly IWriterService writerService;
         protected readonly IProducerService producerService;
         protected readonly IAuthService authService;
+        protected readonly IUserService userService;
         protected BaseTestFixture()
         {
             youVerify = TestStartUp.Resolve<IYouVerifyService>();
@@ -35,6 +36,7 @@ namespace BaraTests.Utils
             writerService = TestStartUp.Resolve<IWriterService>();
             producerService = TestStartUp.Resolve<IProducerService>();
             authService = TestStartUp.Resolve<IAuthService>();
+            userService = TestStartUp.Resolve<IUserService>();
         }
     }
 }
