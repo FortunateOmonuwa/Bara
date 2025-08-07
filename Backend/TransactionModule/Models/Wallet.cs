@@ -8,9 +8,11 @@ namespace TransactionModule.Models
         //[Key]
         //public Guid Id { get; set; }
         [Column(TypeName = "decimal(18,2)")]
-        public decimal Balance { get; set; } = 0.00m;
+        public decimal TotalBalance { get; set; } = 0.00m;
         [Column(TypeName = "decimal(18,2)")]
         public decimal LockedBalance { get; set; } = 0.00m;
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal AvailableBalance { get; set; } = 0.00m;
         public Currency Currency { get; set; } = Currency.NAIRA;
         public string CurrencySymbol => Currency switch
         {

@@ -67,8 +67,8 @@ namespace Bara.API.Controllers.UserModuleControllers
         /// Returns a 200 OK with the producer's profile details if found,
         /// or 400 Bad Request if the producer does not exist or if an error occurs.
         /// </returns>
+        [Authorize(Roles = "Producer, Admin")]
         [HttpGet("profile/{producerId}")]
-        [Authorize(Roles = "Producer, Admin", Policy = "Verified")]
         public async Task<IActionResult> GetProducerDetail(Guid producerId)
         {
             try

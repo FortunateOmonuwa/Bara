@@ -127,7 +127,9 @@ namespace Infrastructure.Repositories.UserRepositories
                 var kycDetail = new YouVerifyKycDto
                 {
                     Id = producerDetailDTO.VerificationDocument.VerificationNumber,
-                    Type = producerDetailDTO.VerificationDocument.Type.ToString()
+                    Type = producerDetailDTO.VerificationDocument.Type.ToString(),
+                    UserId = newProducerProfile.Id,
+                    LastName = newProducerProfile.LastName,
                 };
                 BackgroundJob.Enqueue(() => hangfire.StartKycProcess(kycDetail));
 

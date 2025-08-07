@@ -17,6 +17,8 @@ namespace TransactionModule.Models
         public Guid? ScriptId { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Fee { get; set; }
         public Currency Currency { get; set; } = Currency.NAIRA;
         public string CurrencySymbol => Currency switch
         {

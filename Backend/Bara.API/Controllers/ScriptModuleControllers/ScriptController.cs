@@ -33,8 +33,8 @@ namespace Bara.API.Controllers.ScriptModuleControllers
         /// or a 500 Internal Server Error if an unexpected exception occurs.
         /// </returns>
 
+        [Authorize(Roles = "Writer", Policy = "VerifiedOnly")]
         [HttpPost("{writerId}")]
-        [Authorize(Roles = "Writer", Policy = "Verified")]
         public async Task<IActionResult> AddScript([FromForm] PostScriptDetailDTO scriptDetail, Guid writerId)
         {
             try
@@ -80,8 +80,8 @@ namespace Bara.API.Controllers.ScriptModuleControllers
         /// or 500 Internal Server Error in case of unexpected server issues.
         /// </returns>
 
+        [Authorize(Roles = "Writer, Admin")]
         [HttpGet("scripts/writer/{writerId}/{pageNumber}/{pageSize}")]
-        [Authorize(Roles = "Writer, Admin", Policy = "Verified")]
         public async Task<IActionResult> GetScriptsByWriterId(Guid writerId, int pageNumber, int pageSize)
         {
             try
@@ -149,8 +149,8 @@ namespace Bara.API.Controllers.ScriptModuleControllers
         /// or 500 Internal Server Error if something goes wrong on the server.
         /// </returns>
 
+        [Authorize(Roles = "Writer, Admin", Policy = "VerifiedOnly")]
         [HttpDelete("delete/{scriptId}/{writerId}")]
-        [Authorize(Roles = "Writer, Admin", Policy = "Verified")]
         public async Task<IActionResult> DeleteScript(Guid scriptId, Guid writerId)
         {
             try
@@ -184,8 +184,8 @@ namespace Bara.API.Controllers.ScriptModuleControllers
         /// or a 400/500 response if the script does not exist or an error occurs.
         /// </returns>
 
+        [Authorize(Roles = "Writer, Admin, Producer", Policy = "VerifiedOnly")]
         [HttpGet("{scriptId}")]
-        [Authorize(Roles = "Writer, Admin, Producer", Policy = "Verified")]
         public async Task<IActionResult> Download(Guid scriptId)
         {
             try

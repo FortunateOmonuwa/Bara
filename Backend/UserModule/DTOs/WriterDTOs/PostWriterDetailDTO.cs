@@ -58,7 +58,7 @@ namespace UserModule.DTOs.WriterDTOs
         /// <summary>
         /// Indicates whether the writer is a premium member.
         /// </summary>
-        public bool IsPremiumMember { get; init; }
+        public bool IsPremiumMember { get; init; } = false;
 
         /// <summary>
         /// The address details of the writer.

@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using Hangfire;
 using Infrastructure.DataContext;
 using Infrastructure.Repositories.FileRepositories;
@@ -93,6 +94,20 @@ builder.Services.AddSignalR();
 //})
 //.AddPolicyHandler(retryPolicy);
 
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins:Origins").Get<string[]>() ?? ["*"];
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowRegisterdOrigins",
+        builder => builder.WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod());
+});
+
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
 builder.Services.AddHttpClient("YouVerify", client =>
 {
     client.BaseAddress = new Uri($"{builder.Configuration["AppSettings:YouVerifyBaseUrl"]}");
@@ -117,7 +132,7 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes($"{builder.Configuration["Secrets: JwtSickCrit"]}")),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes($"{builder.Configuration["Secrets:JwtSickRit"]}")),
         ValidIssuers = [builder.Configuration["Secrets:Issuers"]],
         RoleClaimType = "Role",
         NameClaimType = "UserId",
@@ -143,9 +158,13 @@ builder.Services.AddAuthorizationBuilder()
     policy.RequireClaim("VerificationStatus", "Verified");
 });
 
+//builder.Services.AddAuthorizationBuilder()
+//    .AddPolicy("SwaggerAccess", policy =>
+//        policy.RequireRole("Admin"));
+
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("Bara", new OpenApiInfo { Title = "Bara-API" });
+    options.SwaggerDoc("bara", new OpenApiInfo { Title = "Bara-API" });
 
     var basePath = AppContext.BaseDirectory;
     var xmlDocs = Directory.GetFiles(basePath, "*.xml");
@@ -158,7 +177,7 @@ builder.Services.AddSwaggerGen(options =>
     options.AddSecurityDefinition(name: "Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
-        Description = "JWT Bearer Token",
+        Description = "Enter 'Bearer' followed by your token",
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
         BearerFormat = "JWT",
@@ -178,16 +197,46 @@ builder.Services.AddSwaggerGen(options =>
             []
         }
     });
-
 });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.  
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI(s =>
+//    {
+//        s.SwaggerEndpoint("/swagger/bara/swagger.json", "Bara-API");
+//        s.RoutePrefix = "docs";
+//        s.ConfigObject.AdditionalItems["persistAuthorization"] = true;
+//    });
+//}
+app.UseWhen(context => context.Request.Path.StartsWithSegments("/docs"), appBuilder =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    appBuilder.UseAuthentication();
+    appBuilder.UseAuthorization();
+});
+app.UseSwagger();
+app.UseSwaggerUI(s =>
+{
+    s.SwaggerEndpoint("/swagger/bara/swagger.json", "Bara-API");
+    s.RoutePrefix = "docs";
+    s.ConfigObject.AdditionalItems["persistAuthorization"] = true;
+});
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/docs") &&
+        !context.User.IsInRole("Admin"))
+    {
+        context.Response.StatusCode = 403;
+        await context.Response.WriteAsync("Forbidden");
+        return;
+    }
+    await next();
+});
+
+
+app.UseCors("AllowRegisterdOrigins");
 app.MapHub<NotificationHub>("/notification");
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();

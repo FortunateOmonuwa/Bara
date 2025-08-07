@@ -9,17 +9,17 @@
         /// <summary>
         /// The email address associated with the user account.
         /// </summary>
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
         /// <summary>
         /// The one-time token sent to the user's email for verifying the login attempt.
         /// </summary>
-        public string Token { get; set; }
+        public required string Token { get; set; }
 
         /// <summary>
         /// The device or client initiating the login attempt (e.g., "Firefox on Android").
         /// </summary>
-        public string Device { get; set; }
+        public required string Device { get; set; }
     }
 
 }
