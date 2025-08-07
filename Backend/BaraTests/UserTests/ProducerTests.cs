@@ -1,21 +1,21 @@
-﻿using BaraTests.Utils;
+using BaraTests.Utils;
 using Microsoft.AspNetCore.Http;
 using SharedModule.DTOs.AddressDTOs;
 using UserModule.DTOs.DocumentDTOs;
-using UserModule.DTOs.WriterDTOs;
+using UserModule.DTOs.ProducerDTOs;
 using UserModule.Enums;
 using Xunit;
 
 namespace BaraTests.UserTests
 {
-    public class WriterTests : BaseTestFixture
+    public class ProducerTests : BaseTestFixture
     {
         [Fact]
-        public async Task AddWriter_WithValidData_ShouldReturnSuccessfulResponse()
+        public async Task AddProducer_WithValidData_ShouldReturnSuccessfulResponse()
         {
-            var writerDetail = CreateValidWriterDetailDTO();
+            var producerDetail = CreateValidProducerDetailDTO();
 
-            var result = await writerService.AddWriter(writerDetail);
+            var result = await producerService.AddProducer(producerDetail);
 
             Assert.NotNull(result);
             // The result will depend on validation and whether email already exists
@@ -23,12 +23,12 @@ namespace BaraTests.UserTests
         }
 
         [Fact]
-        public async Task AddWriter_WithInvalidEmail_ShouldReturnValidationError()
+        public async Task AddProducer_WithInvalidEmail_ShouldReturnValidationError()
         {
-            var writerDetail = CreateValidWriterDetailDTO();
-            writerDetail = writerDetail with { Email = "invalid-email" };
+            var producerDetail = CreateValidProducerDetailDTO();
+            producerDetail = producerDetail with { Email = "invalid-email" };
 
-            var result = await writerService.AddWriter(writerDetail);
+            var result = await producerService.AddProducer(producerDetail);
 
             Assert.NotNull(result);
             Assert.False(result.IsSuccess);
@@ -36,18 +36,18 @@ namespace BaraTests.UserTests
         }
 
         [Fact]
-        public async Task GetWriterDetail_WithNonExistentId_ShouldReturnNotFound()
+        public async Task GetProducer_WithNonExistentId_ShouldReturnNotFound()
         {
             var nonExistentId = Guid.NewGuid();
 
-            var result = await writerService.GetWriterDetail(nonExistentId);
+            var result = await producerService.GetProducer(nonExistentId);
 
             Assert.NotNull(result);
             Assert.False(result.IsSuccess);
             Assert.Equal(404, result.StatusCode);
         }
 
-        private PostWriterDetailDTO CreateValidWriterDetailDTO()
+        private PostProducerDetailDTO CreateValidProducerDetailDTO()
         {
             // Create a simple test file
             var fileContent = "Test document content"u8.ToArray();
@@ -58,31 +58,30 @@ namespace BaraTests.UserTests
                 ContentType = "application/pdf"
             };
 
-            return new PostWriterDetailDTO
+            return new PostProducerDetailDTO
             {
-                FirstName = "John",
-                LastName = "Doe",
-                MiddleName = "Michael",
-                Email = $"john.doe.{Guid.NewGuid()}@example.com", // Unique email
+                FirstName = "Jane",
+                LastName = "Smith",
+                MiddleName = "Marie",
+                Email = $"jane.smith.{Guid.NewGuid()}@example.com", // Unique email
                 Password = "StrongPassword123!",
                 PhoneNumber = "+2348012345678",
-                Bio = "Experienced script writer",
-                Gender = Gender.MALE,
-                DateOfBirth = new DateOnly(1990, 1, 1),
-                IsPremiumMember = false,
+                Bio = "Experienced film producer",
+                Gender = Gender.FEMALE,
+                DateOfBirth = new DateOnly(1985, 5, 15),
                 AddressDetail = new AddressDetail
                 {
-                    Street = "123 Main Street",
-                    City = "Lagos",
-                    State = "Lagos",
+                    Street = "456 Producer Avenue",
+                    City = "Abuja",
+                    State = "FCT",
                     Country = "Nigeria",
-                    PostalCode = "100001",
-                    AdditionalDetails = "Near the market"
+                    PostalCode = "900001",
+                    AdditionalDetails = "Near the cinema"
                 },
                 VerificationDocument = new PostDocumentDetailDTO
                 {
                     Document = formFile,
-                    Type = DocumentType.BVN,
+                    Type = DocumentType.NIN,
                     VerificationNumber = "12345678901"
                 }
             };
