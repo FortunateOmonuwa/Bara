@@ -64,7 +64,7 @@ namespace Infrastructure.Repositories.ScriptRepositories
                 {
                     return ResponseDetail<Script>.Failed($"An invalid script format was uploaded. The allowed extensions are: " +
                                                                     $"{string.Join(", ", allowedExtensions)}...\n" +
-                                                                    $"Allowed mime types are: {string.Join(", ", allowedMimeTypes)}", 415, "Invalid File Types");
+                                                                    $"Allowed mime types are: {string.Join(", ", allowedMimeTypes)}", 415, "Invalid File Type");
                 }
 
                 var scriptExceedsLimit = script.Length > sizeLimit;
@@ -73,7 +73,7 @@ namespace Infrastructure.Repositories.ScriptRepositories
                     return ResponseDetail<Script>.Failed($"Script exceeds limit of {sizeLimit}", 413, "File Limit Exceeded");
                 }
 
-                var userDirectoryName = $"{writer.FirstName}_{writer.LastName}-{writerId}";
+                var userDirectoryName = $"{writer.FirstName ?? "test"}_{writer.LastName ?? "test"}-{writerId}";
                 var uploadScriptResponse = await cloudinary.UploadScriptAsync(userDirectoryName, script);
                 if (!uploadScriptResponse)
                 {

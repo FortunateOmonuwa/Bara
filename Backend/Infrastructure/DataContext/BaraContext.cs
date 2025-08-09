@@ -20,6 +20,8 @@ namespace Infrastructure.DataContext
             Services = Set<Service>();
             Documents = Set<Document>();
             Addresses = Set<Address>();
+            Users = Set<User>();
+            BlackListedUsers = Set<BlackListedUser>();
             //ScriptWritingPosts = Set<ScriptWritingPostByProducer>();
             EscrowOperations = Set<Escrow>();
             //Applicants = Set<ScriptWritingPostApplicant>();
@@ -45,6 +47,9 @@ namespace Infrastructure.DataContext
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(Script).Assembly);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(Transaction).Assembly);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(User).Assembly);
+            modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<Writer>().ToTable("Writers");
+            modelBuilder.Entity<Producer>().ToTable("Producers");
         }
     }
 }

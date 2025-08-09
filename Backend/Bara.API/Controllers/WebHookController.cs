@@ -11,7 +11,7 @@ using UserModule.Interfaces.UserInterfaces;
 
 namespace Bara.API.Controllers
 {
-    [Route("api/webkooks")]
+    [Route("api/webhooks")]
     [ApiController]
 
     /// <summary>

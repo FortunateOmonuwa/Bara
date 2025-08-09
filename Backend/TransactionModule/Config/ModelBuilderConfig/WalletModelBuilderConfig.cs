@@ -10,6 +10,8 @@ namespace TransactionModule.Config.ModelBuilderConfig
         {
             //builder.HasKey(x => x.Id);
             //builder.Property(w => w.Balance).HasColumnType("decimal(18,2)");
+
+
         }
     }
 }
