@@ -15,6 +15,7 @@ namespace UserModule.configs.ModelBuilderConfig
                .HasConversion<string>();
             builder.Property(u => u.VerificationStatus)
              .HasConversion<string>();
+            builder.HasBaseType(typeof(User));
         }
     }
 }

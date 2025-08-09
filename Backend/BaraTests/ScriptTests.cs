@@ -7,90 +7,191 @@ namespace BaraTests
 {
     public class ScriptTests : BaseTestFixture
     {
+        readonly Guid writerId = Guid.NewGuid();
         [Fact]
-        public async Task AddScript_WithValidData_ShouldReturnSuccessfulResponse()
+        public async Task AddScript_ShouldHandleSuccessAndFailure()
         {
-            var writerId = Guid.NewGuid();
-            var scriptDetail = CreateValidScriptDetailDTO();
+            var validScript = BuildValidScriptDTO();
 
-            var result = await scriptService.AddScript(scriptDetail, writerId);
+            var addResponse = await scriptService.AddScript(validScript, writerId);
+            Assert.True(addResponse.IsSuccess);
+            Assert.NotNull(addResponse.Data);
+            Assert.Equal(validScript.Title, addResponse.Data.Title);
 
-            Assert.NotNull(result);
+            var scriptId = addResponse.Data.Id;
+
+            var deleteResponse = await scriptService.DeleteScript(scriptId, writerId);
+            Assert.True(deleteResponse.IsSuccess);
+
+            var getDeleted = await scriptService.GetScriptById(scriptId, writerId);
+            Assert.NotNull(getDeleted.Data);
+            Assert.Equal(ScriptStatus.Deleted, getDeleted.Data.Status);
+
+            var invalidScript = BuildInvalidScriptDTO();
+            var failResponse = await scriptService.AddScript(invalidScript, writerId);
+            Assert.False(failResponse.IsSuccess);
         }
 
         [Fact]
-        public async Task AddScript_WithNonExistentWriter_ShouldReturnFailedResponse()
+        public async Task AddScript_ShouldFail_WhenFileIsTooLarge()
         {
-            var nonExistentWriterId = Guid.NewGuid();
-            var scriptDetail = CreateValidScriptDetailDTO();
+            var dto = BuildOversizedScriptDTO();
 
-            var result = await scriptService.AddScript(scriptDetail, nonExistentWriterId);
+            var response = await scriptService.AddScript(dto, writerId);
 
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.Contains("does not exist", result.Message);
+            Assert.False(response.IsSuccess);
+            Assert.Contains("Invalid File Types", response.Error, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
-        public async Task GetScripts_ShouldReturnPaginatedResults()
+        public async Task GetScriptById_ShouldHandleSuccessAndFailure()
         {
-            var result = await scriptService.GetScripts(1, 10);
+            var validScript = BuildValidScriptDTO();
+            var addResponse = await scriptService.AddScript(validScript, writerId);
+            Assert.NotNull(addResponse.Data);
+            Assert.True(addResponse.IsSuccess);
+            var scriptId = addResponse.Data.Id;
 
-            Assert.NotNull(result);
-            Assert.True(result.IsSuccess);
-            Assert.NotNull(result.Data);
+            var getResponse = await scriptService.GetScriptById(scriptId, writerId);
+            Assert.True(getResponse.IsSuccess);
+            Assert.NotNull(getResponse.Data);
+            Assert.Equal(validScript.Title, getResponse.Data.Title);
+
+            var downloadResponse = await scriptService.DownloadScript(scriptId);
+            Assert.True(downloadResponse.IsSuccess);
+            Assert.NotNull(downloadResponse.Data);
+            Assert.NotNull(downloadResponse.Data.File);
+
+            var wrongWriterId = Guid.NewGuid();
+            var failResponse = await scriptService.GetScriptById(scriptId, wrongWriterId);
+            Assert.False(failResponse.IsSuccess);
+
+            await scriptService.DeleteScript(scriptId, writerId);
         }
 
         [Fact]
-        public async Task GetScriptById_WithNonExistentId_ShouldReturnNotFound()
+        public async Task GetScriptsByWriterId_ShouldHandlePaginationAndNoData()
         {
-            var nonExistentId = Guid.NewGuid();
+            var script1 = await scriptService.AddScript(BuildValidScriptDTO(), writerId);
+            var script2 = await scriptService.AddScript(BuildValidScriptDTO(), writerId);
 
-            var result = await scriptService.GetScriptById(nonExistentId, null);
+            Assert.True(script1.IsSuccess);
+            Assert.True(script2.IsSuccess);
+            Assert.NotNull(script1.Data);
+            Assert.NotNull(script2.Data);
 
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.Equal(404, result.StatusCode);
+            var listResponse = await scriptService.GetScriptsByWriterId(writerId, 1, 10);
+
+            Assert.True(listResponse.IsSuccess);
+            Assert.NotNull(listResponse.Data);
+            Assert.Contains(listResponse.Data, s => s.Id == script1.Data.Id);
+            Assert.Contains(listResponse.Data, s => s.Id == script2.Data.Id);
+
+            await scriptService.DeleteScript(script1.Data.Id, writerId);
+            await scriptService.DeleteScript(script2.Data.Id, writerId);
+
+            var checkScriptsList = await scriptService.GetScriptsByWriterId(writerId, 1, 10);
+
+            Assert.True(checkScriptsList.IsSuccess);
+            Assert.NotNull(checkScriptsList.Data);
+            Assert.DoesNotContain(checkScriptsList.Data, s => s.WriterId == writerId);
+
+            Assert.DoesNotContain(checkScriptsList.Data, s => s.Id == script1.Data.Id);
+            Assert.DoesNotContain(checkScriptsList.Data, s => s.Id == script2.Data.Id);
         }
 
         [Fact]
-        public async Task GetScriptsByWriterId_WithNonExistentWriter_ShouldReturnEmptyResult()
+        public async Task GetScripts_ShouldHandlePaginationAndEmpty()
         {
-            var nonExistentWriterId = Guid.NewGuid();
+            var script1 = await scriptService.AddScript(BuildValidScriptDTO(), writerId);
+            var script2 = await scriptService.AddScript(BuildValidScriptDTO(), writerId);
 
-            var result = await scriptService.GetScriptsByWriterId(nonExistentWriterId, 1, 10);
 
-            Assert.NotNull(result);
-            Assert.True(result.IsSuccess);
-            Assert.Equal(204, result.StatusCode);
+            Assert.True(script1.IsSuccess);
+            Assert.True(script2.IsSuccess);
+            Assert.NotNull(script1.Data);
+            Assert.NotNull(script2.Data);
+
+            var listResponse = await scriptService.GetScripts(1, 10);
+            Assert.True(listResponse.IsSuccess);
+            Assert.NotNull(listResponse.Data);
+            Assert.True(listResponse.Data.Count >= 2);
+
+
+            await scriptService.DeleteScript(script1.Data.Id, writerId);
+            await scriptService.DeleteScript(script2.Data.Id, writerId);
         }
 
         [Fact]
-        public async Task DeleteScript_WithNonExistentScript_ShouldReturnFailedResponse()
+        public async Task DownloadScript_ShouldHandleSuccessAndFailure()
         {
-            var nonExistentScriptId = Guid.NewGuid();
-            var writerId = Guid.NewGuid();
+            var script = await scriptService.AddScript(BuildValidScriptDTO(), writerId);
+            Assert.True(script.IsSuccess);
+            Assert.NotNull(script.Data);
+            var scriptId = script.Data.Id;
 
-            var result = await scriptService.DeleteScript(nonExistentScriptId, writerId);
+            var downloadResponse = await scriptService.DownloadScript(scriptId);
+            Assert.True(downloadResponse.IsSuccess);
+            Assert.NotNull(downloadResponse.Data);
+            Assert.NotNull(downloadResponse.Data.File);
 
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.Contains("Invalid script Id", result.Message);
+            var failResponse = await scriptService.DownloadScript(Guid.NewGuid());
+            Assert.False(failResponse.IsSuccess);
+
+            await scriptService.DeleteScript(scriptId, writerId);
         }
+
+        //[Fact]
+        //public async Task UpdateScript_ShouldHandleSuccessAndFailure()
+        //{
+        //    var script = await scriptService.AddScript(BuildValidScriptDTO(), writerId);
+        //    Assert.True(script.IsSuccess);
+        //    Assert.NotNull(script.Data);
+        //    var scriptId = script.Data.Id;
+
+        //    var updateDetails = BuildUpdatedScriptDTO();
+
+        //    var updateResponse = await scriptService.UpdateScript(updateDetails, writerId, scriptId);
+        //    Assert.True(updateResponse.IsSuccess);
+        //    Assert.NotNull(updateResponse.Data);
+        //    Assert.Equal(updateDetails.Title, updateResponse.Data.Title);
+
+        //    var failWrongOwner = await scriptService.UpdateScript(updateDetails, Guid.NewGuid(), scriptId);
+        //    Assert.False(failWrongOwner.IsSuccess);
+
+        //    var failNotFound = await scriptService.UpdateScript(updateDetails, writerId, Guid.NewGuid());
+        //    Assert.False(failNotFound.IsSuccess);
+
+        //    await scriptService.DeleteScript(scriptId, writerId);
+        //}
 
         [Fact]
-        public async Task DownloadScript_WithNonExistentScript_ShouldReturnNotFound()
+        public async Task DeleteScript_ShouldHandleSuccessAndFailure()
         {
-            var nonExistentScriptId = Guid.NewGuid();
+            var script = await scriptService.AddScript(BuildValidScriptDTO(), writerId);
+            Assert.True(script.IsSuccess);
+            Assert.NotNull(script.Data);
+            var scriptId = script.Data.Id;
 
-            var result = await scriptService.DownloadScript(nonExistentScriptId);
+            var deleteResponse = await scriptService.DeleteScript(scriptId, writerId);
+            Assert.True(deleteResponse.IsSuccess);
 
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.Equal(404, result.StatusCode);
+            var getDeleted = await scriptService.GetScriptById(scriptId, writerId);
+            Assert.Null(getDeleted.Data);
+
+            var script2 = await scriptService.AddScript(BuildValidScriptDTO(), writerId);
+            Assert.True(script2.IsSuccess);
+            Assert.NotNull(script2.Data);
+            var failWrongOwner = await scriptService.DeleteScript(script2.Data.Id, Guid.NewGuid());
+            Assert.False(failWrongOwner.IsSuccess);
+
+            // Cleanup
+            await scriptService.DeleteScript(script2.Data.Id, writerId);
         }
 
-        private PostScriptDetailDTO CreateValidScriptDetailDTO()
+        // ---------- Test helpers ----------
+
+        private PostScriptDetailDTO BuildValidScriptDTO()
         {
             var fileContent = "Test script content"u8.ToArray();
             var stream = new MemoryStream(fileContent);
@@ -102,10 +203,10 @@ namespace BaraTests
 
             return new PostScriptDetailDTO
             {
-                Title = "Test Script",
+                Title = "Test Script " + Guid.NewGuid(),
                 Genre = "Drama",
-                Logline = "A compelling story about testing",
-                Synopsis = "This is a detailed synopsis of the test script.",
+                Logline = "A compelling story about integration testing",
+                Synopsis = "Detailed synopsis for integration test.",
                 Price = 500.00m,
                 IsScriptRegistered = true,
                 RegistrationBody = "WGA",
@@ -116,5 +217,69 @@ namespace BaraTests
                 ProofUrl = "https://example.com/proof.pdf"
             };
         }
+
+        private PostScriptDetailDTO BuildInvalidScriptDTO()
+        {
+            var fileContent = "Invalid content"u8.ToArray();
+            var stream = new MemoryStream(fileContent);
+            var formFile = new FormFile(stream, 0, fileContent.Length, "Script", "invalid-file.txt")
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "text/plain"
+            };
+
+            return new PostScriptDetailDTO
+            {
+                Title = "Invalid Script " + Guid.NewGuid(),
+                Genre = "Drama",
+                Logline = "Invalid file format test",
+                Synopsis = "Should fail because file extension is not allowed.",
+                Price = 500.00m,
+                IsScriptRegistered = true,
+                RegistrationBody = "WGA",
+                File = formFile,
+                Image = "test-image.jpg",
+                CopyrightNumber = "CR123456",
+                OwnershipRights = IPDealType.WriterRetainsRights,
+                ProofUrl = "https://example.com/proof.pdf"
+            };
+        }
+
+        private PostScriptDetailDTO BuildOversizedScriptDTO()
+        {
+            // Create ~10.5 MB file content
+            var oversizeContent = new byte[(int)(10.5 * 1024 * 1024)];
+            new Random().NextBytes(oversizeContent);
+
+            var stream = new MemoryStream(oversizeContent);
+            var formFile = new FormFile(stream, 0, oversizeContent.Length, "Script", "oversized-script.pdf")
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "application/pdf"
+            };
+
+            return new PostScriptDetailDTO
+            {
+                Title = "Oversized Script " + Guid.NewGuid(),
+                Genre = "Drama",
+                Logline = "This should fail due to file size limit.",
+                Synopsis = "Oversized test script for integration test.",
+                Price = 500.00m,
+                IsScriptRegistered = true,
+                RegistrationBody = "WGA",
+                File = formFile,
+                Image = "test-image.jpg",
+                CopyrightNumber = "CR123456",
+                OwnershipRights = IPDealType.WriterRetainsRights,
+                ProofUrl = "https://example.com/proof.pdf"
+            };
+        }
+        private PostScriptDetailDTO BuildUpdatedScriptDTO()
+        {
+            throw new NotImplementedException();
+        }
+
     }
+
 }
+

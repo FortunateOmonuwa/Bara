@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines roles available 
     /// </summary>
-    public enum Roles
+    public enum Role
     {
         Writer,
         Producer,

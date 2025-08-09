@@ -15,6 +15,8 @@ namespace UserModule.configs.ModelBuilderConfig
                 .HasConversion<string>();
             builder.Property(u => u.Gender)
                 .HasConversion<string>();
+            builder.HasBaseType(typeof(User));
+
         }
     }
 }

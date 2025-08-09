@@ -82,12 +82,12 @@ namespace UserModule.Models
         /// <summary>
         /// Foreign key referencing the writer who offers this service.
         /// </summary>
-        [ForeignKey(nameof(ScriptWriter))]
-        public Guid ScriptWriterId { get; set; }
+        [ForeignKey(nameof(Writer))]
+        public Guid WriterId { get; set; }
 
         /// <summary>
         /// Navigation property to the writer offering this service.
         /// </summary>
-        public virtual Writer? ScriptWriter { get; set; }
+        public Writer? Writer { get; set; }
     }
 }

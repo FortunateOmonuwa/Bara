@@ -7,14 +7,12 @@ namespace TransactionModule.Models
 {
     public class Transaction : BaseEntity
     {
-        //[Key]
-        //public Guid Id { get; set; }
         [ForeignKey("Producer")]
-        public Guid? ProducerId { get; set; }
+        public Guid ProducerId { get; set; }
         [ForeignKey("Writer")]
-        public Guid? WriterId { get; set; }
+        public Guid WriterId { get; set; }
         [ForeignKey("Script")]
-        public Guid? ScriptId { get; set; }
+        public Guid ScriptId { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
         [Column(TypeName = "decimal(18,2)")]
@@ -45,9 +43,9 @@ namespace TransactionModule.Models
         /// Optional response from the payment gateway or service provider.
         /// </summary>
         public string? GatewayResponse { get; set; }
-        [ForeignKey(nameof(PaymentDetail))]
-        public Guid? PaymentDetailId { get; set; }
-        public PaymentDetail? PaymentDetail { get; set; }
+        //[ForeignKey(nameof(PaymentDetail))]
+        //public Guid? PaymentDetailId { get; set; }
+        //public PaymentDetail? PaymentDetail { get; set; }
 
         [ForeignKey("Wallet")]
         public Guid? WalletID { get; set; }

@@ -206,33 +206,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("EscrowOperations");
                 });
 
-            modelBuilder.Entity("TransactionModule.Models.PaymentDetail", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CardBrand")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CustomerId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Last4")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PaymentMethodToken")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PaymentDetail");
-                });
-
             modelBuilder.Entity("TransactionModule.Models.Transaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -264,16 +237,13 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("PaymentDetailId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ProducerId")
+                    b.Property<Guid>("ProducerId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ReferenceId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("ScriptId")
+                    b.Property<Guid>("ScriptId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
@@ -292,12 +262,10 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("WalletID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("WriterId")
+                    b.Property<Guid>("WriterId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PaymentDetailId");
 
                     b.HasIndex("Status");
 
@@ -404,6 +372,9 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
                     b.ToTable("AuthProfiles");
                 });
 
@@ -474,9 +445,6 @@ namespace Infrastructure.Migrations
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
                     b.ToTable("Documents");
@@ -526,15 +494,15 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid>("ScriptWriterId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int>("SharePercentage")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("WriterId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ScriptWriterId");
+                    b.HasIndex("WriterId");
 
                     b.ToTable("Services");
                 });
@@ -564,10 +532,8 @@ namespace Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
+                    b.Property<Guid>("DocumentID")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -602,8 +568,8 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("VerificationDocumentID")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.Property<string>("VerificationStatus")
                         .IsRequired()
@@ -616,26 +582,23 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("AddressId");
 
-                    b.HasIndex("AuthProfileId");
+                    b.HasIndex("DocumentID");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
                     b.HasIndex("Gender");
 
-                    b.HasIndex("Id");
+                    b.HasIndex("Id")
+                        .IsUnique();
 
                     b.HasIndex("IsBlacklisted");
 
-                    b.HasIndex("VerificationDocumentID");
-
                     b.HasIndex("WalletId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
 
-                    b.HasDiscriminator().HasValue("User");
-
-                    b.UseTphMappingStrategy();
+                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("UserModule.Models.Producer", b =>
@@ -644,7 +607,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("IsDeleted");
 
-                    b.HasDiscriminator().HasValue("Producer");
+                    b.ToTable("Producers", (string)null);
                 });
 
             modelBuilder.Entity("UserModule.Models.Writer", b =>
@@ -656,7 +619,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("IsDeleted");
 
-                    b.HasDiscriminator().HasValue("Writer");
+                    b.ToTable("Writers", (string)null);
                 });
 
             modelBuilder.Entity("ScriptModule.Models.Script", b =>
@@ -687,10 +650,6 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("TransactionModule.Models.Transaction", b =>
                 {
-                    b.HasOne("TransactionModule.Models.PaymentDetail", "PaymentDetail")
-                        .WithMany()
-                        .HasForeignKey("PaymentDetailId");
-
                     b.HasOne("UserModule.Models.User", null)
                         .WithMany("Transactions")
                         .HasForeignKey("UserId");
@@ -699,9 +658,16 @@ namespace Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("WalletID");
 
-                    b.Navigation("PaymentDetail");
-
                     b.Navigation("Wallet");
+                });
+
+            modelBuilder.Entity("UserModule.Models.AuthProfile", b =>
+                {
+                    b.HasOne("UserModule.Models.User", null)
+                        .WithOne("AuthProfile")
+                        .HasForeignKey("UserModule.Models.AuthProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("UserModule.Models.BlackListedUser", b =>
@@ -717,13 +683,13 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("UserModule.Models.Service", b =>
                 {
-                    b.HasOne("UserModule.Models.Writer", "ScriptWriter")
+                    b.HasOne("UserModule.Models.Writer", "Writer")
                         .WithMany("Services")
-                        .HasForeignKey("ScriptWriterId")
+                        .HasForeignKey("WriterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ScriptWriter");
+                    b.Navigation("Writer");
                 });
 
             modelBuilder.Entity("UserModule.Models.User", b =>
@@ -734,15 +700,9 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("UserModule.Models.AuthProfile", "AuthProfile")
+                    b.HasOne("UserModule.Models.Document", "Document")
                         .WithMany()
-                        .HasForeignKey("AuthProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("UserModule.Models.Document", "VerificationDocument")
-                        .WithMany()
-                        .HasForeignKey("VerificationDocumentID")
+                        .HasForeignKey("DocumentID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -754,15 +714,34 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Address");
 
-                    b.Navigation("AuthProfile");
-
-                    b.Navigation("VerificationDocument");
+                    b.Navigation("Document");
 
                     b.Navigation("Wallet");
                 });
 
+            modelBuilder.Entity("UserModule.Models.Producer", b =>
+                {
+                    b.HasOne("UserModule.Models.User", null)
+                        .WithOne()
+                        .HasForeignKey("UserModule.Models.Producer", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("UserModule.Models.Writer", b =>
+                {
+                    b.HasOne("UserModule.Models.User", null)
+                        .WithOne()
+                        .HasForeignKey("UserModule.Models.Writer", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("UserModule.Models.User", b =>
                 {
+                    b.Navigation("AuthProfile")
+                        .IsRequired();
+
                     b.Navigation("Transactions");
                 });
 

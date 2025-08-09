@@ -8,6 +8,9 @@ namespace UserModule.configs.ModelBuilderConfig
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
+            builder.HasOne(w => w.AuthProfile)
+            .WithOne()
+            .HasForeignKey<AuthProfile>(ap => ap.UserId);
             builder.HasIndex(x => x.Id);
             builder.HasIndex(x => x.Email);
             builder.HasIndex(x => x.IsBlacklisted);

@@ -11,7 +11,7 @@ namespace UserModule.Models
     /// Represents the core user entity in the system, capturing identity, profile,
     /// verification, contact details, and related relationships like wallet and authentication.
     /// </summary>
-    public class User : BaseEntity
+    public abstract class User : BaseEntity
     {
         /// <summary>
         /// The user's first name.
@@ -85,13 +85,13 @@ namespace UserModule.Models
         /// <summary>
         /// Foreign key reference to the user's verification document.
         /// </summary>
-        [ForeignKey(nameof(VerificationDocument))]
-        public Guid VerificationDocumentID { get; set; }
+        [ForeignKey(nameof(Document))]
+        public Guid DocumentID { get; set; }
 
         /// <summary>
         /// The verification document uploaded by the user for identity verification.
         /// </summary>
-        public Document VerificationDocument { get; set; }
+        public Document Document { get; set; }
 
         /// <summary>
         /// The current verification status of the user.
@@ -118,8 +118,12 @@ namespace UserModule.Models
         /// <summary>
         /// The user's authentication profile, containing security-related info.
         /// </summary>
-        public required AuthProfile AuthProfile { get; set; }
+        public AuthProfile AuthProfile { get; set; }
 
+        /// <summary>
+        /// Defines the type of user... {Producer or Writer}
+        /// </summary>
+        public required Role Type { get; set; }
         /// <summary>
         /// A list of all transactions associated with the user.
         /// </summary>

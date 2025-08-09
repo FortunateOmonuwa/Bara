@@ -53,10 +53,12 @@ namespace BaraTests.Utils
             services.AddTransient<IScriptService, ScriptRepository>();
             services.AddTransient<IProducerService, ProducerRepository>();
             services.AddTransient<IAuthService, AuthRepository>();
+            services.AddTransient<IUserService, UserRepository>();
             services.AddDbContext<BaraContext>(options =>
             {
                 options.UseSqlServer(configuration["connection"]);
             });
+            services.AddSignalR();
             services.AddScoped(typeof(LogHelper<>));
 
             services.AddHttpClient("YouVerify", client =>

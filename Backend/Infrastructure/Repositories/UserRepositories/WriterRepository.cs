@@ -21,6 +21,7 @@ using UserModule.DTOs.WriterDTOs;
 using UserModule.Interfaces.UserInterfaces;
 using UserModule.Models;
 using UserModule.Utilities;
+using Role = UserModule.Enums.Role;
 
 namespace Infrastructure.Repositories.UserRepositories
 {
@@ -75,7 +76,7 @@ namespace Infrastructure.Repositories.UserRepositories
                 {
                     return ResponseDetail<GetWriterDetailDTO>.Failed($"Profile with email {writerDetail.Email} already exists", 409, "Conflict");
                 }
-                var writer = new Writer
+                var writer = new Writer()
                 {
                     FirstName = writerDetail.FirstName.ToUpperInvariant(),
                     LastName = writerDetail.LastName.ToUpperInvariant(),
@@ -95,7 +96,18 @@ namespace Infrastructure.Repositories.UserRepositories
                     Gender = writerDetail.Gender,
                     IsPremiumMember = writerDetail.IsPremiumMember,
                     MiddleName = writerDetail.MiddleName?.ToUpperInvariant() ?? "",
-                    Services = writerDetail.PostServiceDetail?
+                    Type = Role.Writer,
+                };
+
+                AuthProfile newAuthProfile = new()
+                {
+                    Email = email,
+                    Password = BCrypt.Net.BCrypt.HashPassword(writerDetail.Password),
+                    Role = "Writer",
+                    FullName = $"{writerDetail.FirstName} {writerDetail.LastName}".ToUpperInvariant(),
+                    UserId = writer.Id,
+                };
+                var services = writerDetail.PostServiceDetail?
                                 .Select(dto => new Service
                                 {
                                     Name = dto.Name,
@@ -106,24 +118,23 @@ namespace Infrastructure.Repositories.UserRepositories
                                     IPDealType = dto.IPDealType,
                                     SharePercentage = dto.SharePercentage,
                                     PaymentType = dto.PaymentType,
-                                    Genre = dto.Genre ?? []
+                                    Genre = dto.Genre ?? [],
+                                    WriterId = writer.Id
                                 })
-                                .ToList() ?? [],
-                    AuthProfile = new AuthProfile
-                    {
-                        Email = email,
-                        Password = BCrypt.Net.BCrypt.HashPassword(writerDetail.Password),
-                        Role = "Writer",
-                        FullName = $"{writerDetail.FirstName} {writerDetail.LastName}".ToUpperInvariant()
-                    },
-                    Wallet = new Wallet
-                    {
-                        TotalBalance = 0,
-                        AvailableBalance = 0,
-                        LockedBalance = 0,
-                        Currency = Currency.NAIRA,
-                    },
+                                .ToList() ?? [];
+
+                Wallet wallet = new Wallet
+                {
+                    TotalBalance = 0,
+                    AvailableBalance = 0,
+                    LockedBalance = 0,
+                    Currency = Currency.NAIRA,
+                    UserId = writer.Id,
                 };
+
+                writer.AuthProfile = newAuthProfile;
+                writer.Services = services;
+                writer.Wallet = wallet;
 
                 var userDirectoryName = $"Writer_{writer.FirstName}_{writer.LastName}-{writer.PhoneNumber}";
                 var documentId = await fileService.ProcessDocumentForUpload(userDirectoryName, writerDetail.VerificationDocument);
@@ -133,7 +144,7 @@ namespace Infrastructure.Repositories.UserRepositories
                     logger.LogError($"Error uploading KYC document {writerDetail.FirstName} {writerDetail.LastName} ");
                     return ResponseDetail<GetWriterDetailDTO>.Failed($"An error occurred while uploading the KYC document for: {writerDetail.FirstName} {writerDetail.LastName}", 500, "UnexpectedError");
                 }
-                writer.VerificationDocumentID = documentId.Data;
+                writer.DocumentID = documentId.Data;
 
                 await dbContext.Writers.AddAsync(writer);
                 var writerRes = await dbContext.SaveChangesAsync();

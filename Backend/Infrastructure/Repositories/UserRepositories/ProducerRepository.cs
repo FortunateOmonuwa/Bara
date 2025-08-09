@@ -15,6 +15,7 @@ using System.Security.Cryptography;
 using TransactionModule.DTOs;
 using TransactionModule.Models;
 using UserModule.DTOs.ProducerDTOs;
+using UserModule.Enums;
 using UserModule.Interfaces.UserInterfaces;
 using UserModule.Models;
 using UserModule.Utilities;
@@ -88,20 +89,24 @@ namespace Infrastructure.Repositories.UserRepositories
                         PostalCode = producerDetailDTO.AddressDetail.PostalCode,
                         AdditionalDetails = producerDetailDTO.AddressDetail.AdditionalDetails.ToUpperInvariant(),
                     },
-                    AuthProfile = new AuthProfile
-                    {
-                        Email = email,
-                        Password = BCrypt.Net.BCrypt.HashPassword(producerDetailDTO.Password),
-                        Role = "Producer",
-                        FullName = $"{producerDetailDTO.FirstName} {producerDetailDTO.LastName}".ToUpperInvariant(),
-                    },
-                    Wallet = new Wallet
-                    {
-                        TotalBalance = 0,
-                        AvailableBalance = 0,
-                        LockedBalance = 0,
-                        Currency = Currency.NAIRA,
-                    },
+                    Type = Role.Writer,
+                };
+
+                AuthProfile authProfile = new()
+                {
+                    Email = email,
+                    Password = BCrypt.Net.BCrypt.HashPassword(producerDetailDTO.Password),
+                    Role = "Producer",
+                    FullName = $"{producerDetailDTO.FirstName} {producerDetailDTO.LastName}".ToUpperInvariant(),
+                    UserId = newProducerProfile.Id
+                };
+                Wallet wallet = new Wallet
+                {
+                    TotalBalance = 0,
+                    AvailableBalance = 0,
+                    LockedBalance = 0,
+                    Currency = Currency.NAIRA,
+                    UserId = newProducerProfile.Id
                 };
 
                 var userDirectoryName = $"Producer_{newProducerProfile.FirstName}_{newProducerProfile.LastName}-{newProducerProfile.PhoneNumber}";
@@ -111,7 +116,7 @@ namespace Infrastructure.Repositories.UserRepositories
                     logger.LogError($"An error occured while uploading KYC document for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}");
                     return ResponseDetail<GetProducerDetailDTO>.Failed($"An error occured while uploading KYC document for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}", 500, "Unexpected Error");
                 }
-                newProducerProfile.VerificationDocumentID = documentId.Data;
+                newProducerProfile.DocumentID = documentId.Data;
 
                 await dbContext.Producers.AddAsync(newProducerProfile);
                 var producerRes = await dbContext.SaveChangesAsync();

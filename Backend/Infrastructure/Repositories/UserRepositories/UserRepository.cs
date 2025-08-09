@@ -50,9 +50,9 @@ namespace Infrastructure.Repositories.UserRepositories
             try
             {
                 var user = await dbContext.Users
-                    .Include(x => x.VerificationDocument)
+                    .Include(x => x.Document)
                     .Include(x => x.AuthProfile)
-                    .FirstOrDefaultAsync(x => x.VerificationDocument.IdentificationNumber == verificationIdNumber);
+                    .FirstOrDefaultAsync(x => x.Document.IdentificationNumber == verificationIdNumber);
 
                 var errors = new List<string>();
 
@@ -79,7 +79,7 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
                 else
                 {
-                    user.VerificationDocument.IsVerified = true;
+                    user.Document.IsVerified = true;
                     user.AuthProfile.IsVerified = true;
                     user.ModifiedAt = DateTimeOffset.UtcNow;
                     user.VerificationStatus = VerificationStatus.Approved;

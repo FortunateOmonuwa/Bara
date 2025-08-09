@@ -1,8 +1,10 @@
-﻿using MailKit;
+﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 using ScriptModule.Interfaces;
 using Services.BackgroudServices;
 using Services.FileStorageServices.Interfaces;
+using Services.MailingService;
+using Services.SignalR;
 using Services.YouVerifyIntegration;
 using SharedModule.Settings;
 using UserModule.Interfaces.UserInterfaces;
@@ -23,6 +25,7 @@ namespace BaraTests.Utils
         protected readonly IProducerService producerService;
         protected readonly IAuthService authService;
         protected readonly IUserService userService;
+        protected readonly IHubContext<NotificationHub> hubContext;
         protected BaseTestFixture()
         {
             youVerify = TestStartUp.Resolve<IYouVerifyService>();
@@ -37,6 +40,7 @@ namespace BaraTests.Utils
             producerService = TestStartUp.Resolve<IProducerService>();
             authService = TestStartUp.Resolve<IAuthService>();
             userService = TestStartUp.Resolve<IUserService>();
+            hubContext = TestStartUp.Resolve<IHubContext<NotificationHub>>();
         }
     }
 }
