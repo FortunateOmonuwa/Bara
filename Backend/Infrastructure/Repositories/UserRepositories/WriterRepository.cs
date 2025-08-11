@@ -18,6 +18,7 @@ using TransactionModule.DTOs;
 using TransactionModule.Models;
 using UserModule.DTOs.ServiceDTOs;
 using UserModule.DTOs.WriterDTOs;
+using UserModule.Enums;
 using UserModule.Interfaces.UserInterfaces;
 using UserModule.Models;
 using UserModule.Utilities;
@@ -33,8 +34,9 @@ namespace Infrastructure.Repositories.UserRepositories
         private readonly IFileService fileService;
         private readonly HangfireJobs hangfire;
         private readonly IMemoryCache cache;
-
-        public WriterRepository(BaraContext dbContext, ILogger<WriterRepository> logger, IOptions<AppSettings> appSettings, IFileService fileService, HangfireJobs hangfireJobs, IMemoryCache memoryCache)
+        private readonly IYouVerifyService youVerify;
+        public WriterRepository(BaraContext dbContext, ILogger<WriterRepository> logger, IOptions<AppSettings> appSettings,
+            IFileService fileService, HangfireJobs hangfireJobs, IMemoryCache memoryCache, IYouVerifyService youVerifyService)
         {
             this.dbContext = dbContext;
             this.logger = logger;
@@ -42,18 +44,20 @@ namespace Infrastructure.Repositories.UserRepositories
             this.fileService = fileService;
             hangfire = hangfireJobs;
             cache = memoryCache;
+            youVerify = youVerifyService;
         }
 
-        public async Task<ResponseDetail<GetWriterDetailDTO>> AddWriter(PostWriterDetailDTO writerDetail)
+        public async Task<ResponseDetail<GetWriterDetailDTO>> AddWriter(PostWriterDetailDTO writerDetailDTO)
         {
-            using var transaction = await dbContext.Database.BeginTransactionAsync();
+            await using var transaction = await dbContext.Database.BeginTransactionAsync();
             try
             {
-                var email = writerDetail.Email.Trim().ToLowerInvariant();
+                // -------------------- INPUT VALIDATION --------------------
+                var email = writerDetailDTO.Email.Trim().ToLowerInvariant();
                 var emailValidation = RegexValidations.IsValidMail(email);
-                var phoneNumberValidation = RegexValidations.IsValidPhoneNumber(writerDetail.PhoneNumber);
-                var nameValidation = RegexValidations.IsValidName(writerDetail.FirstName, writerDetail.LastName, writerDetail.MiddleName ?? "");
-                var passwordValidation = RegexValidations.IsAcceptablePasswordFormat(writerDetail.Password);
+                var phoneNumberValidation = RegexValidations.IsValidPhoneNumber(writerDetailDTO.PhoneNumber);
+                var nameValidation = RegexValidations.IsValidName(writerDetailDTO.FirstName, writerDetailDTO.LastName, writerDetailDTO.MiddleName ?? "");
+                var passwordValidation = RegexValidations.IsAcceptablePasswordFormat(writerDetailDTO.Password);
                 var validationErrors = new List<string>();
 
                 if (!emailValidation) validationErrors.Add("Invalid email");
@@ -66,140 +70,149 @@ namespace Infrastructure.Repositories.UserRepositories
                     return ResponseDetail<GetWriterDetailDTO>.Failed(string.Join(" | ", validationErrors));
                 }
 
-                var writerAccount = await dbContext.AuthProfiles.Select(x => new { x.Email, x.IsDeleted }).FirstOrDefaultAsync(w => w.Email == email);
+                // -------------------- CHECK FOR EXISTING ACCOUNT --------------------
+                var writerAccount = await dbContext.AuthProfiles
+                    .Select(x => new { x.Email, x.IsDeleted })
+                    .FirstOrDefaultAsync(x => x.Email == email);
 
                 if (writerAccount?.IsDeleted == true)
                 {
-                    return ResponseDetail<GetWriterDetailDTO>.Failed($"Profile with email {writerDetail.Email} already exists and just needs to be reactivated", 409, "Account needs to be reactivated");
+                    return ResponseDetail<GetWriterDetailDTO>.Failed("A profile with this email already exists and just needs to be Reactivated", 409, "Account Needs Reactivation");
                 }
-                if (writerAccount is not null)
+                else if (writerAccount is not null)
                 {
-                    return ResponseDetail<GetWriterDetailDTO>.Failed($"Profile with email {writerDetail.Email} already exists", 409, "Conflict");
+                    return ResponseDetail<GetWriterDetailDTO>.Failed("A profile with this email already exists...", 409, "Conflict");
                 }
-                var writer = new Writer()
+
+                // -------------------- CREATE WRITER PROFILE --------------------
+                var newWriterProfile = new Writer
                 {
-                    FirstName = writerDetail.FirstName.ToUpperInvariant(),
-                    LastName = writerDetail.LastName.ToUpperInvariant(),
                     Email = email,
-                    PhoneNumber = writerDetail.PhoneNumber,
-                    Bio = writerDetail.Bio,
-                    DateOfBirth = writerDetail.DateOfBirth,
+                    FirstName = writerDetailDTO.FirstName.ToUpperInvariant(),
+                    LastName = writerDetailDTO.LastName.ToUpperInvariant(),
+                    MiddleName = writerDetailDTO.MiddleName?.ToUpperInvariant() ?? "",
+                    PhoneNumber = writerDetailDTO.PhoneNumber,
+                    Bio = writerDetailDTO.Bio,
+                    Gender = writerDetailDTO.Gender,
+                    DateOfBirth = writerDetailDTO.DateOfBirth,
+                    IsPremiumMember = writerDetailDTO.IsPremiumMember,
                     Address = new Address
                     {
-                        City = writerDetail.AddressDetail.City.ToUpperInvariant(),
-                        State = writerDetail.AddressDetail.State.ToUpperInvariant(),
-                        Country = writerDetail.AddressDetail.Country.ToUpperInvariant(),
-                        PostalCode = writerDetail.AddressDetail.PostalCode.ToUpperInvariant(),
-                        Street = writerDetail.AddressDetail.Street.ToUpperInvariant(),
-                        AdditionalDetails = writerDetail.AddressDetail.AdditionalDetails
+                        City = writerDetailDTO.AddressDetail.City.ToUpperInvariant(),
+                        Country = writerDetailDTO.AddressDetail.Country.ToUpperInvariant(),
+                        State = writerDetailDTO.AddressDetail.State.ToUpperInvariant(),
+                        Street = writerDetailDTO.AddressDetail.Street.ToUpperInvariant(),
+                        PostalCode = writerDetailDTO.AddressDetail.PostalCode,
+                        AdditionalDetails = writerDetailDTO.AddressDetail.AdditionalDetails.ToUpperInvariant(),
                     },
-                    Gender = writerDetail.Gender,
-                    IsPremiumMember = writerDetail.IsPremiumMember,
-                    MiddleName = writerDetail.MiddleName?.ToUpperInvariant() ?? "",
                     Type = Role.Writer,
                 };
 
-                AuthProfile newAuthProfile = new()
+                // -------------------- CREATE AUTH PROFILE --------------------
+                AuthProfile authProfile = new()
                 {
                     Email = email,
-                    Password = BCrypt.Net.BCrypt.HashPassword(writerDetail.Password),
+                    Password = BCrypt.Net.BCrypt.HashPassword(writerDetailDTO.Password),
                     Role = "Writer",
-                    FullName = $"{writerDetail.FirstName} {writerDetail.LastName}".ToUpperInvariant(),
-                    UserId = writer.Id,
+                    FullName = $"{writerDetailDTO.FirstName} {writerDetailDTO.LastName}".ToUpperInvariant(),
+                    UserId = newWriterProfile.Id
                 };
-                var services = writerDetail.PostServiceDetail?
-                                .Select(dto => new Service
-                                {
-                                    Name = dto.Name,
-                                    Description = dto.Description,
-                                    MinPrice = dto.MinPrice,
-                                    MaxPrice = dto.MaxPrice,
-                                    Currency = dto.Currency,
-                                    IPDealType = dto.IPDealType,
-                                    SharePercentage = dto.SharePercentage,
-                                    PaymentType = dto.PaymentType,
-                                    Genre = dto.Genre ?? [],
-                                    WriterId = writer.Id
-                                })
-                                .ToList() ?? [];
 
+                // -------------------- CREATE SERVICES --------------------
+                var services = writerDetailDTO.PostServiceDetail?
+                    .Select(dto => new Service
+                    {
+                        Name = dto.Name,
+                        Description = dto.Description,
+                        MinPrice = dto.MinPrice,
+                        MaxPrice = dto.MaxPrice,
+                        Currency = dto.Currency,
+                        IPDealType = dto.IPDealType,
+                        SharePercentage = dto.SharePercentage,
+                        PaymentType = dto.PaymentType,
+                        Genre = dto.Genre ?? [],
+                        WriterId = newWriterProfile.Id
+                    })
+                    .ToList() ?? [];
+
+                // -------------------- CREATE WALLET --------------------
                 Wallet wallet = new Wallet
                 {
                     TotalBalance = 0,
                     AvailableBalance = 0,
                     LockedBalance = 0,
                     Currency = Currency.NAIRA,
-                    UserId = writer.Id,
+                    UserId = newWriterProfile.Id
                 };
 
-                writer.AuthProfile = newAuthProfile;
-                writer.Services = services;
-                writer.Wallet = wallet;
+                newWriterProfile.AuthProfile = authProfile;
+                newWriterProfile.Services = services;
+                newWriterProfile.Wallet = wallet;
 
-                var userDirectoryName = $"Writer_{writer.FirstName}_{writer.LastName}-{writer.PhoneNumber}";
-                var documentId = await fileService.ProcessDocumentForUpload(userDirectoryName, writerDetail.VerificationDocument);
-
-                if (documentId.Data == Guid.Empty || documentId == null)
+                // --------------------  UPLOAD & ASSIGN DOCUMENT ID --------------------
+                var userDirectoryName = $"Writer_{newWriterProfile.FirstName}_{newWriterProfile.LastName}-{newWriterProfile.PhoneNumber}";
+                var documentId = await fileService.ProcessDocumentForUpload(userDirectoryName, writerDetailDTO.VerificationDocument);
+                if (documentId == null || documentId.Data == Guid.Empty)
                 {
-                    logger.LogError($"Error uploading KYC document {writerDetail.FirstName} {writerDetail.LastName} ");
-                    return ResponseDetail<GetWriterDetailDTO>.Failed($"An error occurred while uploading the KYC document for: {writerDetail.FirstName} {writerDetail.LastName}", 500, "UnexpectedError");
+                    logger.LogError($"An error occurred while uploading KYC document for {writerDetailDTO.FirstName} {writerDetailDTO.LastName}");
+                    return ResponseDetail<GetWriterDetailDTO>.Failed($"An error occurred while uploading KYC document for {writerDetailDTO.FirstName} {writerDetailDTO.LastName}", 500, "Unexpected Error");
                 }
-                writer.DocumentID = documentId.Data;
+                newWriterProfile.DocumentID = documentId.Data;
 
-                await dbContext.Writers.AddAsync(writer);
+                // -------------------- SAVE PROFILE TO DATABASE --------------------
+                await dbContext.Writers.AddAsync(newWriterProfile);
                 var writerRes = await dbContext.SaveChangesAsync();
-
                 if (writerRes < 1)
                 {
-                    logger.LogError($"Error saving writer profile {writer.FirstName} {writer.LastName} to the database");
-                    return ResponseDetail<GetWriterDetailDTO>.Failed($"Error saving writer profile {writer.FirstName} {writer.LastName} to the database");
+                    logger.LogError($"An error occurred while creating a writer profile for {writerDetailDTO.FirstName} {writerDetailDTO.LastName}");
+                    return ResponseDetail<GetWriterDetailDTO>.Failed($"An error occurred while creating a writer profile for {writerDetailDTO.FirstName} {writerDetailDTO.LastName}", 500, "Unexpected Error");
                 }
 
+                // --------------------  GENERATE EMAIL VERIFICATION TOKEN --------------------
                 var token = RandomNumberGenerator.GetInt32(100000, 999999);
+                cache.Set($"User_Verification_Token_{newWriterProfile.Id}", token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+                Console.WriteLine($"Writer_Verification_Token_{writerDetailDTO.FirstName} {writerDetailDTO.LastName}", token);
 
-                cache.Set($"User_Verification_Token_{writer.Id}", token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
-                Console.WriteLine($"Writer_Verification_Token_{writer.FirstName} {writer.LastName}", token);
+                var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(newWriterProfile.Email, newWriterProfile.FirstName, token.ToString());
+                BackgroundJob.Enqueue<HangfireJobs>(x => x.SendMailAsync(verificationMail));
 
-                var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(writer.Email, writer.FirstName, token.ToString());
-                BackgroundJob.Enqueue(() => hangfire.SendMailAsync(verificationMail));
-
+                // --------------------  PREPARE KYC REQUEST --------------------
                 var kycDetail = new YouVerifyKycDto
                 {
-                    Id = writerDetail.VerificationDocument.VerificationNumber,
-                    Type = writerDetail.VerificationDocument.Type.ToString(),
-                    UserId = writer.Id,
-                    LastName = writer.LastName,
+                    Id = writerDetailDTO.VerificationDocument.VerificationNumber,
+                    Type = writerDetailDTO.VerificationDocument.Type.ToString(),
+                    UserId = newWriterProfile.Id,
+                    LastName = newWriterProfile.LastName,
+                    IsDirectCall = true,
                 };
-                BackgroundJob.Enqueue(() => hangfire.StartKycProcess(kycDetail));
 
-                await transaction.CommitAsync();
-
+                // --------------------  BUILD RESPONSE DTO --------------------
                 var writerProfile = new GetWriterDetailDTO
                 {
-                    Id = writer.Id,
-                    FirstName = writer.FirstName,
-                    LastName = writer.LastName,
-                    MiddleName = writer.MiddleName,
-                    Name = $"{writer.FirstName} {writer.LastName} {writer.MiddleName}",
-                    Bio = writer.Bio,
-                    Email = writer.Email,
-                    PhoneNumber = writer.PhoneNumber,
-                    IsBlacklisted = writer.IsDeleted,
-                    IsEmailVerified = writer.AuthProfile.IsEmailVerified,
-                    IsVerified = writer.AuthProfile.IsVerified,
-                    Role = writer.AuthProfile.Role,
-                    IsPremium = writer.IsPremiumMember,
-                    VerificationStatus = writer.VerificationStatus.ToString(),
+                    Id = newWriterProfile.Id,
+                    Email = newWriterProfile.Email,
+                    FirstName = newWriterProfile.FirstName,
+                    LastName = newWriterProfile.LastName,
+                    MiddleName = newWriterProfile.MiddleName,
+                    Name = $"{newWriterProfile.FirstName} {newWriterProfile.LastName}",
+                    Bio = newWriterProfile.Bio,
+                    IsBlacklisted = newWriterProfile.AuthProfile.IsDeleted,
                     Address = new AddressDetail
                     {
-                        City = writer.Address.City,
-                        State = writer.Address.State,
-                        Country = writer.Address.Country,
-                        PostalCode = writer.Address.PostalCode,
-                        Street = writer.Address.Street,
-                        AdditionalDetails = writer.Address.AdditionalDetails ?? ""
+                        City = newWriterProfile.Address.City,
+                        Country = newWriterProfile.Address.Country,
+                        State = newWriterProfile.Address.State,
+                        Street = newWriterProfile.Address.Street,
+                        PostalCode = newWriterProfile.Address.PostalCode,
+                        AdditionalDetails = newWriterProfile.Address.AdditionalDetails,
                     },
-                    Services = writer.Services.Select(s => new GetServiceDetailDTO
+                    IsEmailVerified = newWriterProfile.AuthProfile.IsEmailVerified,
+                    IsVerified = newWriterProfile.AuthProfile.IsVerified,
+                    PhoneNumber = newWriterProfile.PhoneNumber,
+                    VerificationStatus = newWriterProfile.VerificationStatus.ToString(),
+                    Role = newWriterProfile.AuthProfile.Role,
+                    IsPremium = newWriterProfile.IsPremiumMember,
+                    Services = newWriterProfile.Services.Select(s => new GetServiceDetailDTO
                     {
                         Id = s.Id,
                         Name = s.Name,
@@ -214,43 +227,110 @@ namespace Infrastructure.Repositories.UserRepositories
                     }).ToList(),
                     Wallet = new GetWalletDetailDTO
                     {
-                        Id = writer.Wallet.Id,
-                        Balance = writer.Wallet.TotalBalance,
-                        LockedBalance = writer.Wallet.LockedBalance,
-                        Currency = writer.Wallet.Currency,
-                        CurrencySymbol = writer.Wallet.CurrencySymbol,
-                        UserId = writer.Id
+                        Id = newWriterProfile.Wallet.Id,
+                        Balance = newWriterProfile.Wallet.TotalBalance,
+                        LockedBalance = newWriterProfile.Wallet.LockedBalance,
+                        Currency = newWriterProfile.Wallet.Currency,
+                        CurrencySymbol = newWriterProfile.Wallet.CurrencySymbol,
+                        UserId = newWriterProfile.Id
                     },
-                    CreatedAt = writer.CreatedAt,
-                    DateCreated = writer.DateCreated,
-                    TimeCreated = writer.TimeCreated,
-                    DateModified = writer.DateModified,
-                    ModifiedAt = writer.ModifiedAt,
-                    TimeModified = writer.TimeModified
+                    CreatedAt = newWriterProfile.CreatedAt,
+                    DateCreated = newWriterProfile.DateCreated,
+                    TimeCreated = newWriterProfile.TimeCreated,
+                    DateModified = newWriterProfile.DateModified,
+                    ModifiedAt = newWriterProfile.ModifiedAt,
+                    TimeModified = newWriterProfile.TimeModified
                 };
 
-                var options = new MemoryCacheEntryOptions
+                // -------------------- PERFORM DIRECT KYC CHECK --------------------
+                bool kycCompleted = false;
+                string kycFailureReason = null;
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+                {
+                    try
+                    {
+                        var directKycReq = await youVerify.VerifyIdentificationNumberAsync(kycDetail, cts.Token);
+
+                        if (directKycReq != null && directKycReq.Success && directKycReq.Data?.Id != null)
+                        {
+                            if (directKycReq.Data?.DateOfBirth != newWriterProfile.DateOfBirth.ToString("yyyy-MM-dd"))
+                            {
+                                logger.LogWarning($"Writer {newWriterProfile.FirstName} {newWriterProfile.LastName} KYC failed: Date of birth mismatch.");
+                                kycFailureReason = "DOB_MISMATCH";
+                            }
+                            else
+                            {
+                                newWriterProfile.AuthProfile.IsVerified = true;
+                                newWriterProfile.VerificationStatus = VerificationStatus.Approved;
+                                dbContext.Writers.Update(newWriterProfile);
+                                await dbContext.SaveChangesAsync();
+                                kycCompleted = true;
+                            }
+                        }
+                        else
+                        {
+                            kycFailureReason = "KYC_FAILED";
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        kycFailureReason = "TIMEOUT";
+                        logger.LogWarning($"YouVerify KYC call timed out after 30 seconds for writer {newWriterProfile.Id}. Falling back to background job.");
+                    }
+                    catch (Exception ex)
+                    {
+                        kycFailureReason = "ERROR";
+                        logger.LogError(ex.GetType().Name, $"Error during YouVerify KYC call for writer {newWriterProfile.Id}. Falling back to background job.");
+                    }
+                }
+
+                // --------------------  COMMIT TRANSACTION --------------------
+                await transaction.CommitAsync();
+
+                // -------------------- HANDLE KYC OUTCOME --------------------
+                string message;
+                if (!kycCompleted)
+                {
+                    // ------------------------ LET HANGFIRE HANDLE AS A BACKGROUND JOB IF IT FAILS -------------------------
+                    BackgroundJob.Enqueue(() => hangfire.StartKycProcess(kycDetail));
+
+                    message = kycFailureReason switch
+                    {
+                        "DOB_MISMATCH" => $"Writer profile created successfully... But verification failed because of a mismatch between the Date of birth provided and {writerDetailDTO.VerificationDocument.Type} Date of birth",
+                        "TIMEOUT" => "Writer profile created successfully... But verification could not be completed within the time limit. We will continue processing in the background.",
+                        "ERROR" => "Writer profile created successfully... But an error occurred during verification. We will retry shortly.",
+                        _ => "Writer profile created successfully... But verification could not be completed at this time."
+                    };
+                }
+                else
+                {
+                    message = "Writer profile created successfully";
+                }
+
+                // -------------------- CACHE FINAL PROFILE --------------------
+                var cacheOptions = new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
-                    SlidingExpiration = TimeSpan.FromMinutes(3),
+                    SlidingExpiration = TimeSpan.FromMinutes(5)
                 };
-                cache.Set($"Writer_Profile{writer.Id}", writerProfile, options);
-                return ResponseDetail<GetWriterDetailDTO>.Successful(writerProfile, "Writer profile created successfully", 201);
+                cache.Set($"Writer_Profile{newWriterProfile.Id}", writerProfile, cacheOptions);
+
+                // -------------------- RETURN SUCCESS --------------------
+                return ResponseDetail<GetWriterDetailDTO>.Successful(writerProfile, message, 201);
             }
             catch (DbUpdateException dbEx)
             {
                 await transaction.RollbackAsync();
-                logger.LogError($"A database update exception was thrown while creating a writer profile: {dbEx.GetType().Name}", dbEx.Message);
-                return ResponseDetail<GetWriterDetailDTO>.Failed("An Db update exception was thrown while saving writer profile", dbEx.HResult, "Database Update Error");
+                logger.LogError($"A database update exception: {dbEx.GetType().Name} was thrown while creating an account for {writerDetailDTO.FirstName} {writerDetailDTO.LastName}... Base Exception: {dbEx.GetBaseException().GetType()}", $"Exception Code: {dbEx.HResult}");
+                return ResponseDetail<GetWriterDetailDTO>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                logger.LogError($"An exception {ex.GetType().FullName} was thrown while creating a writer profile...\n Base Exception: {ex.GetBaseException().GetType().FullName}", ex.Message);
+                logger.LogError($"An exception: {ex.GetType().Name} was thrown while creating a writer profile... \nBase Exception: {ex.GetBaseException().GetType().Name}", $"Exception Code: {ex.HResult}", ex.Message);
                 return ResponseDetail<GetWriterDetailDTO>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
-
         public Task<ResponseDetail<bool>> DeleteWriter(Guid writerId)
         {
             //Set as deleted and delete login profile

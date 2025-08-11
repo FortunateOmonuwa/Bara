@@ -44,7 +44,7 @@ namespace Services.YouVerifyIntegration
             Drivers_License_URL = $"{settings.YouVerify_Drivers_License_VerificationUrl}";
         }
 
-        public async Task<YouVerifyKickoffResponse> VerifyIdentificationNumberAsync(YouVerifyKycDto details)
+        public async Task<YouVerifyKickoffResponse> VerifyIdentificationNumberAsync(YouVerifyKycDto details, CancellationToken cancellationToken)
         {
             try
             {
@@ -75,13 +75,38 @@ namespace Services.YouVerifyIntegration
 
                 var reqBody = apiService.SerializeReqBody(body);
                 var request = await apiService.SendPostRequest(reqBody, url, null, "YouVerify");
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var stringRes = await request.Content.ReadAsStringAsync(cancellationToken);
+                var serializedRes = JsonConvert.DeserializeObject<YouVerifyResponse>(stringRes);
+
                 var response = new YouVerifyKickoffResponse();
+
                 if (!request.IsSuccessStatusCode)
                 {
                     var statusCode = (int)request.StatusCode;
-                    var errorResponse = await request.Content.ReadAsStringAsync();
+                    var errorResponse = await request.Content.ReadAsStringAsync(cancellationToken);
                     var error = JsonConvert.DeserializeObject<YouVerifyErrorResponse>(errorResponse)
                         ?? new YouVerifyErrorResponse { Message = "Unknown error" };
+
+                    if (details.IsDirectCall)
+                    {
+                        response = new YouVerifyKickoffResponse
+                        {
+                            Success = false,
+                            Status = "failed",
+                            Message = statusCode switch
+                            {
+                                >= 500 => "Verification service temporarily unavailable",
+                                >= 400 and < 500 => "Invalid verification information provided",
+                                _ => "Verification failed"
+                            }
+                        };
+
+                        logger.LogWarning($"Direct verification failed for {details.Id} with status code {statusCode}: {error.Message}");
+                        return response;
+                    }
 
                     if (statusCode >= 500)
                     {
@@ -90,29 +115,27 @@ namespace Services.YouVerifyIntegration
                             details.RetryCount++;
 
                             BackgroundJob.Schedule<YouVerifyService>(
-                                s => s.RetryVerification(details),
+                                s => s.RetryVerification(details, CancellationToken.None),
                                 TimeSpan.FromMinutes(10)
                             );
-
                             response = new YouVerifyKickoffResponse
                             {
                                 Success = false,
                                 Status = "retrying",
                                 Message = $"Temporary issue. Retrying verification... (Attempt {details.RetryCount}/3)"
                             };
-                            logger.LogInformation($"Verification failed for {details.Id} with status code {statusCode}: {error.Message}. Retrying attempt {details.RetryCount}/3", response);
-                            await NotifyKycFailure(details.UserId, $"A temporary issue has occured... Retrying verification process)");
+                            logger.LogInformation($"Verification failed for {details.Id} with status code {statusCode}: {error.Message}. Retrying attempt {details.RetryCount}/3");
+                            await NotifyKycFailure(details.UserId, $"A temporary issue has occurred... Retrying verification process");
                         }
                         else
                         {
-
                             response = new YouVerifyKickoffResponse
                             {
                                 Success = false,
                                 Status = "error",
                                 Message = "We couldn't verify your ID after multiple attempts. Please contact support."
                             };
-                            logger.LogInformation($"Verification failed for {details.UserId} after 3 attempts: {error.Message}", response);
+                            logger.LogError($"Verification failed for {details.UserId} after 3 attempts: {error.Message}");
                             await NotifyKycFailure(details.UserId, "We couldn't verify your ID after multiple attempts. Please contact support.");
                         }
                     }
@@ -126,23 +149,47 @@ namespace Services.YouVerifyIntegration
                         };
                         await NotifyKycFailure(details.UserId, "There was a problem with the information provided. Please contact support.");
                     }
-                    logger.LogError($"Verification failed for {details.Id} with status code {statusCode}: {error.Message}", response);
+
+                    logger.LogError($"Verification failed for {details.Id} with status code {statusCode}: {error.Message}");
                     return response;
                 }
-
-                response = new YouVerifyKickoffResponse
+                else
                 {
-                    Success = true,
-                    Status = "pending",
-                    Message = "Verification in progess"
-                };
+                    response = new YouVerifyKickoffResponse
+                    {
+                        Success = true,
+                        Status = "completed",
+                        Message = "Verification completed successfully",
+                        Data = serializedRes.Data
+                    };
+
+                    if (details.IsDirectCall)
+                    {
+                        logger.LogInformation($"Direct verification completed successfully for {details.Id}");
+                    }
+                }
 
                 return response;
+            }
+            catch (OperationCanceledException)
+            {
+                logger.LogWarning($"Verification request timed out for {details.Id}");
+                return new YouVerifyKickoffResponse
+                {
+                    Success = false,
+                    Status = "timeout",
+                    Message = "Verification request timed out"
+                };
             }
             catch (Exception ex)
             {
                 logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, "Verifying user on YouVerify's service");
-                await NotifyKycFailure(details.UserId, "An error occurred while verifying your ID. Please contact support.");
+
+                if (!details.IsDirectCall)
+                {
+                    await NotifyKycFailure(details.UserId, "An error occurred while verifying your ID. Please contact support.");
+                }
+
                 return new YouVerifyKickoffResponse
                 {
                     Success = false,
@@ -151,20 +198,29 @@ namespace Services.YouVerifyIntegration
                 };
             }
         }
-
-        private async Task RetryVerification(YouVerifyKycDto payload)
+        private async Task RetryVerification(YouVerifyKycDto payload, CancellationToken cancellationToken = default)
         {
             try
             {
-                await Task.Delay(30000);
+                await Task.Delay(30000, cancellationToken);
 
-                var result = await VerifyIdentificationNumberAsync(payload);
+                payload.IsDirectCall = false;
+
+                var result = await VerifyIdentificationNumberAsync(payload, cancellationToken);
 
                 if (!result.Success && result.Status != "retrying")
                 {
                     logger.LogError($"Final verification failure for {payload.Id}: {result.Message}");
                     await NotifyKycFailure(payload.UserId, result.Message);
                 }
+                else if (result.Success)
+                {
+                    logger.LogInformation($"Retry verification successful for {payload.Id}");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                logger.LogWarning($"Retry verification was cancelled for {payload.Id}");
             }
             catch (Exception ex)
             {

@@ -68,12 +68,12 @@ namespace UserModule.DTOs.WriterDTOs
         /// <summary>
         /// Indicates whether the writer has completed the verification process.
         /// </summary>
-        public bool IsVerified { get; init; }
+        public bool IsVerified { get; set; }
 
         /// <summary>
         /// The current verification status of the writer (e.g., Pending, Approved, Rejected).
         /// </summary>
-        public string VerificationStatus { get; init; }
+        public string VerificationStatus { get; set; }
 
         /// <summary>
         /// Indicates whether the writer has been blacklisted.

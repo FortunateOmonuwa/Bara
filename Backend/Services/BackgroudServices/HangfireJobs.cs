@@ -44,11 +44,24 @@ namespace Services.BackgroudServices
         {
             try
             {
-                var res = await youVerify.VerifyIdentificationNumberAsync(payload);
+                using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+
+                payload.IsDirectCall = false;
+
+                var res = await youVerify.VerifyIdentificationNumberAsync(payload, cts.Token);
+
                 if (!res.Success)
                 {
                     logger.LogError($"Failure verifying user on YouVerify: {res.Message}");
                 }
+                else if (res.Success)
+                {
+                    logger.LogInformation($"Background KYC verification successful for user {payload.UserId}");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                logger.LogWarning($"Background KYC verification timed out for user {payload.UserId}");
             }
             catch (Exception ex)
             {
