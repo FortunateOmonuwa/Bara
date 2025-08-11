@@ -5,34 +5,34 @@ import Link from "next/link";
 
 export default function ViewSynopsis() {
   return (
-    <div className="min-h-screen bg-white  text-[#22242A]  overflow-x-hidden">
+    <div className="h-screen flex flex-col bg-white text-[#22242A]">
       {/* Top Navigation */}
       <DashboardNavbar />
 
       {/* Page Content */}
-      <div className="px-4 md:px-10 py-10 w-full space-y-10">
+      <div className="flex-1 px-4 md:px-10 py-4 w-full space-y-6">
         {/* Title and Buttons */}
         <div className="flex justify-between items-start md:items-center flex-col md:flex-row">
-          <h1 className="text-3xl font-semibold tracking-wide w-full md:w-auto">
+          <h1 className="text-2xl font-semibold tracking-wide w-full md:w-auto">
             Broken Promise
           </h1>
 
           <div className="flex gap-4 mt-4 md:mt-0">
             <Link
               href="/dashboard/scripts/ViewScript"
-              className="bg-[#810306] hover:bg-[#1a0000] text-white py-2 px-10 rounded-md text-sm font-medium"
+              className="bg-[#810306] hover:bg-[#1a0000] text-white py-2 px-6 rounded-md text-sm font-medium"
             >
               View script
             </Link>
-            <button className="border border-[#810306] text-[#810306] py-2 px-6 rounded-md text-sm font-medium hover:bg-[#fff5f5]">
+            <button className="border border-[#810306] text-[#810306] py-2 px-4 rounded-md text-sm font-medium hover:bg-[#fff5f5]">
               Message writer
             </button>
           </div>
         </div>
 
         {/* Synopsis Box */}
-        <div className="max-w-[600px] mx-auto  border border-[#ABADB2] rounded-md p-6 md:p-10 space-y-4 text-sm md:text-base leading-relaxed ">
-          <h2 className="text-lg font-semibold">Synopsis</h2>
+        <div className="w-full max-w-[800px] mx-auto border border-[#ABADB2] rounded-md p-4 md:p-6 space-y-3 text-xs md:text-sm leading-relaxed">
+          <h2 className="text-base font-semibold">Synopsis</h2>
 
           <p>
             In a bustling Nigerian city caught between tradition and modernity,
