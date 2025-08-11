@@ -22,7 +22,7 @@ namespace UserModule.Utilities
         /// <summary>
         /// Regular expression for validating Nigerian phone numbers (11 digits).
         /// </summary>
-        [GeneratedRegex("^[0-9]{11}$")]
+        [GeneratedRegex(@"^\+(?:[1-9]\d{0,2})\d{6,14}$")]
         private static partial Regex PhoneRegex();
 
         /// <summary>

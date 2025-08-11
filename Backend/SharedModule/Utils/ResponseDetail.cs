@@ -1,4 +1,6 @@
-﻿namespace SharedModule.Utils
+﻿using System.Text.Json.Serialization;
+
+namespace SharedModule.Utils
 {
     public class ResponseDetail<T>
     {
@@ -7,8 +9,11 @@
         public T? Data { get; set; } = default;
         public int StatusCode { get; set; }
         public string? Error { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? TotalCount { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? TotalPages { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? PageNumber { get; set; }
 
         public static ResponseDetail<T> Successful(T data, string message = "Operation completed successfully", int statusCode = 200)

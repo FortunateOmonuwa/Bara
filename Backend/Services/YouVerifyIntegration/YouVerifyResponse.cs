@@ -114,5 +114,7 @@ namespace Services.YouVerifyIntegration
         public bool Success { get; set; }
         public string Message { get; set; }
         public string Status { get; set; }
+        [JsonProperty("data")]
+        public ResponseData? Data { get; set; }
     }
 }
