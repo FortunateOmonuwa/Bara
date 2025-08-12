@@ -7,13 +7,12 @@ using Services.BackgroudServices;
 using Services.FileStorageServices.Interfaces;
 using Services.MailingService;
 using Services.YouVerifyIntegration;
-using Shared.Models;
-using SharedModule.DTOs.AddressDTOs;
 using SharedModule.Models;
 using SharedModule.Utils;
 using System.Security.Cryptography;
 using TransactionModule.DTOs;
 using TransactionModule.Models;
+using UserModule.DTOs.AddressDTOs;
 using UserModule.DTOs.ProducerDTOs;
 using UserModule.Enums;
 using UserModule.Interfaces.UserInterfaces;
@@ -88,15 +87,6 @@ namespace Infrastructure.Repositories.UserRepositories
                     Bio = producerDetailDTO.Bio,
                     Gender = producerDetailDTO.Gender,
                     DateOfBirth = producerDetailDTO.DateOfBirth,
-                    Address = new Address
-                    {
-                        City = producerDetailDTO.AddressDetail.City.ToUpperInvariant(),
-                        Country = producerDetailDTO.AddressDetail.Country.ToUpperInvariant(),
-                        State = producerDetailDTO.AddressDetail.State.ToUpperInvariant(),
-                        Street = producerDetailDTO.AddressDetail.Street.ToUpperInvariant(),
-                        PostalCode = producerDetailDTO.AddressDetail.PostalCode,
-                        AdditionalDetails = producerDetailDTO.AddressDetail.AdditionalDetails.ToUpperInvariant(),
-                    },
                     Type = Role.Producer,
                 };
 
@@ -120,18 +110,19 @@ namespace Infrastructure.Repositories.UserRepositories
                     UserId = newProducerProfile.Id
                 };
 
+                //-------------------- CREATE ADDRESS --------------------
+                Address address = new Address
+                {
+                    City = producerDetailDTO.AddressDetail.City.ToUpperInvariant(),
+                    Country = producerDetailDTO.AddressDetail.Country.ToUpperInvariant(),
+                    State = producerDetailDTO.AddressDetail.State.ToUpperInvariant(),
+                    Street = producerDetailDTO.AddressDetail.Street.ToUpperInvariant(),
+                    PostalCode = producerDetailDTO.AddressDetail.PostalCode,
+                    AdditionalDetails = producerDetailDTO.AddressDetail.AdditionalDetails.ToUpperInvariant(),
+                    UserId = newProducerProfile.Id
+                };
                 newProducerProfile.AuthProfile = authProfile;
                 newProducerProfile.Wallet = wallet;
-
-                // --------------------  UPLOAD & ASSIGN DOCUMENT ID --------------------
-                var userDirectoryName = $"Producer_{newProducerProfile.FirstName}_{newProducerProfile.LastName}-{newProducerProfile.PhoneNumber}";
-                var documentId = await fileService.ProcessDocumentForUpload(userDirectoryName, producerDetailDTO.VerificationDocument);
-                if (documentId == null || documentId.Data == Guid.Empty)
-                {
-                    logger.LogError($"An error occurred while uploading KYC document for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}");
-                    return ResponseDetail<GetProducerDetailDTO>.Failed($"An error occurred while uploading KYC document for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}", 500, "Unexpected Error");
-                }
-                newProducerProfile.DocumentID = documentId.Data;
 
                 // -------------------- SAVE PROFILE TO DATABASE --------------------
                 await dbContext.Producers.AddAsync(newProducerProfile);
@@ -142,10 +133,35 @@ namespace Infrastructure.Repositories.UserRepositories
                     return ResponseDetail<GetProducerDetailDTO>.Failed($"An error occurred while creating a producer profile for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}", 500, "Unexpected Error");
                 }
 
+                // --------------------  UPLOAD & ASSIGN DOCUMENT ID --------------------
+                var userDirectoryName = $"Producer_{newProducerProfile.FirstName}_{newProducerProfile.LastName}-{newProducerProfile.PhoneNumber}";
+                var document = await fileService.ProcessDocumentForUpload(newProducerProfile.Id, userDirectoryName, producerDetailDTO.VerificationDocument);
+                if (!document.IsSuccess || document.Data == null)
+                {
+                    logger.LogError($"An error occurred while uploading KYC document for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}");
+                    return ResponseDetail<GetProducerDetailDTO>.Failed($"An error occurred while uploading KYC document for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}", 500, "Unexpected Error");
+                }
+
+                newProducerProfile.Document = new Document
+                {
+                    Id = document.Data.Id,
+                    Name = document.Data.Name,
+                    Path = document.Data.Path,
+                    DocumentUrl = document.Data.DocumentUrl,
+                    FileExtension = document.Data.FileExtension,
+                    Size = document.Data.Size,
+                    IdentificationNumber = producerDetailDTO.VerificationDocument.VerificationNumber,
+                    DocumentType = producerDetailDTO.VerificationDocument.Type,
+                    UserId = newProducerProfile.Id
+                };
+
+                dbContext.Users.Update(newProducerProfile);
+                await dbContext.SaveChangesAsync();
                 // --------------------  GENERATE EMAIL VERIFICATION TOKEN --------------------
                 var token = RandomNumberGenerator.GetInt32(100000, 999999);
-                cache.Set($"User_Verification_Token_{newProducerProfile.Id}", token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
-                Console.WriteLine($"Producer_Verification_Token_{producerDetailDTO.FirstName} {producerDetailDTO.LastName}", token);
+                cache.Set($"User_Verification_Token_{newProducerProfile.Id}", token.ToString(), absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+                Console.WriteLine($"Producer_Verification_Token_{producerDetailDTO.FirstName} {producerDetailDTO.LastName}: {token}");
+                logger.LogInformation($"Producer_Verification_Token_{producerDetailDTO.FirstName} {producerDetailDTO.LastName}: {token}");
 
                 var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(newProducerProfile.Email, newProducerProfile.FirstName, token.ToString());
                 BackgroundJob.Enqueue<HangfireJobs>(x => x.SendMailAsync(verificationMail));
@@ -159,6 +175,7 @@ namespace Infrastructure.Repositories.UserRepositories
                     LastName = newProducerProfile.LastName,
                 };
 
+                BackgroundJob.Enqueue(() => hangfire.StartKycProcess(kycDetail));
                 // --------------------  BUILD RESPONSE DTO --------------------
                 var producerProfile = new GetProducerDetailDTO
                 {
@@ -185,70 +202,10 @@ namespace Infrastructure.Repositories.UserRepositories
                     VerificationStatus = newProducerProfile.VerificationStatus
                 };
 
-                // -------------------- PERFORM DIRECT KYC CHECK --------------------
-                bool kycCompleted = false;
-                string kycFailureReason = null;
-                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
-                {
-                    try
-                    {
-                        var directKycReq = await youVerify.VerifyIdentificationNumberAsync(kycDetail, cts.Token);
-
-                        if (directKycReq != null && directKycReq.Success && directKycReq.Data?.Id != null)
-                        {
-                            if (directKycReq.Data?.DateOfBirth != newProducerProfile.DateOfBirth.ToString("yyyy-MM-dd"))
-                            {
-                                logger.LogWarning($"Producer {newProducerProfile.FirstName} {newProducerProfile.LastName} KYC failed: Date of birth mismatch.");
-                                kycFailureReason = "DOB_MISMATCH";
-                            }
-                            else
-                            {
-                                newProducerProfile.AuthProfile.IsVerified = true;
-                                newProducerProfile.VerificationStatus = VerificationStatus.Approved;
-                                dbContext.Producers.Update(newProducerProfile);
-                                await dbContext.SaveChangesAsync();
-                                kycCompleted = true;
-                            }
-                        }
-                        else
-                        {
-                            kycFailureReason = "KYC_FAILED";
-                        }
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        kycFailureReason = "TIMEOUT";
-                        logger.LogWarning($"YouVerify KYC call timed out after 30 seconds for producer {newProducerProfile.Id}. Falling back to background job.");
-                    }
-                    catch (Exception ex)
-                    {
-                        kycFailureReason = "ERROR";
-                        logger.LogError(ex.GetType().Name, $"Error during YouVerify KYC call for producer {newProducerProfile.Id}. Falling back to background job.");
-                    }
-                }
-
                 // --------------------  COMMIT TRANSACTION --------------------
                 await transaction.CommitAsync();
 
-                // -------------------- HANDLE KYC OUTCOME --------------------
-                string message;
-                if (!kycCompleted)
-                {
-                    // ------------------------ LET HANGFIRE HANDLE AS A BACKGROUND JOB IF IT FAILS -------------------------
-                    BackgroundJob.Enqueue(() => hangfire.StartKycProcess(kycDetail));
 
-                    message = kycFailureReason switch
-                    {
-                        "DOB_MISMATCH" => $"Producer profile created successfully... But verification failed because of a mismatch between the Date of birth provided and {producerDetailDTO.VerificationDocument.Type} Date of birth",
-                        "TIMEOUT" => "Producer profile created successfully... But verification could not be completed within the time limit. We will continue processing in the background.",
-                        "ERROR" => "Producer profile created successfully... But an error occurred during verification. We will retry shortly.",
-                        _ => "Producer profile created successfully... But verification could not be completed at this time."
-                    };
-                }
-                else
-                {
-                    message = "Producer profile created successfully";
-                }
 
                 // -------------------- CACHE FINAL PROFILE --------------------
                 var cacheOptions = new MemoryCacheEntryOptions
@@ -259,7 +216,7 @@ namespace Infrastructure.Repositories.UserRepositories
                 cache.Set($"Producer_Profile{newProducerProfile.Id}", producerProfile, cacheOptions);
 
                 // -------------------- RETURN SUCCESS --------------------
-                return ResponseDetail<GetProducerDetailDTO>.Successful(producerProfile, message, 201);
+                return ResponseDetail<GetProducerDetailDTO>.Successful(producerProfile, "Producer profile successfully created", 201);
             }
             catch (DbUpdateException dbEx)
             {

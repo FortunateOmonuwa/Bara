@@ -1,6 +1,6 @@
 using BaraTests.Utils;
 using Microsoft.AspNetCore.Http;
-using SharedModule.DTOs.AddressDTOs;
+using UserModule.DTOs.AddressDTOs;
 using UserModule.DTOs.DocumentDTOs;
 using UserModule.DTOs.ProducerDTOs;
 using UserModule.Enums;

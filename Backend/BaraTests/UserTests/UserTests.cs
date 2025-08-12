@@ -16,7 +16,6 @@ namespace BaraTests.UserTests
             var result = await userService.UpdateUserVerificationStatus(
                 verificationIdNumber,
                 dateOfBirth,
-                true,
                 firstName,
                 lastName,
                 type);
@@ -36,7 +35,6 @@ namespace BaraTests.UserTests
             var result = await userService.UpdateUserVerificationStatus(
                 verificationIdNumber,
                 dateOfBirth,
-                true,
                 firstName,
                 lastName,
                 type);
@@ -58,7 +56,6 @@ namespace BaraTests.UserTests
             var result = await userService.UpdateUserVerificationStatus(
                 verificationIdNumber,
                 dateOfBirth,
-                false,
                 firstName,
                 lastName,
                 type);

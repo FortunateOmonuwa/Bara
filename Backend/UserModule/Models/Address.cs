@@ -1,7 +1,8 @@
 ﻿using SharedModule.Models;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Shared.Models
+namespace UserModule.Models
 {
     /// <summary>
     /// Defines the address of entities within the application
@@ -19,5 +20,7 @@ namespace Shared.Models
         public string? PostalCode { get; set; }
         public string AdditionalDetails { get; set; } = "";
         public string? ProofOfAddressDocument { get; set; }
+        [ForeignKey("User")]
+        public Guid UserId { get; set; } = Guid.Empty;
     }
 }

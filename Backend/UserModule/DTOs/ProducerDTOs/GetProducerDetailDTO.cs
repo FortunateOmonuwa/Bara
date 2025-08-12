@@ -1,5 +1,5 @@
-﻿using SharedModule.DTOs.AddressDTOs;
-using TransactionModule.DTOs;
+﻿using TransactionModule.DTOs;
+using UserModule.DTOs.AddressDTOs;
 using UserModule.Enums;
 
 namespace UserModule.DTOs.ProducerDTOs

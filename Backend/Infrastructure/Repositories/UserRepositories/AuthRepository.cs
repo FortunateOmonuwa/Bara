@@ -46,11 +46,11 @@ namespace Infrastructure.Repositories.UserRepositories
         }
         public async Task<ResponseDetail<LoginResponseDTO>> Login(AuthRequestDTO authReqBody)
         {
-            var email = authReqBody.Email;
+            var email = authReqBody.Email.ToLower();
             try
             {
                 var validationErrors = new List<string>();
-                var user = await dbContext.AuthProfiles.FindAsync(email);
+                var user = await dbContext.AuthProfiles.FirstOrDefaultAsync(u => u.Email == email);
                 if (user == null)
                 {
                     return ResponseDetail<LoginResponseDTO>.Failed("Login unsuccessful...Email or password is invalid");
@@ -81,7 +81,7 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
 
                 else if (user.IsDeleted == true) validationErrors.Add("Login unsuccessful... user account has been deactivated and needs to be reactivated");
-                else if (!user.IsEmailVerified) validationErrors.Add("Login unsuccessful...Email address is unverified... Please verify and try again");
+                else if (!user.IsEmailVerified) validationErrors.Add("Login unsuccessful...Email address is unverified... Please verify yout email and try again");
                 else if (!user.IsVerified) validationErrors.Add("Login unsuccessful... Account verification failed or is still in progress");
 
                 if (validationErrors.Count > 0)
@@ -94,7 +94,10 @@ namespace Infrastructure.Repositories.UserRepositories
                 {
                     var cacheKey = $"User_Login_Token_{user.UserId}";
                     var token = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
-                    cache.Set(cacheKey, token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+                    cache.Set(cacheKey, token.ToString(), absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+                    logger.LogInformation($"User_Login_Token_{user.UserId}: {token}");
+                    Console.WriteLine($"User_Login_Token_{user.UserId}: {token}");
+
                     var mailBody = MailNotifications.LoginNotification(email, user.FullName, token, authReqBody.LoginDevice, Ip, Country);
                     var mailRes = await mailer.SendMail(mailBody);
                     if (!mailRes.IsSuccess)
@@ -123,7 +126,7 @@ namespace Infrastructure.Repositories.UserRepositories
 
                     dbContext.AuthProfiles.Update(user);
                     await dbContext.SaveChangesAsync();
-                    return ResponseDetail<LoginResponseDTO>.Successful(response, "Login Successfuk");
+                    return ResponseDetail<LoginResponseDTO>.Successful(response, "Login Successful");
                 }
             }
             catch (Exception ex)
@@ -191,8 +194,9 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
                 else
                 {
-                    cache.Set($"User_Verification_Token_{user.UserId}", token, absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
-                    Console.WriteLine($"Writer_Verification_Token_{user.Email}", token);
+                    cache.Set($"User_Verification_Token_{user.UserId}", token.ToString(), absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+                    logger.LogInformation($"User_Verification_Token_{user.Email}: {token}");
+                    Console.WriteLine($"User_Verification_Token_{user.Email}: {token}");
                     var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(user.Email, "", token.ToString());
                     var mailRes = await mailer.SendMail(verificationMail);
                     if (mailRes.IsSuccess == false)
@@ -274,6 +278,8 @@ namespace Infrastructure.Repositories.UserRepositories
                 var (Ip, Country) = await externalService.GetIpAndCountryAsync(secrets.IpInfoKey);
 
                 response.AccessToken = jwt_token;
+                response.WrongLoginAttempts = 0;
+                user.LoginAttempts = 0;
                 user.LastLoginDevice = loginDetails.Device;
                 user.LastLoginIPAddress = Ip;
                 user.LastLoginAt = DateTimeOffset.UtcNow;
@@ -330,11 +336,12 @@ namespace Infrastructure.Repositories.UserRepositories
                 new ("Role", role),
                 new("VerificationStatus", verificationStatus)
             };
-
+            var random = new Random();
+            string issuer = secrets.Issuers[random.Next(secrets.Issuers.Length)];
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secrets.JwtSickRit));
             var signingCred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
             var token = new JwtSecurityToken(
-                settings.Issuer,
+                issuer,
                 signingCredentials: signingCred,
                 claims: claims,
                 expires: DateTime.Now.AddMinutes(60)

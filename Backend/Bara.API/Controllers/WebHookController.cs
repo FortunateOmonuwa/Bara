@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Services;
 using Services.YouVerifyIntegration;
 using SharedModule.Settings;
 using SharedModule.Utils;
 using System.Text;
-using System.Text.Json;
 using UserModule.Interfaces.UserInterfaces;
 
 namespace Bara.API.Controllers
@@ -14,9 +13,6 @@ namespace Bara.API.Controllers
     [Route("api/webhooks")]
     [ApiController]
 
-    /// <summary>
-    /// This controller is used to handle requests to external clients.
-    /// </summary>
     public class WebHookController : ControllerBase
     {
         private readonly IYouVerifyService youVerify;
@@ -24,7 +20,8 @@ namespace Bara.API.Controllers
         private readonly LogHelper<WebHookController> logHelper;
         private readonly ILogger<WebHookController> logger;
         private readonly IUserService userService;
-        public WebHookController(IYouVerifyService youVerifyService, IOptions<Secrets> secretOptions, LogHelper<WebHookController> logHelper, IUserService userService, ILogger<WebHookController> logger)
+        public WebHookController(IYouVerifyService youVerifyService, IOptions<Secrets> secretOptions,
+            LogHelper<WebHookController> logHelper, IUserService userService, ILogger<WebHookController> logger)
         {
             youVerify = youVerifyService;
             secrets = secretOptions.Value;
@@ -62,7 +59,6 @@ namespace Bara.API.Controllers
         //    }
         //}
 
-        [Authorize(Roles = "Admin, Producer, Writer")]
         [HttpPost("youverify")]
         public async Task<IActionResult> ReceiveKycVerificationResponse()
         {
@@ -74,26 +70,24 @@ namespace Bara.API.Controllers
                 string rawBody = await reader.ReadToEndAsync();
                 Request.Body.Position = 0;
 
-                logger.LogInformation("Received YouVerify webhook event {Payload}", rawBody);
+                // logger.LogInformation("Received YouVerify webhook event {Payload}", rawBody);
                 var isValid = YouVerifyWebhookVerifier.IsValidYouVerifySignature(rawBody, Request.Headers["x-youverify-signature"], secrets.YouVerifyWebhookSigningSecret);
                 if (!isValid)
                 {
+                    logger.LogInformation("Invalid webhook signature from You verify");
                     return Unauthorized("Invalid webhook signature");
                 }
 
-                var payload = JsonSerializer.Deserialize<YouVerifyWebhookEvent>(rawBody);
+                var payload = JsonConvert.DeserializeObject<YouVerifyWebhookEvent>(rawBody);
 
                 if (payload == null)
                 {
                     return BadRequest("Invalid payload");
                 }
 
-                bool isSuccessful = payload.Data.DataValidation == true;
-
                 var updateUserReq = await userService.UpdateUserVerificationStatus(
                     payload.Data.IdNumber,
                     payload.Data.DateOfBirth,
-                    isSuccessful,
                     payload.Data.FirstName,
                     payload.Data.LastName,
                     payload.Data.Type);

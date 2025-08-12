@@ -7,17 +7,17 @@ namespace BaraTests
 {
     public class FileTests : BaseTestFixture
     {
+        readonly Guid userId = new("b0d1006e-c564-4d74-f45c-08ddd9dbbcf1");
         [Fact]
         public async Task ProcessDocumentForUpload_WithValidPdfDocument_ShouldReturnSuccessfulResponse()
         {
             var userDirectoryName = "TestUser_123";
             var documentDetail = CreateValidDocumentDetailDTO();
 
-            var result = await fileService.ProcessDocumentForUpload(userDirectoryName, documentDetail);
+            var result = await fileService.ProcessDocumentForUpload(userId, userDirectoryName, documentDetail);
 
-            Assert.NotNull(result);
+            Assert.NotNull(result.Data);
             Assert.True(result.IsSuccess);
-            Assert.NotEqual(Guid.Empty, result.Data);
             Assert.Contains("uploaded successfully", result.Message);
         }
 
@@ -27,10 +27,10 @@ namespace BaraTests
             var userDirectoryName = "TestUser_123";
             var documentDetail = CreateInvalidDocumentDetailDTO();
 
-            var result = await fileService.ProcessDocumentForUpload(userDirectoryName, documentDetail);
+            var result = await fileService.ProcessDocumentForUpload(userId, userDirectoryName, documentDetail);
 
-            Assert.NotNull(result);
             Assert.False(result.IsSuccess);
+            Assert.NotNull(result.Data);
             Assert.Equal(415, result.StatusCode);
             Assert.Contains("not supported", result.Message);
         }
@@ -41,11 +41,10 @@ namespace BaraTests
             var userDirectoryName = "TestUser_BVN";
             var documentDetail = CreateDocumentDetailDTO(DocumentType.BVN, "12345678901");
 
-            var result = await fileService.ProcessDocumentForUpload(userDirectoryName, documentDetail);
+            var result = await fileService.ProcessDocumentForUpload(userId, userDirectoryName, documentDetail);
 
-            Assert.NotNull(result);
             Assert.True(result.IsSuccess);
-            Assert.NotEqual(Guid.Empty, result.Data);
+            Assert.NotNull(result.Data);
         }
 
         [Fact]
@@ -54,11 +53,10 @@ namespace BaraTests
             var userDirectoryName = "TestUser_NIN";
             var documentDetail = CreateDocumentDetailDTO(DocumentType.NIN, "12345678901");
 
-            var result = await fileService.ProcessDocumentForUpload(userDirectoryName, documentDetail);
+            var result = await fileService.ProcessDocumentForUpload(userId, userDirectoryName, documentDetail);
 
-            Assert.NotNull(result);
             Assert.True(result.IsSuccess);
-            Assert.NotEqual(Guid.Empty, result.Data);
+            Assert.NotNull(result.Data);
         }
 
         [Fact]
@@ -67,11 +65,10 @@ namespace BaraTests
             var userDirectoryName = "TestUser_Passport";
             var documentDetail = CreateDocumentDetailDTO(DocumentType.International_Passport, "A12345678");
 
-            var result = await fileService.ProcessDocumentForUpload(userDirectoryName, documentDetail);
+            var result = await fileService.ProcessDocumentForUpload(userId, userDirectoryName, documentDetail);
 
-            Assert.NotNull(result);
             Assert.True(result.IsSuccess);
-            Assert.NotEqual(Guid.Empty, result.Data);
+            Assert.NotNull(result.Data);
         }
 
         [Fact]
@@ -80,11 +77,10 @@ namespace BaraTests
             var userDirectoryName = "TestUser_License";
             var documentDetail = CreateDocumentDetailDTO(DocumentType.Drivers_License, "DL123456789");
 
-            var result = await fileService.ProcessDocumentForUpload(userDirectoryName, documentDetail);
+            var result = await fileService.ProcessDocumentForUpload(userId, userDirectoryName, documentDetail);
 
-            Assert.NotNull(result);
             Assert.True(result.IsSuccess);
-            Assert.NotEqual(Guid.Empty, result.Data);
+            Assert.NotNull(result.Data);
         }
 
         private PostDocumentDetailDTO CreateValidDocumentDetailDTO()
