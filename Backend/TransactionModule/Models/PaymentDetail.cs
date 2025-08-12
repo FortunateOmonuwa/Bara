@@ -8,5 +8,4 @@
         public string CardBrand { get; set; }
         public string Last4 { get; set; }
     }
-
 }

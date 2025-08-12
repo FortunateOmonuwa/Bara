@@ -4,9 +4,9 @@ using TransactionModule.Models;
 
 namespace TransactionModule.Config.ModelBuilderConfig
 {
-    internal class TransactionModelBuilderConfig : IEntityTypeConfiguration<Transaction>
+    internal class TransactionModelBuilderConfig : IEntityTypeConfiguration<PaymentTransaction>
     {
-        public void Configure(EntityTypeBuilder<Transaction> builder)
+        public void Configure(EntityTypeBuilder<PaymentTransaction> builder)
         {
             builder.Property(t => t.TransactionType)
                 .HasConversion<string>()

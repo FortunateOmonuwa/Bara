@@ -5,14 +5,17 @@ using TransactionStatus = TransactionModule.Enums.TransactionStatus;
 
 namespace TransactionModule.Models
 {
-    public class Transaction : BaseEntity
+    public class PaymentTransaction : BaseEntity
     {
-        [ForeignKey("Producer")]
-        public Guid ProducerId { get; set; }
-        [ForeignKey("Writer")]
-        public Guid WriterId { get; set; }
-        [ForeignKey("Script")]
-        public Guid ScriptId { get; set; }
+        [ForeignKey("User")]
+        public Guid UserId { get; set; } = Guid.Empty;
+
+        //[ForeignKey("Producer")]
+        //public Guid ProducerId { get; set; }
+        //[ForeignKey("Writer")]
+        //public Guid WriterId { get; set; }
+        //[ForeignKey("Script")]
+        //public Guid ScriptId { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
         [Column(TypeName = "decimal(18,2)")]

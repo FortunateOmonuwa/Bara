@@ -74,6 +74,7 @@ builder.Services.AddTransient<IWriterService, WriterRepository>();
 builder.Services.AddTransient<IScriptService, ScriptRepository>();
 builder.Services.AddTransient<IProducerService, ProducerRepository>();
 builder.Services.AddTransient<IAuthService, AuthRepository>();
+builder.Services.AddTransient<IUserService, UserRepository>();
 builder.Services.AddScoped(typeof(LogHelper<>));
 
 builder.Services.AddSignalR();
@@ -119,7 +120,7 @@ builder.Services.AddHttpClient("Cloudinary", client =>
 {
     client.BaseAddress = new Uri($"{builder.Configuration["AppSettings:CloudinaryBaseUrl"]}/{builder.Configuration["Secrets:CloudinaryName"]}");
 });
-
+var secretsConfig = builder.Configuration.GetSection("Secrets").Get<Secrets>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -133,7 +134,7 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes($"{builder.Configuration["Secrets:JwtSickRit"]}")),
-        ValidIssuers = [builder.Configuration["Secrets:Issuers"]],
+        ValidIssuers = secretsConfig.Issuers,
         RoleClaimType = "Role",
         NameClaimType = "UserId",
     };

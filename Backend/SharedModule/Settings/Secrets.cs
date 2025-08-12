@@ -11,7 +11,7 @@
         public string CloudinaryName { get; set; }
         public string CloudinaryFolderName { get; set; }
         public string JwtSickRit { get; set; }
-        public List<string> Issuers { get; set; }
+        public string[] Issuers { get; set; }
         public string IpInfoKey { get; set; }
         public string RabbitMqHost { get; set; }
         public int RabbitMqPort { get; set; }

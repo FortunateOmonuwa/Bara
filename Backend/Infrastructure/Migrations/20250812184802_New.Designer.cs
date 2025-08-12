@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(BaraContext))]
-    [Migration("20250809191854_Adjust Models")]
-    partial class AdjustModels
+    [Migration("20250812184802_New")]
+    partial class New
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -122,49 +122,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Scripts");
                 });
 
-            modelBuilder.Entity("Shared.Models.Address", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AdditionalDetails")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset?>("ModifiedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("PostalCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProofOfAddressDocument")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("State")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Street")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Addresses");
-                });
-
             modelBuilder.Entity("TransactionModule.Models.Escrow", b =>
                 {
                     b.Property<Guid>("Id")
@@ -209,7 +166,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("EscrowOperations");
                 });
 
-            modelBuilder.Entity("TransactionModule.Models.Transaction", b =>
+            modelBuilder.Entity("TransactionModule.Models.PaymentTransaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -240,14 +197,8 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ProducerId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("ReferenceId")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ScriptId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -259,13 +210,10 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid?>("UserId")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("WalletID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("WriterId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -273,8 +221,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("Status");
 
                     b.HasIndex("TransactionType");
-
-                    b.HasIndex("UserId");
 
                     b.HasIndex("WalletID");
 
@@ -310,7 +256,59 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
                     b.ToTable("Wallets");
+                });
+
+            modelBuilder.Entity("UserModule.Models.Address", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AdditionalDetails")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("ModifiedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("PostalCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProofOfAddressDocument")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Street")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("Addresses");
                 });
 
             modelBuilder.Entity("UserModule.Models.AuthProfile", b =>
@@ -448,7 +446,13 @@ namespace Infrastructure.Migrations
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Documents");
                 });
@@ -516,12 +520,6 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("AddressId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("AuthProfileId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Bio")
                         .IsRequired()
                         .HasColumnType("Nvarchar(200)");
@@ -534,9 +532,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("DocumentID")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -578,14 +573,7 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("WalletId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("AddressId");
-
-                    b.HasIndex("DocumentID");
 
                     b.HasIndex("Email")
                         .IsUnique();
@@ -596,8 +584,6 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("IsBlacklisted");
-
-                    b.HasIndex("WalletId");
 
                     b.ToTable("Users", (string)null);
 
@@ -638,7 +624,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("TransactionModule.Models.Escrow", b =>
                 {
-                    b.HasOne("TransactionModule.Models.Transaction", "Transaction")
+                    b.HasOne("TransactionModule.Models.PaymentTransaction", "Transaction")
                         .WithMany()
                         .HasForeignKey("TransactionId");
 
@@ -651,17 +637,31 @@ namespace Infrastructure.Migrations
                     b.Navigation("Wallet");
                 });
 
-            modelBuilder.Entity("TransactionModule.Models.Transaction", b =>
+            modelBuilder.Entity("TransactionModule.Models.PaymentTransaction", b =>
                 {
-                    b.HasOne("UserModule.Models.User", null)
-                        .WithMany("Transactions")
-                        .HasForeignKey("UserId");
-
                     b.HasOne("TransactionModule.Models.Wallet", "Wallet")
-                        .WithMany()
+                        .WithMany("Transactions")
                         .HasForeignKey("WalletID");
 
                     b.Navigation("Wallet");
+                });
+
+            modelBuilder.Entity("TransactionModule.Models.Wallet", b =>
+                {
+                    b.HasOne("UserModule.Models.User", null)
+                        .WithOne("Wallet")
+                        .HasForeignKey("TransactionModule.Models.Wallet", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("UserModule.Models.Address", b =>
+                {
+                    b.HasOne("UserModule.Models.User", null)
+                        .WithOne("Address")
+                        .HasForeignKey("UserModule.Models.Address", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("UserModule.Models.AuthProfile", b =>
@@ -684,6 +684,15 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("UserModule.Models.Document", b =>
+                {
+                    b.HasOne("UserModule.Models.User", null)
+                        .WithOne("Document")
+                        .HasForeignKey("UserModule.Models.Document", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("UserModule.Models.Service", b =>
                 {
                     b.HasOne("UserModule.Models.Writer", "Writer")
@@ -693,33 +702,6 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Writer");
-                });
-
-            modelBuilder.Entity("UserModule.Models.User", b =>
-                {
-                    b.HasOne("Shared.Models.Address", "Address")
-                        .WithMany()
-                        .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("UserModule.Models.Document", "Document")
-                        .WithMany()
-                        .HasForeignKey("DocumentID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TransactionModule.Models.Wallet", "Wallet")
-                        .WithMany()
-                        .HasForeignKey("WalletId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Address");
-
-                    b.Navigation("Document");
-
-                    b.Navigation("Wallet");
                 });
 
             modelBuilder.Entity("UserModule.Models.Producer", b =>
@@ -740,12 +722,24 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TransactionModule.Models.Wallet", b =>
+                {
+                    b.Navigation("Transactions");
+                });
+
             modelBuilder.Entity("UserModule.Models.User", b =>
                 {
+                    b.Navigation("Address")
+                        .IsRequired();
+
                     b.Navigation("AuthProfile")
                         .IsRequired();
 
-                    b.Navigation("Transactions");
+                    b.Navigation("Document")
+                        .IsRequired();
+
+                    b.Navigation("Wallet")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("UserModule.Models.Producer", b =>

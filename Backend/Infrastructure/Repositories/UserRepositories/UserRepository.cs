@@ -44,7 +44,7 @@ namespace Infrastructure.Repositories.UserRepositories
             throw new NotImplementedException();
         }
 
-        public async Task<ResponseDetail<bool>> UpdateUserVerificationStatus(string verificationIdNumber, string dateOfBirth, bool isSuccessful, string firstName, string lastName, string type)
+        public async Task<ResponseDetail<bool>> UpdateUserVerificationStatus(string verificationIdNumber, string dateOfBirth, string firstName, string lastName, string type)
         {
             string name = "";
             try
@@ -56,7 +56,6 @@ namespace Infrastructure.Repositories.UserRepositories
 
                 var errors = new List<string>();
 
-                if (isSuccessful is false) errors.Add("Validation failed. User verification is unsuccessful. Please try again");
                 if (user == null) errors.Add($"User not found with the provided verification ID number {verificationIdNumber}.");
 
                 name = $"{user?.FirstName} {user?.LastName}";
@@ -75,6 +74,7 @@ namespace Infrastructure.Repositories.UserRepositories
                         time = DateTime.UtcNow
                     });
 
+                    logger.LogInformation($"Verification for {user.FirstName} {user.LastName} failed because {string.Join(" |\n ", errors)}");
                     return ResponseDetail<bool>.Failed(false, string.Join(" |\n ", errors));
                 }
                 else
@@ -83,7 +83,7 @@ namespace Infrastructure.Repositories.UserRepositories
                     user.AuthProfile.IsVerified = true;
                     user.ModifiedAt = DateTimeOffset.UtcNow;
                     user.VerificationStatus = VerificationStatus.Approved;
-
+                    user.Document.IsVerified = true;
                     await dbContext.SaveChangesAsync();
                     logger.LogInformation($"User verification status updated successfully for {name} with ID {user.Id}.");
                     await notificationHub.Clients.User(user.Id.ToString()).SendAsync("KycSuccessful", new

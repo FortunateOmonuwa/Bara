@@ -20,7 +20,7 @@ namespace BaraTests
             {
                 Id = id,
                 Type = type,
-                IsSubjectConsent = true
+                IsSubjectConsent = true,
             };
 
             var response = await youVerify.VerifyIdentificationNumberAsync(kycDto);

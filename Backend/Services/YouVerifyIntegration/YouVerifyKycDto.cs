@@ -27,7 +27,5 @@
 
         public Guid UserId { get; init; }
         public int RetryCount { get; set; } = 0;
-
-        public bool IsDirectCall { get; set; } = false;
     }
 }

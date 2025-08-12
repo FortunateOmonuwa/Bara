@@ -18,9 +18,7 @@ namespace UserModule.Models
         /// The list of scripts purchased by the producer.
         /// </summary>
         public List<Script> PurchasedScripts { get; set; } = [];
-        /// <summary>
-        /// The list of transactions made by the producer, such as payments for scripts or services.
-        /// </summary>
+
         //public List<Transaction> Transactions { get; set; } = [];
         //public List<ScriptWritingPostByProducer> ScriptWritingPosts { get; set; } = [];
     }
