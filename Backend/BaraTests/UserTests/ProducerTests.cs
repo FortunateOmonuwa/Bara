@@ -17,6 +17,9 @@ namespace BaraTests.UserTests
             var result = await producerService.AddProducer(producerDetail);
 
             Assert.NotNull(result);
+            Assert.NotNull(result.Data);
+            Assert.True(result.IsSuccess);
+            Assert.Equal(producerDetail.DateOfBirth, result.Data.DateOfBirth);
         }
 
         [Fact]
@@ -78,7 +81,7 @@ namespace BaraTests.UserTests
                 {
                     Document = formFile,
                     Type = DocumentType.NIN,
-                    VerificationNumber = "111111111"
+                    VerificationNumber = "11111111111"
                 }
             };
         }

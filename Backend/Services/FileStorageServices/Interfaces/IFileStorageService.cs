@@ -12,29 +12,29 @@ namespace Services.FileStorageServices.Interfaces
         /// </summary>
         /// <param name="userDirectoryName">The unique folder name for the user.</param>
         /// <param name="file">The document to be uploaded.</param>
-        /// <returns>True if upload is successful; otherwise, false.</returns>
-        Task<bool> UploadDocumentAsync(string userDirectoryName, IFormFile file);
+        /// <returns>An upload result containting the success status, file url and public id</returns>
+        Task<UploadResult> UploadDocumentAsync(string userDirectoryName, IFormFile file);
 
         /// <summary>
         /// Uploads a script (e.g., screenplay, draft) to a designated directory.
         /// </summary>
         /// <param name="userDirectoryName">The unique folder name for the user.</param>
         /// <param name="file">The script file to be uploaded.</param>
-        /// <returns>True if upload is successful; otherwise, false.</returns>
-        Task<bool> UploadScriptAsync(string userDirectoryName, IFormFile file);
+        /// <returns>An upload result containting the success status, file url and public id</returns>
+        Task<UploadResult> UploadScriptAsync(string userDirectoryName, IFormFile file);
 
         /// <summary>
         /// Downloads a file from the specified storage path.
         /// </summary>
-        /// <param name="path">The relative or absolute path to the file.</param>
+        /// <param name="publicId">The public id of file.</param>
         /// <returns>A tuple containing the file stream and its content type.</returns>
-        Task<(MemoryStream stream, string contentType)> DownloadAsync(string path);
+        Task<(MemoryStream stream, string contentType)> DownloadAsync(string publicId);
 
         /// <summary>
         /// Deletes a file from the specified storage path.
         /// </summary>
-        /// <param name="path">The relative or absolute path to the file.</param>
+        /// <param name="publicId">The public id of file.</param>
         /// <returns>True if deletion is successful; otherwise, false.</returns>
-        Task<bool> DeleteAsync(string path);
+        Task<bool> DeleteAsync(string publicId);
     }
 }

@@ -13,6 +13,11 @@ namespace Services.MailingService
         public required string Receiver { get; set; }
 
         /// <summary>
+        /// Gets or sets the name address of the receiver.
+        /// </summary>
+        public string ReceiverName { get; set; }
+
+        /// <summary>
         /// Gets or sets the subject line of the email.
         /// Defaults to "Bara Notification" if not specified.
         /// </summary>

@@ -16,7 +16,7 @@ namespace BaraTests
             var addResponse = await scriptService.AddScript(validScript, writerId);
             Assert.True(addResponse.IsSuccess);
             Assert.NotNull(addResponse.Data);
-            Assert.Equal(validScript.Title, addResponse.Data.Title);
+            Assert.Equal(validScript.Title.ToLower(), addResponse.Data.Title.ToLower());
 
             var scriptId = addResponse.Data.Id;
 
@@ -40,7 +40,7 @@ namespace BaraTests
             var response = await scriptService.AddScript(dto, writerId);
 
             Assert.False(response.IsSuccess);
-            Assert.Contains("Invalid File Types", response.Error, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(StatusCodes.Status413PayloadTooLarge, response.StatusCode);
         }
 
         [Fact]

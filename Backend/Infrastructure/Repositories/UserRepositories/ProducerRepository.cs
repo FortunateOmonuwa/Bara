@@ -134,7 +134,7 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
 
                 // --------------------  UPLOAD & ASSIGN DOCUMENT ID --------------------
-                var userDirectoryName = $"Producer_{newProducerProfile.FirstName}_{newProducerProfile.LastName}-{newProducerProfile.PhoneNumber}";
+                var userDirectoryName = $"Producer_{newProducerProfile.FirstName}_{newProducerProfile.LastName}-{newProducerProfile.Id}";
                 var document = await fileService.ProcessDocumentForUpload(newProducerProfile.Id, userDirectoryName, producerDetailDTO.VerificationDocument);
                 if (!document.IsSuccess || document.Data == null)
                 {
@@ -199,7 +199,8 @@ namespace Infrastructure.Repositories.UserRepositories
                     IsEmailVerified = newProducerProfile.AuthProfile.IsEmailVerified,
                     IsVerified = newProducerProfile.AuthProfile.IsVerified,
                     PhoneNumber = newProducerProfile.PhoneNumber,
-                    VerificationStatus = newProducerProfile.VerificationStatus
+                    VerificationStatus = newProducerProfile.VerificationStatus,
+                    DateOfBirth = newProducerProfile.DateOfBirth
                 };
 
                 // --------------------  COMMIT TRANSACTION --------------------

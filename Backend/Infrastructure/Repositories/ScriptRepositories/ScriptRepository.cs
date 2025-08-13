@@ -75,7 +75,7 @@ namespace Infrastructure.Repositories.ScriptRepositories
 
                 var userDirectoryName = $"{writer.FirstName ?? "test"}_{writer.LastName ?? "test"}-{writerId}";
                 var uploadScriptResponse = await cloudinary.UploadScriptAsync(userDirectoryName, script);
-                if (!uploadScriptResponse)
+                if (uploadScriptResponse == null || !uploadScriptResponse.Success)
                 {
                     logger.LogError($"An error occured while uploading the script titled {scriptDetails.Title} for {writer.FirstName} {writer.LastName}");
                     return ResponseDetail<Script>.Failed($"An error occured while uploading the script", 500, "Umexpected Error");
@@ -95,8 +95,8 @@ namespace Infrastructure.Repositories.ScriptRepositories
                     Title = scriptDetails.Title.ToUpper(),
                     WriterId = writerId,
                     WriterName = $"{writer.FirstName}-{writer.LastName}",
-                    Path = $"{secrets.CloudinaryFolderName}/{userDirectoryName}/scripts/{scriptName}",
-                    Url = $"{settings.CloudinaryBaseURL}/{secrets.CloudinaryFolderName}/{userDirectoryName}/scripts/{scriptName}"
+                    Path = $"{uploadScriptResponse.PublicId}",
+                    Url = $"{uploadScriptResponse.Url}"
                 };
 
                 await dbContext.Scripts.AddAsync(newScriptDetail);
