@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ScriptModule.Models;
-using Shared.Models;
 using TransactionModule.Models;
 using UserModule.Models;
 using Document = UserModule.Models.Document;
@@ -12,7 +11,7 @@ namespace Infrastructure.DataContext
         public BaraContext(DbContextOptions<BaraContext> options) : base(options)
         {
             Scripts = Set<Script>();
-            Transactions = Set<Transaction>();
+            Transactions = Set<PaymentTransaction>();
             Wallets = Set<Wallet>();
             Producers = Set<Producer>();
             Writers = Set<Writer>();
@@ -28,7 +27,7 @@ namespace Infrastructure.DataContext
         }
 
         public DbSet<Script> Scripts { get; set; }
-        public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<PaymentTransaction> Transactions { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Producer> Producers { get; set; }
         public DbSet<Writer> Writers { get; set; }
@@ -45,7 +44,7 @@ namespace Infrastructure.DataContext
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(Script).Assembly);
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(Transaction).Assembly);
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(PaymentTransaction).Assembly);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(User).Assembly);
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<Writer>().ToTable("Writers");

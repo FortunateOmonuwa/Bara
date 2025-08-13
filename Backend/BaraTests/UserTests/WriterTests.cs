@@ -1,6 +1,6 @@
 ﻿using BaraTests.Utils;
 using Microsoft.AspNetCore.Http;
-using SharedModule.DTOs.AddressDTOs;
+using UserModule.DTOs.AddressDTOs;
 using UserModule.DTOs.DocumentDTOs;
 using UserModule.DTOs.WriterDTOs;
 using UserModule.Enums;
@@ -9,6 +9,7 @@ namespace BaraTests.UserTests
 {
     public class WriterTests : BaseTestFixture
     {
+        readonly Guid userId = Guid.NewGuid();
         [Fact]
         public async Task AddWriter_WithValidData_ShouldReturnSuccessfulResponse()
         {

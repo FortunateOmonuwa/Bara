@@ -5,8 +5,6 @@ namespace TransactionModule.Models
 {
     public class Wallet : BaseEntity
     {
-        //[Key]
-        //public Guid Id { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalBalance { get; set; } = 0.00m;
         [Column(TypeName = "decimal(18,2)")]
@@ -24,6 +22,9 @@ namespace TransactionModule.Models
         };
         [ForeignKey("User")]
         public Guid UserId { get; set; }
+        /// <summary>
+        /// A list of all transactions associated with a user's wallet.
+        /// </summary>
+        public List<PaymentTransaction> Transactions { get; set; } = [];
     }
-
 }

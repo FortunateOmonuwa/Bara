@@ -1,4 +1,4 @@
-﻿using SharedModule.DTOs.AddressDTOs;
+﻿using UserModule.DTOs.AddressDTOs;
 using UserModule.DTOs.DocumentDTOs;
 using UserModule.Enums;
 

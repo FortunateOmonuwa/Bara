@@ -33,10 +33,11 @@ namespace Services
 
         public static bool IsValidYouVerifySignature(string rawBody, string signatureHeader, string signingKey)
         {
-            if (string.IsNullOrEmpty(signatureHeader) || !signatureHeader.StartsWith("sha256="))
+            if (string.IsNullOrEmpty(signatureHeader))
                 return false;
 
-            var reqSignature = signatureHeader["sha256=".Length..];
+            //"5ebede2fc018d50b1956c1f9249fed5b579ccb254310632385cd5baccda4aeb1"
+            var reqSignature = signatureHeader;
 
             var secretBytes = Encoding.UTF8.GetBytes(signingKey);
             var payloadBytes = Encoding.UTF8.GetBytes(rawBody);

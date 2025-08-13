@@ -7,7 +7,7 @@ namespace BaraTests
 {
     public class ScriptTests : BaseTestFixture
     {
-        readonly Guid writerId = Guid.NewGuid();
+        readonly Guid writerId = new Guid("b0d1006e-c564-4d74-f45c-08ddd9dbbcf1");
         [Fact]
         public async Task AddScript_ShouldHandleSuccessAndFailure()
         {

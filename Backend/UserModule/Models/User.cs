@@ -1,5 +1,4 @@
-﻿using Shared.Models;
-using SharedModule.Models;
+﻿using SharedModule.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using TransactionModule.Models;
@@ -61,11 +60,6 @@ namespace UserModule.Models
         /// </summary>
         public required DateOnly DateOfBirth { get; set; }
 
-        /// <summary>
-        /// Foreign key reference to the user's address.
-        /// </summary>
-        [ForeignKey(nameof(Address))]
-        public Guid AddressId { get; set; }
 
         /// <summary>
         /// Indicates whether the user has been blacklisted due to policy violations or suspicious activity.
@@ -80,13 +74,7 @@ namespace UserModule.Models
         /// <summary>
         /// The user's physical address.
         /// </summary>
-        public required Address Address { get; set; }
-
-        /// <summary>
-        /// Foreign key reference to the user's verification document.
-        /// </summary>
-        [ForeignKey(nameof(Document))]
-        public Guid DocumentID { get; set; }
+        public Address Address { get; set; }
 
         /// <summary>
         /// The verification document uploaded by the user for identity verification.
@@ -99,21 +87,9 @@ namespace UserModule.Models
         public VerificationStatus VerificationStatus { get; set; } = VerificationStatus.Pending;
 
         /// <summary>
-        /// Foreign key reference to the user's wallet.
-        /// </summary>
-        [ForeignKey(nameof(Wallet))]
-        public Guid WalletId { get; set; }
-
-        /// <summary>
         /// The user's digital wallet used for transactions.
         /// </summary>
         public Wallet Wallet { get; set; } = new Wallet();
-
-        /// <summary>
-        /// Foreign key reference to the user's authentication profile.
-        /// </summary>
-        [ForeignKey(nameof(AuthProfile))]
-        public Guid AuthProfileId { get; set; }
 
         /// <summary>
         /// The user's authentication profile, containing security-related info.
@@ -124,10 +100,6 @@ namespace UserModule.Models
         /// Defines the type of user... {Producer or Writer}
         /// </summary>
         public required Role Type { get; set; }
-        /// <summary>
-        /// A list of all transactions associated with the user.
-        /// </summary>
-        public List<Transaction> Transactions { get; set; } = [];
 
         /// <summary>
         /// Timestamp indicating when the user was soft-deleted.
