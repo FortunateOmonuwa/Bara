@@ -8,6 +8,7 @@ namespace SharedModule.Utils
         public string Message { get; set; } = string.Empty;
         public T? Data { get; set; } = default;
         public int StatusCode { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Error { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? TotalCount { get; set; }

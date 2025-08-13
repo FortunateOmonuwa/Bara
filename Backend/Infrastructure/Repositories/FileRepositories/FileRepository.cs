@@ -1,4 +1,5 @@
-﻿using Infrastructure.DataContext;
+﻿using Hangfire;
+using Infrastructure.DataContext;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Services.BackgroudServices;
@@ -21,7 +22,8 @@ namespace Infrastructure.Repositories.FileRepositories
         private readonly Secrets secrets;
         private readonly ILogger<FileRepository> logger;
         private readonly HangfireJobs hangfire;
-        public FileRepository(IFileStorageService fileStorageService, BaraContext baraContext, IOptions<AppSettings> settings, IOptions<Secrets> secrets, ILogger<FileRepository> logger, HangfireJobs hangfire)
+        public FileRepository(IFileStorageService fileStorageService, BaraContext baraContext,
+            IOptions<AppSettings> settings, IOptions<Secrets> secrets, ILogger<FileRepository> logger, HangfireJobs hangfire)
         {
             storageService = fileStorageService;
             context = baraContext;
@@ -31,7 +33,7 @@ namespace Infrastructure.Repositories.FileRepositories
             this.hangfire = hangfire;
         }
 
-        public async Task<ResponseDetail<Guid>> ProcessDocumentForUpload(string userDirectoryName, PostDocumentDetailDTO documentDetail)
+        public async Task<ResponseDetail<Document>> ProcessDocumentForUpload(Guid userId, string userDirectoryName, PostDocumentDetailDTO documentDetail)
         {
             try
             {
@@ -40,7 +42,7 @@ namespace Infrastructure.Repositories.FileRepositories
                 var fileSizeExceedLimit = file.Length > limit;
                 if (fileSizeExceedLimit)
                 {
-                    return ResponseDetail<Guid>.Failed($"Document exceeds limit of {limit}", 413, "File Limit Exceeded");
+                    return ResponseDetail<Document>.Failed($"Document exceeds limit of {limit}", 413, "File Limit Exceeded");
                 }
 
                 var allowedExtensions = new[] { ".pdf" };
@@ -53,17 +55,12 @@ namespace Infrastructure.Repositories.FileRepositories
                                              allowedMimeTypes.Contains(file.ContentType);
                 if (!fileFormatIsAcceptable)
                 {
-                    return ResponseDetail<Guid>.Failed($"File format {fileExtension} or mime type {file.ContentType} is not supported. " +
+                    return ResponseDetail<Document>.Failed($"File format {fileExtension} or mime type {file.ContentType} is not supported. " +
                                                                     $"Allowed Extensions are: {string.Join(", ", allowedExtensions)}..." +
                                                                     $"\n Allowed mime types are: {string.Join(", ", allowedMimeTypes)}", 415, "Invalid File Type");
                 }
-                //Call hangfire for background job to verify document 
-                var uploadScript = await storageService.UploadDocumentAsync(userDirectoryName, file);
-                if (uploadScript == false)
-                {
-                    logger.LogError($"Failed to upload document for user {userDirectoryName} to storage service");
-                    return ResponseDetail<Guid>.Failed("Failed to upload document to storage service", 500, "Upload Failed");
-                }
+
+                BackgroundJob.Enqueue(() => hangfire.ProcessDocumentForUpload(userDirectoryName, file));
                 var document = new Document
                 {
                     Size = file.Length,
@@ -73,17 +70,18 @@ namespace Infrastructure.Repositories.FileRepositories
                     IdentificationNumber = documentDetail.VerificationNumber,
                     Path = $"{secrets.CloudinaryFolderName}/{userDirectoryName}/documents/{fileName}",
                     DocumentUrl = $"{settings.CloudinaryBaseURL}/{secrets.CloudinaryFolderName}/{userDirectoryName}/documents/{fileName}",
+                    UserId = userId,
                 };
 
                 await context.Documents.AddAsync(document);
                 await context.SaveChangesAsync();
 
-                return ResponseDetail<Guid>.Successful(document.Id, "Document uploaded successfully");
+                return ResponseDetail<Document>.Successful(document, "Document uploaded successfully");
             }
             catch (Exception ex)
             {
                 logger.LogError($"An exception: {ex.GetType().Name} was thrown while processing the document...\nBase Exception: {ex.GetBaseException().GetType()}", $"Exception Code: {ex.HResult}");
-                return ResponseDetail<Guid>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
+                return ResponseDetail<Document>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
     }

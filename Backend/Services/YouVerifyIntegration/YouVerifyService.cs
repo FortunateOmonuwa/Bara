@@ -44,7 +44,7 @@ namespace Services.YouVerifyIntegration
             Drivers_License_URL = $"{settings.YouVerify_Drivers_License_VerificationUrl}";
         }
 
-        public async Task<YouVerifyKickoffResponse> VerifyIdentificationNumberAsync(YouVerifyKycDto details, CancellationToken cancellationToken)
+        public async Task<YouVerifyKickoffResponse> VerifyIdentificationNumberAsync(YouVerifyKycDto details)
         {
             try
             {
@@ -76,37 +76,15 @@ namespace Services.YouVerifyIntegration
                 var reqBody = apiService.SerializeReqBody(body);
                 var request = await apiService.SendPostRequest(reqBody, url, null, "YouVerify");
 
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var stringRes = await request.Content.ReadAsStringAsync(cancellationToken);
-                var serializedRes = JsonConvert.DeserializeObject<YouVerifyResponse>(stringRes);
-
                 var response = new YouVerifyKickoffResponse();
 
                 if (!request.IsSuccessStatusCode)
                 {
                     var statusCode = (int)request.StatusCode;
-                    var errorResponse = await request.Content.ReadAsStringAsync(cancellationToken);
+                    var errorResponse = await request.Content.ReadAsStringAsync();
                     var error = JsonConvert.DeserializeObject<YouVerifyErrorResponse>(errorResponse)
                         ?? new YouVerifyErrorResponse { Message = "Unknown error" };
 
-                    if (details.IsDirectCall)
-                    {
-                        response = new YouVerifyKickoffResponse
-                        {
-                            Success = false,
-                            Status = "failed",
-                            Message = statusCode switch
-                            {
-                                >= 500 => "Verification service temporarily unavailable",
-                                >= 400 and < 500 => "Invalid verification information provided",
-                                _ => "Verification failed"
-                            }
-                        };
-
-                        logger.LogWarning($"Direct verification failed for {details.Id} with status code {statusCode}: {error.Message}");
-                        return response;
-                    }
 
                     if (statusCode >= 500)
                     {
@@ -115,7 +93,7 @@ namespace Services.YouVerifyIntegration
                             details.RetryCount++;
 
                             BackgroundJob.Schedule<YouVerifyService>(
-                                s => s.RetryVerification(details, CancellationToken.None),
+                                s => s.RetryVerification(details),
                                 TimeSpan.FromMinutes(10)
                             );
                             response = new YouVerifyKickoffResponse
@@ -160,36 +138,14 @@ namespace Services.YouVerifyIntegration
                         Success = true,
                         Status = "completed",
                         Message = "Verification completed successfully",
-                        Data = serializedRes.Data
                     };
-
-                    if (details.IsDirectCall)
-                    {
-                        logger.LogInformation($"Direct verification completed successfully for {details.Id}");
-                    }
                 }
 
                 return response;
             }
-            catch (OperationCanceledException)
-            {
-                logger.LogWarning($"Verification request timed out for {details.Id}");
-                return new YouVerifyKickoffResponse
-                {
-                    Success = false,
-                    Status = "timeout",
-                    Message = "Verification request timed out"
-                };
-            }
             catch (Exception ex)
             {
                 logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, "Verifying user on YouVerify's service");
-
-                if (!details.IsDirectCall)
-                {
-                    await NotifyKycFailure(details.UserId, "An error occurred while verifying your ID. Please contact support.");
-                }
-
                 return new YouVerifyKickoffResponse
                 {
                     Success = false,
@@ -198,15 +154,12 @@ namespace Services.YouVerifyIntegration
                 };
             }
         }
-        private async Task RetryVerification(YouVerifyKycDto payload, CancellationToken cancellationToken = default)
+        private async Task RetryVerification(YouVerifyKycDto payload)
         {
             try
             {
-                await Task.Delay(30000, cancellationToken);
 
-                payload.IsDirectCall = false;
-
-                var result = await VerifyIdentificationNumberAsync(payload, cancellationToken);
+                var result = await VerifyIdentificationNumberAsync(payload);
 
                 if (!result.Success && result.Status != "retrying")
                 {

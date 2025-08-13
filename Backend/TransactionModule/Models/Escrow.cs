@@ -10,7 +10,7 @@ namespace TransactionModule.Models
         //public Guid Id { get; set; }
         [ForeignKey(nameof(Transaction))]
         public Guid? TransactionId { get; set; }
-        public Transaction? Transaction { get; set; }
+        public PaymentTransaction? Transaction { get; set; }
         [ForeignKey(nameof(Wallet))]
         public Guid? WalletId { get; set; }
         public Wallet? Wallet { get; set; }

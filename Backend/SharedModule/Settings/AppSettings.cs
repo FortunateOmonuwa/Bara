@@ -30,8 +30,7 @@
         public string SMTP_Password { get; set; }
 
         // JWT
-        public string SecretKey { get; set; }
-        public string Issuer { get; set; }
+
 
         //TEST CREDENTIALS
     }

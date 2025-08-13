@@ -1,5 +1,7 @@
 ﻿using Hangfire;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Services.FileStorageServices.Interfaces;
 using Services.MailingService;
 using Services.YouVerifyIntegration;
 using SharedModule.Utils;
@@ -16,12 +18,15 @@ namespace Services.BackgroudServices
         private readonly IMailService mailService;
         private readonly IYouVerifyService youVerify;
         private readonly LogHelper<HangfireJobs> logHelper;
-        public HangfireJobs(IMailService mailService, ILogger<HangfireJobs> logger, IYouVerifyService youVerify, LogHelper<HangfireJobs> logHelper)
+        private readonly IFileStorageService fileStorage;
+        public HangfireJobs(IMailService mailService, ILogger<HangfireJobs> logger,
+            IYouVerifyService youVerify, LogHelper<HangfireJobs> logHelper, IFileStorageService fileStorageService)
         {
             this.mailService = mailService;
             this.logger = logger;
             this.youVerify = youVerify;
             this.logHelper = logHelper;
+            this.fileStorage = fileStorageService;
         }
 
         [AutomaticRetry(Attempts = 3, DelaysInSeconds = [10, 30, 60])]
@@ -44,11 +49,9 @@ namespace Services.BackgroudServices
         {
             try
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 
-                payload.IsDirectCall = false;
 
-                var res = await youVerify.VerifyIdentificationNumberAsync(payload, cts.Token);
+                var res = await youVerify.VerifyIdentificationNumberAsync(payload);
 
                 if (!res.Success)
                 {
@@ -66,6 +69,22 @@ namespace Services.BackgroudServices
             catch (Exception ex)
             {
                 logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, "Verifying user on Youverify's service");
+            }
+        }
+
+        public async Task ProcessDocumentForUpload(string userDirectoryName, IFormFile file)
+        {
+            try
+            {
+                var response = await fileStorage.UploadDocumentAsync(userDirectoryName, file);
+                if (response is false)
+                {
+                    logger.LogInformation($"Uploading verification document to {userDirectoryName} was unsuccessful");
+                }
+            }
+            catch (Exception ex)
+            {
+                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, $"An exception was thrown while uploading the verification doc for {userDirectoryName}");
             }
         }
     }
