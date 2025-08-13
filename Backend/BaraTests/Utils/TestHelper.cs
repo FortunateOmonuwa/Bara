@@ -30,7 +30,7 @@ namespace BaraTests.Utils
         // JWT
         public static string SecretKey { get; set; }
         public static string JwtSickRit { get; set; }
-        public static List<string> Issuers { get; set; }
+        public static string[] Issuers { get; set; }
         public static string IpInfoKey { get; set; }
 
         //TEST CREDENTIALS

@@ -173,6 +173,7 @@
                 <p>It expires in 5 mins";
             return new MailRequestDTO
             {
+                ReceiverName = name,
                 Receiver = receiver,
                 Subject = subject,
                 Body = BaseEmailTemplate(name, body),

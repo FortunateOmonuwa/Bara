@@ -84,6 +84,8 @@ namespace UserModule.DTOs.ProducerDTOs
         /// </summary>
         public GetWalletDetailDTO Wallet { get; init; }
 
+        public DateOnly DateOfBirth { get; init; }
+
         /// <summary>
         /// The full timestamp when the producer's profile was created.
         /// </summary>

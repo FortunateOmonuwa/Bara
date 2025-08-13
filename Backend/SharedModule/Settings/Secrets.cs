@@ -17,5 +17,6 @@
         public int RabbitMqPort { get; set; }
         public string RabbitMqUsername { get; set; }
         public string RabbitMqPassword { get; set; }
+        public string SendGridApiKey { get; set; }
     }
 }

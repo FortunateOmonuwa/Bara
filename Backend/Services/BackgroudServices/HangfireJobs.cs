@@ -45,6 +45,7 @@ namespace Services.BackgroudServices
                 logger.LogError(ex, $"An error occurred while sending email to {mail.Receiver}");
             }
         }
+        [AutomaticRetry(Attempts = 3, DelaysInSeconds = [10, 30, 60])]
         public async Task StartKycProcess(YouVerifyKycDto payload)
         {
             try
@@ -72,12 +73,13 @@ namespace Services.BackgroudServices
             }
         }
 
+        [AutomaticRetry(Attempts = 3, DelaysInSeconds = [10, 30, 60])]
         public async Task ProcessDocumentForUpload(string userDirectoryName, IFormFile file)
         {
             try
             {
                 var response = await fileStorage.UploadDocumentAsync(userDirectoryName, file);
-                if (response is false)
+                if (response.Success is false)
                 {
                     logger.LogInformation($"Uploading verification document to {userDirectoryName} was unsuccessful");
                 }

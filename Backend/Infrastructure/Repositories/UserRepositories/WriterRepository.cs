@@ -161,7 +161,7 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
 
                 // --------------------  UPLOAD & ASSIGN DOCUMENT ID --------------------
-                var userDirectoryName = $"Writer_{newWriterProfile.FirstName}_{newWriterProfile.LastName}-{newWriterProfile.PhoneNumber}";
+                var userDirectoryName = $"Writer_{newWriterProfile.FirstName}_{newWriterProfile.LastName}-{newWriterProfile.Id}";
                 var document = await fileService.ProcessDocumentForUpload(newWriterProfile.Id, userDirectoryName, writerDetailDTO.VerificationDocument);
                 if (!document.IsSuccess || document.Data == null)
                 {

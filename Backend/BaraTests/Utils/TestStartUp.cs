@@ -56,7 +56,7 @@ namespace BaraTests.Utils
             services.AddTransient<IUserService, UserRepository>();
             services.AddDbContext<BaraContext>(options =>
             {
-                options.UseSqlServer(configuration["connection"]);
+                options.UseSqlServer(configuration.GetConnectionString("Connection"));
             });
             services.AddSignalR();
             services.AddScoped(typeof(LogHelper<>));
@@ -67,6 +67,7 @@ namespace BaraTests.Utils
                 client.DefaultRequestHeaders.Add("token", configuration["Secrets:YouVerifyTestAPIKEY"]);
                 //client.DefaultRequestHeaders.Add("token", configuration["Secrets:YouVerifyLiveAPIKEY"]);
             });
+            var secretsConfig = configuration.GetSection("Secrets").Get<Secrets>();
             services.AddAuthentication(options =>
             {
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -80,7 +81,7 @@ namespace BaraTests.Utils
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes($"{configuration["Secrets: JwtSickCrit"]}")),
-                    ValidIssuers = [configuration["Secrets:Issuers"]]
+                    ValidIssuers = secretsConfig.Issuers,
                 };
             });
             services.AddControllers().AddJsonOptions(options =>

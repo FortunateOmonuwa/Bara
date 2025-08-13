@@ -1,5 +1,4 @@
-﻿using Hangfire;
-using Infrastructure.DataContext;
+﻿using Infrastructure.DataContext;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Services.BackgroudServices;
@@ -60,7 +59,12 @@ namespace Infrastructure.Repositories.FileRepositories
                                                                     $"\n Allowed mime types are: {string.Join(", ", allowedMimeTypes)}", 415, "Invalid File Type");
                 }
 
-                BackgroundJob.Enqueue(() => hangfire.ProcessDocumentForUpload(userDirectoryName, file));
+                var uploadResult = await storageService.UploadDocumentAsync(userDirectoryName, file);
+                if (!uploadResult.Success)
+                {
+                    logger.LogError($"An error occured while uploading the verification document for user: {userDirectoryName} ");
+                    return ResponseDetail<Document>.Failed("An error occurred while processing the verification document. Please try again later.", 500, "Upload Failed");
+                }
                 var document = new Document
                 {
                     Size = file.Length,
@@ -68,8 +72,8 @@ namespace Infrastructure.Repositories.FileRepositories
                     FileExtension = fileExtension,
                     Name = fileName,
                     IdentificationNumber = documentDetail.VerificationNumber,
-                    Path = $"{secrets.CloudinaryFolderName}/{userDirectoryName}/documents/{fileName}",
-                    DocumentUrl = $"{settings.CloudinaryBaseURL}/{secrets.CloudinaryFolderName}/{userDirectoryName}/documents/{fileName}",
+                    Path = $"{uploadResult.PublicId}",
+                    DocumentUrl = $"{uploadResult.Url}",
                     UserId = userId,
                 };
 
