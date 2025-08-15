@@ -1,202 +1,175 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
 
-/** lightweight inline icons so you don't need any deps */
-const Divider = () => (
-  <span className="h-6 w-px bg-gray-300 mx-3" aria-hidden="true" />
-);
-const UndoIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-4 h-4">
-    <path
-      d="M7 7H3m0 0v4m0-4l5 5a7 7 0 1 0 2-2"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-const RedoIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-4 h-4">
-    <path
-      d="M17 7h4m0 0v4m0-4l-5 5a7 7 0 1 1-2-2"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-const PencilIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-4 h-4">
-    <path
-      d="M15 3l6 6m-2 2l-6-6M4 20l5-1 9-9-4-4-9 9-1 5z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-const UnderlineIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-4 h-4">
-    <path
-      d="M6 4v6a6 6 0 1 0 12 0V4M4 20h16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-const CommentIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-4 h-4">
-    <path
-      d="M21 12a7 7 0 0 1-7 7H9l-4 3v-5a7 7 0 0 1 0-12h9a7 7 0 0 1 7 7z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-const MinusIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-4 h-4">
-    <path
-      d="M5 12h14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-const PlusIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-4 h-4">
-    <path
-      d="M12 5v14M5 12h14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-  </svg>
+type DividerProps = { className?: string };
+const Divider = ({ className = "" }: DividerProps) => (
+  <span
+    aria-hidden="true"
+    className={`h-6 w-px bg-[#ABADB2] mx-4 ${className}`}
+  />
 );
 
 export default function ScriptNavbar() {
   const [tool, setTool] = useState<
     "highlight" | "underline" | "comment" | null
-  >("highlight");
+  >(null);
+
   const [page, setPage] = useState(1);
+  const [pageInput, setPageInput] = useState("1"); 
   const totalPages = 50;
   const [zoom, setZoom] = useState(60);
 
+  useEffect(() => {
+    setPageInput(String(page));
+  }, [page]);
+
+  const handlePageBlur = () => {
+    let v = parseInt(pageInput, 10);
+    if (isNaN(v) || v < 1) v = 1;
+    if (v > totalPages) v = totalPages;
+    setPage(v);
+    setPageInput(String(v)); // reset to valid value
+  };
+
+  const toolButtonClasses = (active: boolean) =>
+    `flex items-center gap-2 rounded px-3 py-2 text-sm transition-colors
+     ${
+       active
+         ? "bg-[#FFEDEE] text-[#810306]"
+         : "bg-transparent text-[#333740] border-transparent font-semibold"
+     }`;
+
   return (
-    <header className="w-full bg-white border-b border-gray-200">
-      <div className="h-12 px-4 flex items-center">
-        {/* filename */}
-        <div className="text-sm font-medium text-gray-900">
+    <header className="sticky top-0 z-50 w-full bg-white px-4 md:px-8 py-2 shadow-md">
+      <div className="h-15 px-4 flex items-center">
+        {/* Filename */}
+        <div className="text-xl font-medium text-[#22242A] ml-10">
           Broken Promise.pdf
         </div>
 
-        <Divider />
+        <Divider className="ml-30" />
 
-        {/* undo/redo */}
+        {/* Undo/Redo */}
         <div className="flex items-center gap-2">
-          <button
-            aria-label="Undo"
-            className="p-1 rounded hover:bg-gray-100 text-gray-700"
-          >
-            <UndoIcon />
+          <button className="p-1 rounded">
+            <Image
+              src="/redo.png"
+              alt="Redo"
+              width={16}
+              height={16}
+              className="object-contain"
+            />
           </button>
-          <button
-            aria-label="Redo"
-            className="p-1 rounded hover:bg-gray-100 text-gray-700"
-          >
-            <RedoIcon />
+          <button className="p-1 rounded">
+            <Image
+              src="/undo.png"
+              alt="Undo"
+              width={16}
+              height={16}
+              className="object-contain"
+            />
           </button>
         </div>
 
         <Divider />
 
-        {/* tools: Highlight (active), Underline, Add comment */}
+        {/* Tools */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setTool("highlight")}
-            className={[
-              "flex items-center gap-2 rounded px-3 py-1 text-sm border",
-              tool === "highlight"
-                ? "bg-rose-50 text-rose-700 border-rose-200"
-                : "bg-transparent text-gray-700 border-transparent hover:bg-gray-100",
-            ].join(" ")}
+            className={toolButtonClasses(tool === "highlight")}
           >
             <span>Highlight</span>
-            <PencilIcon />
+            <Image
+              src={
+                tool === "highlight" ? "/highlightred.png" : "/highlight.png"
+              }
+              alt="Highlight"
+              width={16}
+              height={16}
+              className="object-contain"
+            />
           </button>
 
           <button
             onClick={() => setTool("underline")}
-            className="flex items-center gap-2 px-2 py-1 text-sm text-gray-700 rounded hover:bg-gray-100"
+            className={toolButtonClasses(tool === "underline")}
           >
             <span>Underline</span>
-            <UnderlineIcon />
+            <Image
+              src={
+                tool === "underline" ? "/underlinered.png" : "/underline.png"
+              }
+              alt="Underline"
+              width={16}
+              height={16}
+              className="object-contain"
+            />
           </button>
 
           <button
             onClick={() => setTool("comment")}
-            className="flex items-center gap-2 px-2 py-1 text-sm text-gray-700 rounded hover:bg-gray-100"
+            className={toolButtonClasses(tool === "comment")}
           >
             <span>Add comment</span>
-            <CommentIcon />
+            <Image
+              src={tool === "comment" ? "/commentred.png" : "/Comment.png"}
+              alt="Comment"
+              width={16}
+              height={16}
+              className="object-contain"
+            />
           </button>
         </div>
 
         <Divider />
 
-        {/* Page 1 of 50 */}
-        <div className="flex items-center gap-2 text-sm text-gray-800">
-          <span>Page</span>
+        {/* Page + Zoom */}
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-[#333740] font-semibold">Page</span>
           <input
             type="number"
-            value={page}
-            onChange={(e) => {
-              const v = Number(e.target.value || 1);
-              setPage(Math.min(Math.max(1, v), totalPages));
-            }}
-            className="h-7 w-10 text-center border border-gray-300 rounded outline-none focus:ring-2 focus:ring-gray-200"
+            value={pageInput}
+            onChange={(e) => setPageInput(e.target.value)} // allow free typing
+            onBlur={handlePageBlur} // validate only when leaving input
+            onFocus={(e) => e.target.select()}
+            min={1}
+            max={totalPages}
+            className="h-6 w-6 text-center border border-[#ABADB2] rounded outline-none focus:ring-2 focus:ring-gray-200 text-[#22242A] font-medium
+              [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
-          <span className="text-gray-600">of</span>
-          <span className="text-gray-900">{totalPages}</span>
-        </div>
+          <span className="text-[#22242A]">of</span>
+          <span className="text-[#22242A]">{totalPages}</span>
 
-        {/* spacer */}
-        <div className="flex-1" />
+          <Divider />
 
-        {/* Zoom: − [ 60% ] + */}
-        <div className="flex items-center gap-2">
           <button
-            aria-label="Zoom out"
             onClick={() => setZoom((z) => Math.max(10, z - 10))}
-            className="p-1 rounded hover:bg-gray-100 text-gray-700"
+            className="p-1 rounded text-gray-700"
           >
-            <MinusIcon />
+            <Image
+              src="/minus.png"
+              alt="Zoom out"
+              width={16}
+              height={16}
+              className="object-contain"
+            />
           </button>
-
-          <div className="h-7 flex items-center rounded border border-gray-300 px-2 text-sm text-gray-900">
+          <div className="h-7 flex items-center rounded border border-[#ABADB2] px-2 text-sm text-[#22242A] font-medium">
             {zoom}%
           </div>
-
           <button
-            aria-label="Zoom in"
             onClick={() => setZoom((z) => Math.min(500, z + 10))}
-            className="p-1 rounded hover:bg-gray-100 text-gray-700"
+            className="p-1 rounded"
           >
-            <PlusIcon />
+            <Image
+              src="/plus.png"
+              alt="Zoom in"
+              width={16}
+              height={16}
+              className="object-contain"
+            />
           </button>
         </div>
       </div>
