@@ -1,6 +1,7 @@
 ﻿using TransactionModule.DTOs;
 using UserModule.DTOs.AddressDTOs;
 using UserModule.DTOs.ServiceDTOs;
+using UserModule.Models;
 
 namespace UserModule.DTOs.WriterDTOs
 {
@@ -46,9 +47,14 @@ namespace UserModule.DTOs.WriterDTOs
         public string? PhoneNumber { get; init; }
 
         /// <summary>
-        /// A short bio or description about the writer.
+        /// Represents the past or current project experiences of a writer.
         /// </summary>
-        public string? Bio { get; init; }
+        public List<BioExperience> Experiences { get; init; }
+
+        /// <summary>
+        /// A brief biography or description provided by the user.
+        /// </summary>
+        public string Bio { get; set; } = string.Empty;
 
         /// <summary>
         /// Indicates whether the writer's email has been verified.

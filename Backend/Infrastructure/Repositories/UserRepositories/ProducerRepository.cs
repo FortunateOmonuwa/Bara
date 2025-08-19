@@ -5,11 +5,9 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Services.BackgroudServices;
 using Services.FileStorageServices.Interfaces;
-using Services.MailingService;
 using Services.YouVerifyIntegration;
 using SharedModule.Models;
 using SharedModule.Utils;
-using System.Security.Cryptography;
 using TransactionModule.DTOs;
 using TransactionModule.Models;
 using UserModule.DTOs.AddressDTOs;
@@ -39,79 +37,54 @@ namespace Infrastructure.Repositories.UserRepositories
             cache = memoryCache;
             this.youVerify = youVerify;
         }
-        public async Task<ResponseDetail<GetProducerDetailDTO>> AddProducer(PostProducerDetailDTO producerDetailDTO)
+        public async Task<ResponseDetail<GetProducerDetailDTO>> AddProducer(PostProducerDetailDTO producerDetailDTO, Guid userId)
         {
             await using var transaction = await dbContext.Database.BeginTransactionAsync();
             try
             {
                 // -------------------- INPUT VALIDATION --------------------
-                var email = producerDetailDTO.Email.Trim().ToLowerInvariant();
-                var emailValidation = RegexValidations.IsValidMail(email);
+
                 var phoneNumberValidation = RegexValidations.IsValidPhoneNumber(producerDetailDTO.PhoneNumber);
                 var nameValidation = RegexValidations.IsValidName(producerDetailDTO.FirstName, producerDetailDTO.LastName, producerDetailDTO.MiddleName ?? "");
-                var passwordValidation = RegexValidations.IsAcceptablePasswordFormat(producerDetailDTO.Password);
+
                 var validationErrors = new List<string>();
 
-                if (!emailValidation) validationErrors.Add("Invalid email");
                 if (!phoneNumberValidation) validationErrors.Add("Invalid phone number");
                 if (!nameValidation) validationErrors.Add("Names can only contain alphabets");
-                if (!passwordValidation) validationErrors.Add("Password must be strong");
 
                 if (validationErrors.Count > 0)
                 {
                     return ResponseDetail<GetProducerDetailDTO>.Failed(string.Join(" | ", validationErrors));
                 }
 
-                // -------------------- CHECK FOR EXISTING ACCOUNT --------------------
-                var producerAccount = await dbContext.AuthProfiles
-                    .Select(x => new { x.Email, x.IsDeleted })
-                    .FirstOrDefaultAsync(x => x.Email == email);
-
-                if (producerAccount?.IsDeleted == true)
-                {
-                    return ResponseDetail<GetProducerDetailDTO>.Failed("A profile with this email already exists and just needs to be Reactivated", 409, "Account Needs Reactivation");
-                }
-                else if (producerAccount is not null)
-                {
-                    return ResponseDetail<GetProducerDetailDTO>.Failed("A profile with this email already exists...", 409, "Conflict");
-                }
-
                 // -------------------- CREATE PRODUCER PROFILE --------------------
-                var newProducerProfile = new Producer
+                var producer = await dbContext.Producers.FindAsync(userId);
+                if (producer is null)
                 {
-                    Email = email,
-                    FirstName = producerDetailDTO.FirstName.ToUpperInvariant(),
-                    LastName = producerDetailDTO.LastName.ToUpperInvariant(),
-                    MiddleName = producerDetailDTO.MiddleName?.ToUpperInvariant() ?? "",
-                    PhoneNumber = producerDetailDTO.PhoneNumber,
-                    Bio = producerDetailDTO.Bio,
-                    Gender = producerDetailDTO.Gender,
-                    DateOfBirth = producerDetailDTO.DateOfBirth,
-                    Type = Role.Producer,
-                };
-
-                // -------------------- CREATE AUTH PROFILE --------------------
-                AuthProfile authProfile = new()
+                    logger.LogError($"Producer profile with ID {userId} does not exist.");
+                    return ResponseDetail<GetProducerDetailDTO>.Failed($"Producer profile with ID {userId} does not exist.", 404, "Not Found");
+                }
+                producer.FirstName = producerDetailDTO.FirstName.ToUpperInvariant();
+                producer.LastName = producerDetailDTO.LastName.ToUpperInvariant();
+                producer.MiddleName = producerDetailDTO.MiddleName?.ToUpperInvariant() ?? "";
+                producer.PhoneNumber = producerDetailDTO.PhoneNumber;
+                producer.Bio = producerDetailDTO.Bio;
+                producer.Gender = producerDetailDTO.Gender;
+                producer.DateOfBirth = producerDetailDTO.DateOfBirth;
+                producer.Type = Role.Producer;
+                producer.AuthProfile = new()
                 {
-                    Email = email,
-                    Password = BCrypt.Net.BCrypt.HashPassword(producerDetailDTO.Password),
-                    Role = "Producer",
                     FullName = $"{producerDetailDTO.FirstName} {producerDetailDTO.LastName}".ToUpperInvariant(),
-                    UserId = newProducerProfile.Id
                 };
-
-                // -------------------- CREATE WALLET --------------------
-                Wallet wallet = new Wallet
+                producer.Wallet = new Wallet
                 {
                     TotalBalance = 0,
                     AvailableBalance = 0,
                     LockedBalance = 0,
                     Currency = Currency.NAIRA,
-                    UserId = newProducerProfile.Id
+                    UserId = userId
                 };
-
-                //-------------------- CREATE ADDRESS --------------------
-                Address address = new Address
+                producer.Address = new Address
                 {
                     City = producerDetailDTO.AddressDetail.City.ToUpperInvariant(),
                     Country = producerDetailDTO.AddressDetail.Country.ToUpperInvariant(),
@@ -119,30 +92,29 @@ namespace Infrastructure.Repositories.UserRepositories
                     Street = producerDetailDTO.AddressDetail.Street.ToUpperInvariant(),
                     PostalCode = producerDetailDTO.AddressDetail.PostalCode,
                     AdditionalDetails = producerDetailDTO.AddressDetail.AdditionalDetails.ToUpperInvariant(),
-                    UserId = newProducerProfile.Id
+                    UserId = userId
                 };
-                newProducerProfile.AuthProfile = authProfile;
-                newProducerProfile.Wallet = wallet;
-
-                // -------------------- SAVE PROFILE TO DATABASE --------------------
-                await dbContext.Producers.AddAsync(newProducerProfile);
-                var producerRes = await dbContext.SaveChangesAsync();
-                if (producerRes < 1)
+                producer.Address = new Address
                 {
-                    logger.LogError($"An error occurred while creating a producer profile for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}");
-                    return ResponseDetail<GetProducerDetailDTO>.Failed($"An error occurred while creating a producer profile for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}", 500, "Unexpected Error");
-                }
+                    City = producerDetailDTO.AddressDetail.City.ToUpperInvariant(),
+                    Country = producerDetailDTO.AddressDetail.Country.ToUpperInvariant(),
+                    State = producerDetailDTO.AddressDetail.State.ToUpperInvariant(),
+                    Street = producerDetailDTO.AddressDetail.Street.ToUpperInvariant(),
+                    PostalCode = producerDetailDTO.AddressDetail.PostalCode,
+                    AdditionalDetails = producerDetailDTO.AddressDetail.AdditionalDetails.ToUpperInvariant(),
+                    UserId = userId
+                };
 
                 // --------------------  UPLOAD & ASSIGN DOCUMENT ID --------------------
-                var userDirectoryName = $"Producer_{newProducerProfile.FirstName}_{newProducerProfile.LastName}-{newProducerProfile.Id}";
-                var document = await fileService.ProcessDocumentForUpload(newProducerProfile.Id, userDirectoryName, producerDetailDTO.VerificationDocument);
+                var userDirectoryName = $"Producer_{producerDetailDTO.FirstName.ToUpperInvariant()}_{producerDetailDTO.LastName.ToUpperInvariant()}-{userId}";
+                var document = await fileService.ProcessDocumentForUpload(userId, userDirectoryName, producerDetailDTO.VerificationDocument);
                 if (!document.IsSuccess || document.Data == null)
                 {
                     logger.LogError($"An error occurred while uploading KYC document for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}");
                     return ResponseDetail<GetProducerDetailDTO>.Failed($"An error occurred while uploading KYC document for {producerDetailDTO.FirstName} {producerDetailDTO.LastName}", 500, "Unexpected Error");
                 }
 
-                newProducerProfile.Document = new Document
+                producer.Document = new Document
                 {
                     Id = document.Data.Id,
                     Name = document.Data.Name,
@@ -152,69 +124,58 @@ namespace Infrastructure.Repositories.UserRepositories
                     Size = document.Data.Size,
                     IdentificationNumber = producerDetailDTO.VerificationDocument.VerificationNumber,
                     DocumentType = producerDetailDTO.VerificationDocument.Type,
-                    UserId = newProducerProfile.Id
+                    UserId = userId
                 };
 
-                dbContext.Users.Update(newProducerProfile);
+                dbContext.Users.Update(producer);
                 await dbContext.SaveChangesAsync();
-                // --------------------  GENERATE EMAIL VERIFICATION TOKEN --------------------
-                var token = RandomNumberGenerator.GetInt32(100000, 999999);
-                cache.Set($"User_Verification_Token_{newProducerProfile.Id}", token.ToString(), absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
-                Console.WriteLine($"Producer_Verification_Token_{producerDetailDTO.FirstName} {producerDetailDTO.LastName}: {token}");
-                logger.LogInformation($"Producer_Verification_Token_{producerDetailDTO.FirstName} {producerDetailDTO.LastName}: {token}");
-
-                var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(newProducerProfile.Email, newProducerProfile.FirstName, token.ToString());
-                BackgroundJob.Enqueue<HangfireJobs>(x => x.SendMailAsync(verificationMail));
 
                 // --------------------  PREPARE KYC REQUEST --------------------
                 var kycDetail = new YouVerifyKycDto
                 {
                     Id = producerDetailDTO.VerificationDocument.VerificationNumber,
                     Type = producerDetailDTO.VerificationDocument.Type.ToString(),
-                    UserId = newProducerProfile.Id,
-                    LastName = newProducerProfile.LastName,
+                    UserId = producer.Id,
+                    LastName = producer.LastName,
                 };
 
                 BackgroundJob.Enqueue(() => hangfire.StartKycProcess(kycDetail));
                 // --------------------  BUILD RESPONSE DTO --------------------
                 var producerProfile = new GetProducerDetailDTO
                 {
-                    Id = newProducerProfile.Id,
-                    Email = newProducerProfile.Email,
-                    FirstName = newProducerProfile.FirstName,
-                    LastName = newProducerProfile.LastName,
-                    MiddleName = newProducerProfile.MiddleName,
-                    Name = $"{newProducerProfile.FirstName} {newProducerProfile.LastName}",
-                    Bio = newProducerProfile.Bio,
-                    IsBlacklisted = newProducerProfile.AuthProfile.IsDeleted,
+                    Id = producer.Id,
+                    Email = producer.Email,
+                    FirstName = producer.FirstName,
+                    LastName = producer.LastName,
+                    MiddleName = producer.MiddleName,
+                    Name = $"{producer.FirstName} {producer.LastName}",
+                    Bio = producer.Bio,
+                    IsBlacklisted = producer.IsBlacklisted,
                     Address = new AddressDetail
                     {
-                        City = newProducerProfile.Address.City,
-                        Country = newProducerProfile.Address.Country,
-                        State = newProducerProfile.Address.State,
-                        Street = newProducerProfile.Address.Street,
-                        PostalCode = newProducerProfile.Address.PostalCode,
-                        AdditionalDetails = newProducerProfile.Address.AdditionalDetails,
+                        City = producer.Address.City,
+                        Country = producer.Address.Country,
+                        State = producer.Address.State,
+                        Street = producer.Address.Street,
+                        PostalCode = producer.Address.PostalCode,
+                        AdditionalDetails = producer.Address.AdditionalDetails,
                     },
-                    IsEmailVerified = newProducerProfile.AuthProfile.IsEmailVerified,
-                    IsVerified = newProducerProfile.AuthProfile.IsVerified,
-                    PhoneNumber = newProducerProfile.PhoneNumber,
-                    VerificationStatus = newProducerProfile.VerificationStatus,
-                    DateOfBirth = newProducerProfile.DateOfBirth
+                    IsEmailVerified = producer.AuthProfile.IsEmailVerified,
+                    IsVerified = producer.AuthProfile.IsVerified,
+                    PhoneNumber = producer.PhoneNumber,
+                    VerificationStatus = producer.VerificationStatus,
+                    DateOfBirth = producer.DateOfBirth
                 };
 
                 // --------------------  COMMIT TRANSACTION --------------------
                 await transaction.CommitAsync();
 
-
-
-                // -------------------- CACHE FINAL PROFILE --------------------
                 var cacheOptions = new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
                     SlidingExpiration = TimeSpan.FromMinutes(5)
                 };
-                cache.Set($"Producer_Profile{newProducerProfile.Id}", producerProfile, cacheOptions);
+                cache.Set($"Producer_Profile{producer.Id}", producerProfile, cacheOptions);
 
                 // -------------------- RETURN SUCCESS --------------------
                 return ResponseDetail<GetProducerDetailDTO>.Successful(producerProfile, "Producer profile successfully created", 201);
@@ -242,7 +203,7 @@ namespace Infrastructure.Repositories.UserRepositories
         {
             try
             {
-                var producer = await dbContext.Producers.Where(x => x.AuthProfile.IsDeleted == false).
+                var producer = await dbContext.Producers.Where(x => x.IsDeleted == false).
                                     Select(x => new GetProducerDetailDTO
                                     {
                                         Id = x.Id,
@@ -262,8 +223,8 @@ namespace Infrastructure.Repositories.UserRepositories
                                             PostalCode = x.Address.PostalCode ?? "-",
                                         },
                                         Role = x.AuthProfile.Role,
-                                        IsEmailVerified = x.AuthProfile.IsDeleted,
-                                        IsVerified = x.AuthProfile.IsDeleted,
+                                        IsEmailVerified = x.AuthProfile.IsEmailVerified,
+                                        IsVerified = x.AuthProfile.IsVerified,
                                         Wallet = new GetWalletDetailDTO
                                         {
                                             Balance = x.Wallet.TotalBalance,
@@ -273,7 +234,7 @@ namespace Infrastructure.Repositories.UserRepositories
                                             Id = x.Wallet.Id,
                                             UserId = x.Id
                                         },
-                                        IsBlacklisted = x.AuthProfile.IsDeleted,
+                                        IsBlacklisted = x.IsBlacklisted,
                                         CreatedAt = x.CreatedAt,
                                         DateCreated = x.DateCreated,
                                         TimeCreated = x.TimeCreated,

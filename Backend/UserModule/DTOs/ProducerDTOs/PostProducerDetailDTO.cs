@@ -25,16 +25,6 @@ namespace UserModule.DTOs.ProducerDTOs
         public string MiddleName { get; init; } = string.Empty;
 
         /// <summary>
-        /// The producer's email address. This will be used for authentication and communication.
-        /// </summary>
-        public required string Email { get; init; }
-
-        /// <summary>
-        /// The producer's account password.
-        /// </summary>
-        public required string Password { get; init; }
-
-        /// <summary>
         /// The producer's phone number.
         /// </summary>
         public required string PhoneNumber { get; init; }

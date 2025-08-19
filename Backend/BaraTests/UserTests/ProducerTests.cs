@@ -9,12 +9,13 @@ namespace BaraTests.UserTests
 {
     public class ProducerTests : BaseTestFixture
     {
+        Guid userId = Guid.NewGuid();
         [Fact]
         public async Task AddProducer_WithValidData_ShouldReturnSuccessfulResponse()
         {
             var producerDetail = CreateValidProducerDetailDTO();
 
-            var result = await producerService.AddProducer(producerDetail);
+            var result = await producerService.AddProducer(producerDetail, userId);
 
             Assert.NotNull(result);
             Assert.NotNull(result.Data);
@@ -26,9 +27,9 @@ namespace BaraTests.UserTests
         public async Task AddProducer_WithInvalidEmail_ShouldReturnValidationError()
         {
             var producerDetail = CreateValidProducerDetailDTO();
-            producerDetail = producerDetail with { Email = "invalid-email" };
+            //producerDetail = producerDetail with { Email = "invalid-email" };
 
-            var result = await producerService.AddProducer(producerDetail);
+            var result = await producerService.AddProducer(producerDetail, userId);
 
             Assert.NotNull(result);
             Assert.False(result.IsSuccess);
@@ -62,8 +63,6 @@ namespace BaraTests.UserTests
                 FirstName = "Jane",
                 LastName = "Smith",
                 MiddleName = "Marie",
-                Email = $"jane.smith.{Guid.NewGuid()}@example.com",
-                Password = "StrongPassword123!",
                 PhoneNumber = "+2348012345678",
                 Bio = "Experienced film producer",
                 Gender = Gender.FEMALE,

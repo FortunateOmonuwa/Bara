@@ -24,6 +24,9 @@ namespace Bara.API.Controllers.UserModuleControllers
         /// <param name="writerDetail">
         /// The detailed information required to register a writer, including name, bio, email, optional profile image, and credentials.
         /// </param>
+        /// <param name="userId">
+        /// The unique identifier of the user creating the writer profile, typically the ID of the user account making the request.
+        /// </param>
         /// <returns>
         /// Returns 200 OK with the newly created writer profile if successful,  
         /// 400 Bad Request if the request is malformed or fails validation,  
@@ -31,7 +34,7 @@ namespace Bara.API.Controllers.UserModuleControllers
         /// </returns>
 
         [HttpPost]
-        public async Task<IActionResult> AddWriter([FromForm] PostWriterDetailDTO writerDetail)
+        public async Task<IActionResult> AddWriter([FromForm] PostWriterDetailDTO writerDetail, Guid userId)
         {
             try
             {
@@ -39,7 +42,7 @@ namespace Bara.API.Controllers.UserModuleControllers
                 {
                     return BadRequest("Writer request body is null or invalid");
                 }
-                var response = await writerService.AddWriter(writerDetail);
+                var response = await writerService.AddWriter(writerDetail, userId);
                 if (response.IsSuccess)
                 {
                     return Ok(response);

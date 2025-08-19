@@ -24,13 +24,14 @@ namespace Bara.API.Controllers.UserModuleControllers
         /// <param name="producerDetail">
         /// The detailed information required to register a producer, including personal info, contact details, and optionally a profile image or document.
         /// </param>
+        /// <param name="userId">The unique identifier of the user creating the writer profile, typically the ID of the user account making the request.</param>
         /// <returns>
         /// Returns a 200 OK with the created producer’s details if successful,
         /// 400 Bad Request if the model state is invalid or the creation fails due to user-side issues,
         /// or 500 Internal Server Error if the server encounters an unexpected problem.
         /// </returns>
-        [HttpPost]
-        public async Task<IActionResult> AddProducer([FromForm] PostProducerDetailDTO producerDetail)
+        [HttpPost("{userId}")]
+        public async Task<IActionResult> AddProducer([FromForm] PostProducerDetailDTO producerDetail, Guid userId)
         {
             try
             {
@@ -38,7 +39,7 @@ namespace Bara.API.Controllers.UserModuleControllers
                 {
                     return BadRequest("Invalid request body");
                 }
-                var response = await producerService.AddProducer(producerDetail);
+                var response = await producerService.AddProducer(producerDetail, userId);
                 if (response.IsSuccess is false && response.StatusCode == 500)
                 {
                     return StatusCode(StatusCodes.Status500InternalServerError, response);

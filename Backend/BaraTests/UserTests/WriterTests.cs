@@ -1,5 +1,6 @@
 ﻿using BaraTests.Utils;
 using Microsoft.AspNetCore.Http;
+using UserModule.DTOs;
 using UserModule.DTOs.AddressDTOs;
 using UserModule.DTOs.DocumentDTOs;
 using UserModule.DTOs.WriterDTOs;
@@ -15,7 +16,7 @@ namespace BaraTests.UserTests
         {
             var writerDetail = CreateValidWriterDetailDTO();
 
-            var result = await writerService.AddWriter(writerDetail);
+            var result = await writerService.AddWriter(writerDetail, userId);
 
             Assert.NotNull(result);
         }
@@ -24,9 +25,9 @@ namespace BaraTests.UserTests
         public async Task AddWriter_WithInvalidEmail_ShouldReturnValidationError()
         {
             var writerDetail = CreateValidWriterDetailDTO();
-            writerDetail = writerDetail with { Email = "invalid-email" };
+            //writerDetail = writerDetail with { Email = "invalid-email" };
 
-            var result = await writerService.AddWriter(writerDetail);
+            var result = await writerService.AddWriter(writerDetail, userId);
 
             Assert.NotNull(result);
             Assert.False(result.IsSuccess);
@@ -60,10 +61,26 @@ namespace BaraTests.UserTests
                 FirstName = "John",
                 LastName = "Doe",
                 MiddleName = "Michael",
-                Email = $"john.doe.{Guid.NewGuid()}@example.com",
-                Password = "StrongPassword123!",
                 PhoneNumber = "+2348012345678",
-                Bio = "Experienced script writer",
+                Experiences = new List<BioExperienceDTO>
+                {
+                    new BioExperienceDTO
+                    {
+                        Description = "Aspiring writer with a keen interest in technology and innovation.",
+                        IsCurrent = true,
+                        Organization = "Tech Innovations",
+                        Project = "Future Tech"
+                    },
+                    new BioExperienceDTO
+                    {
+                        Description = "Freelance writer specializing in travel and lifestyle.",
+                        IsCurrent = false,
+                        Organization = "Wanderlust Magazine",
+                        Project = "Travel Diaries"
+                    }
+                },
+
+
                 Gender = Gender.MALE,
                 DateOfBirth = new DateOnly(1990, 1, 1),
                 IsPremiumMember = false,
