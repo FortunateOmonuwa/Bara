@@ -225,7 +225,7 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
                 else if (user.IsEmailVerified)
                 {
-                    return ResponseDetail<bool>.Failed("User email is already verified.", 409);
+                    return ResponseDetail<bool>.Failed("User email is already verified.", 409, "Conflict");
                 }
                 else
                 {
@@ -233,7 +233,7 @@ namespace Infrastructure.Repositories.UserRepositories
                     cache.TryGetValue(cacheKey, out string verificationToken);
                     if (verificationToken == null || token != verificationToken)
                     {
-                        return ResponseDetail<bool>.Failed("Operation failed because of invalid or expired token... Please try again");
+                        return ResponseDetail<bool>.Failed("Operation failed... Please try again", 400, "Invalid or Expired Token");
                     }
                     user.IsEmailVerified = true;
                     user.ModifiedAt = DateTimeOffset.UtcNow;

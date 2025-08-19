@@ -10,11 +10,11 @@ namespace UserModule.DTOs.UserDTO
         /// <summary>
         /// The email address of the user registering.
         /// </summary>
-        public string Email { get; set; }
+        public required string Email { get; set; }
         /// <summary>
         /// The password chosen by the user for their account. Must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.
         /// </summary>
-        public string Password { get; set; }
+        public required string Password { get; set; }
         /// <summary>
         /// Represents the type of user registering, such as Writer, Producer, or Admin.
         /// </summary>
