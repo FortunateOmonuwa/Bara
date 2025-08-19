@@ -98,6 +98,8 @@ namespace UserModule.Models
         /// </summary>
         public Role Type { get; set; }
 
+        public List<BankDetail> BankDetails { get; set; } = new List<BankDetail>();
+
         /// <summary>
         /// Timestamp indicating when the user was soft-deleted.
         /// Null if not deleted.

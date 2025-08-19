@@ -1,9 +1,12 @@
-﻿namespace Services.Paystack
+﻿using Services.Paystack.DTOs;
+
+namespace Services.Paystack
 {
     public interface IPaystackService
     {
-        //Task<PaymentInitResponse> InitializePaymentAsync(Guid userId, decimal amount);
-        //Task<PaymentVerifyResponse> VerifyPaymentAsync(string reference);
-        //Task<WithdrawalResponse> InitiateWithdrawalAsync(Guid userId, decimal amount, string bankAccount);
+        Task<PaymentInitResponse> InitializePaymentAsync(PaymentInitRequest request);
+        Task<PaymentVerifyResponse> VerifyPaymentAsync(string reference);
+        Task<WithdrawalResponse> InitiateWithdrawalAsync(WithdrawalRequest request);
+        Task<CreateRecipientResponse> CreateRecipientAsync(CreateRecipientRequest request);
     }
 }

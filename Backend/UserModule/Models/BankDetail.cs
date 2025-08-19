@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UserModule.Models
 {
-    public class BankDetails
+    public class BankDetail
     {
         // <summary>
         /// The unique identifier of the user who owns this bank account.
