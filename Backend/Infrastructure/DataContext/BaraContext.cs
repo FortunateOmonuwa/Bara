@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ScriptModule.Models;
+using ScriptModule.Models.ScriptRelatedChats;
 using TransactionModule.Models;
 using UserModule.Models;
 using Document = UserModule.Models.Document;
@@ -44,6 +45,8 @@ namespace Infrastructure.DataContext
         public DbSet<User> Users { get; set; }
         public DbSet<BankDetail> BankDetails { get; set; }
         public DbSet<ScriptTransaction> ScriptTransactions { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<Chat> Chats { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
