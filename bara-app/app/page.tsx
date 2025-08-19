@@ -2,10 +2,11 @@
 
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
-
+import CreateAccountDropdown from "@/components/CreateAccountDropdown";
+import { useState } from "react";
 
 export default function HomePage() {
-
+  const [showDropdown, setShowDropdown] = useState(false);
 
   return (
     <main className="min-h-screen bg-white flex flex-col relative">
@@ -24,14 +25,27 @@ export default function HomePage() {
           </p>
 
           <div className="mt-6 flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-            {/* Create Account link*/}
-            <a
-              href="/auth/register"
-              className="bg-[#800000] text-white font-medium px-12 py-3 rounded-md hover:bg-[#1a0000] text-center relative   transition-all duration-300 ease-in-out 
-              hover:scale-105"
-            >
-              Create account
-            </a>
+            <div className="relative">
+              {/* Create Account button*/}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowDropdown((prev) => !prev);
+                }}
+                className="bg-[#800000] text-white font-medium px-12 py-3 rounded-md hover:bg-[#1a0000] text-center relative transition-all duration-300 ease-in-out hover:scale-105"
+              >
+                Create account
+              </button>
+
+              {showDropdown && (
+                <div className="absolute top-full right-0 mt-2">
+                  <CreateAccountDropdown
+                    onClose={() => setShowDropdown(false)}
+                  />
+                </div>
+              )}
+            </div>
 
             {/* Explore for free link*/}
             <a
