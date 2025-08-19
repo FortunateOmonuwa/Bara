@@ -12,28 +12,23 @@ namespace UserModule.Models
         /// <summary>
         /// The user's full name as displayed in the system.
         /// </summary>
-        public required string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
 
         /// <summary>
         /// The user's email address used for login and communication.
         /// </summary>
         [DataType(DataType.EmailAddress)]
-        public required string Email { get; set; }
+        public string Email { get; set; }
 
         /// <summary>
         /// The hashed password of the user.
         /// </summary>
-        public required string Password { get; set; }
+        public string Password { get; set; }
 
         /// <summary>
         /// Indicates whether the user account is currently locked.
         /// </summary>
         public bool IsLocked { get; set; }
-
-        /// <summary>
-        /// Indicates whether the user account is marked as deleted.
-        /// </summary>
-        public bool IsDeleted { get; set; }
 
         /// <summary>
         /// Indicates whether the user has completed full account verification (e.g., identity documents).
@@ -64,7 +59,7 @@ namespace UserModule.Models
         /// <summary>
         /// The role assigned to the user (e.g., Writer, Producer, Admin).
         /// </summary>
-        public required string Role { get; set; }
+        public string Role { get; set; } = string.Empty;
 
         /// <summary>
         /// The date and time (in UTC) of the user's last successful login.

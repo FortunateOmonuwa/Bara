@@ -31,8 +31,9 @@ namespace Services.MailingService.SendGrid
                 var msg = new SendGridMessage
                 {
                     From = from,
-                    Subject = mail.Subject
+                    Subject = mail.Subject,
                 };
+                msg.AddTo(to);
 
                 var htmlBody = mail.Body;
                 var plainTextBody = Regex.Replace(htmlBody, "<.*?>", string.Empty);
