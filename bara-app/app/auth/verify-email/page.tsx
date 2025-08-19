@@ -1,28 +1,123 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"; 
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-
+import toast from "react-hot-toast";
 
 export default function VerifyEmailPage() {
   const [otp, setOtp] = useState("");
-  const router = useRouter();
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [verificationState, setVerificationState] = useState<
+    "idle" | "success" | "failed" | "alreadyVerified"
+  >("idle");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  // only allow digits and max length 6
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email");
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const verifyUrl = process.env.NEXT_PUBLIC_VERIFY_EMAIL;
+  const resendVerificationTokenUrl =
+    process.env.NEXT_PUBLIC_RESEND_VERIFICATION_TOKEN;
+
   const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, ""); // remove non-digits
+    const value = e.target.value.replace(/\D/g, "");
     if (value.length <= 6) {
       setOtp(value);
+      // Reset error state when user starts typing
+      if (verificationState === "failed") {
+        setVerificationState("idle");
+        setErrorMessage("");
+      }
     }
   };
 
-  // Continue button is enabled only when OTP length is 6
-  const canContinue = otp.length === 6;
+  const canContinue = otp.length === 6 && !isVerifying;
+  const testEmail = "tegaadoro@gmail.com";
 
-  const handleContinue = () => {
-    if (canContinue) {
-      router.push("/auth/password"); // navigates to set password page
+  const handleContinue = async () => {
+    if (!canContinue) return;
+
+    setIsVerifying(true);
+    setErrorMessage("");
+
+    try {
+      const response = await fetch(
+        `${baseUrl}${verifyUrl}/${testEmail}/${otp}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        toast.success("Email verified successfully!");
+        setVerificationState("success");
+        setTimeout(() => router.push("/profile"), 1000);
+      } else {
+        const res = await response.json();
+        const errorMsg = res.message || "Verification failed";
+
+        if (response.status === 409) {
+          toast.success(res.message || "Email already verified!");
+          setVerificationState("alreadyVerified");
+          setTimeout(() => router.push("/profile"), 1000);
+        } else {
+          setErrorMessage(errorMsg);
+          setVerificationState("failed");
+          toast.error(errorMsg);
+        }
+      }
+    } catch (err) {
+      const errorMsg = "Something went wrong. Please try again.";
+      setErrorMessage(errorMsg);
+      setVerificationState("failed");
+      toast.error(errorMsg);
+      console.error(err);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (isResending || resendCooldown > 0) return;
+
+    setIsResending(true);
+
+    try {
+      const response = await fetch(
+        `${baseUrl}${resendVerificationTokenUrl}/${testEmail}`,
+        {
+          method: "POST",
+        }
+      );
+
+      const res = await response.json();
+
+      if (response.ok) {
+        toast.success("Verification email resent! Please check your inbox.");
+        setResendCooldown(60);
+        const timer = setInterval(() => {
+          setResendCooldown((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        toast.error(res.message || "Could not resend verification email.");
+      }
+    } catch {
+      toast.error("Something went wrong while resending.");
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -31,68 +126,148 @@ export default function VerifyEmailPage() {
       {/* White container card */}
       <div className="bg-white rounded-lg shadow-lg flex flex-col md:flex-row w-full max-w-4xl h-[550px] relative">
         {/* Left: Form Section */}
-        <div className="flex-1 md:p-12 overflow-y-auto">
-          {/* Logo */}
+        <div className="flex-1 md:p-12 flex flex-col justify-between overflow-y-auto">
+          <div>
+            {/* Logo */}
+            <div className="mb-8">
+              <Image
+                src="/logo.png"
+                alt="Bara Logo"
+                width={60}
+                height={40}
+                className="h-auto w-auto"
+              />
+            </div>
 
-          <div className="mb-2">
-            <Image
-              src="/logo.png"
-              alt="Bara Logo"
-              width={60}
-              height={40}
-              className="h-auto w-auto"
-            />
+            {verificationState === "success" && (
+              <div className="text-center">
+                <div className="mb-4">
+                  <Image
+                    src="/Check_ring.png"
+                    alt="Success"
+                    width={64}
+                    height={64}
+                    className="mx-auto"
+                  />
+                </div>
+                <h1 className="text-2xl font-semibold mb-2 text-[#22242A]">
+                  Email Verified!
+                </h1>
+                <p className="text-sm text-[#333740] mb-4">
+                  Your email has been successfully verified. 
+                </p>
+              </div>
+            )}
+
+            {verificationState === "alreadyVerified" && (
+              <div className="text-center">
+                <div className="mb-4">
+                  <Image
+                    src="/Check_ring.png"
+                    alt="Already Verified"
+                    width={64}
+                    height={64}
+                    className="mx-auto"
+                  />
+                </div>
+                <h1 className="text-2xl font-semibold mb-2 text-[#22242A]">
+                  Already Verified!
+                </h1>
+                <p className="text-sm text-[#333740] mb-4">
+                  Your email is already verified.
+                </p>
+              </div>
+            )}
+
+            {(verificationState === "idle" ||
+              verificationState === "failed") && (
+              <>
+                <h1 className="text-2xl font-semibold mb-2 text-[#22242A]">
+                  Verify your email
+                </h1>
+
+                <p className="text-sm text-[#333740] mb-6 leading-relaxed">
+                  An OTP has been sent to{" "}
+                  <span className="font-semibold">{email ?? "your email"}</span>
+                  . Enter the 6-digit code below.
+                </p>
+
+                {verificationState === "failed" && errorMessage && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm text-red-600">{errorMessage}</p>
+                  </div>
+                )}
+
+                <label className="block text-sm font-medium text-[#22242A] mb-2">
+                  Verification Code
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter 6-digit code"
+                  value={otp}
+                  onChange={handleOtpChange}
+                  maxLength={6}
+                  className={`w-full border rounded-md px-3 py-3 mb-4 bg-white focus:outline-none focus:ring-1 transition-colors ${
+                    verificationState === "failed"
+                      ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                      : "border-[#ABADB2] focus:ring-[#800000] focus:border-[#800000]"
+                  }`}
+                />
+
+                <button
+                  type="button"
+                  onClick={handleContinue}
+                  disabled={!canContinue}
+                  className={`w-full font-medium py-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
+                    canContinue
+                      ? "bg-[#800000] text-white hover:bg-[#1a0000]"
+                      : "bg-[#F5F5F5] text-[#858990] cursor-not-allowed"
+                  }`}
+                >
+                  {isVerifying ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      Continue
+                      <span className="ml-2 text-lg">→</span>
+                    </>
+                  )}
+                </button>
+              </>
+            )}
           </div>
 
-          {/* Heading */}
-          <h1 className="text-2xl font-semibold mb-2 text-[#22242A]">
-            Verify your email
-          </h1>
-
-          {/* Description */}
-          <p className="text-sm text-[#333740] mb-2 leading-relaxed">
-            An OTP has been sent to{" "}
-            <span className="font-semibold">janedoe@gmail.com</span>, input the
-            code in the field provided below.
-          </p>
-
-          {/* OTP Input */}
-          <label className="block text-sm font-medium text-[#22242A] mb-2">
-            OTP
-          </label>
-          <input
-            type="text"
-            placeholder="Enter OTP"
-            value={otp}
-            onChange={handleOtpChange}
-            className="w-full border border-[#ABADB2] rounded-md px-3 py-3 mb-3 bg-white focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-[#800000]"
-          />
-
-          {/* Continue Button */}
-          <button
-            onClick={handleContinue}
-            disabled={!canContinue}
-            className={`w-full font-medium py-3 rounded-md flex items-center justify-center gap-2 transition-colors ${
-              canContinue
-                ? "bg-[#800000] text-white hover:bg-[#1a0000]"
-                : "bg-[#F5F5F5] text-[#858990] cursor-not-allowed"
-            }`}
-          >
-            Continue
-            <span className="ml-2 text-lg">→</span>
-          </button>
-
-          {/* Success message when 6 digits are entered */}
-          {otp.length === 6 && (
-            <div className="mx-auto mt-25 w-64 flex items-center justify-center border border-[#0DA500] rounded-md px-2 py-2 text-[#0DA500] text-sm font-medium gap-2">
-              <Image
-                src="/Check_ring.png"
-                alt="Success Icon"
-                width={16}
-                height={16}
-                className="object-contain"
-              />
-              Email successfully verified!
+          {(verificationState === "idle" || verificationState === "failed") && (
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="text-center">
+                <p className="text-sm text-[#333740] mb-3">
+                  Didn&apos;t receive the code?
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={isResending || resendCooldown > 0}
+                  className={`font-medium py-2 px-4 rounded-md transition-colors ${
+                    isResending || resendCooldown > 0
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-[#F5F5F5] text-[#800000] hover:bg-[#FFBFBF]"
+                  }`}
+                >
+                  {isResending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-[#800000] border-t-transparent rounded-full animate-spin inline-block mr-2"></div>
+                      Sending...
+                    </>
+                  ) : resendCooldown > 0 ? (
+                    `Resend in ${resendCooldown}s`
+                  ) : (
+                    "Resend Code"
+                  )}
+                </button>
+              </div>
             </div>
           )}
         </div>

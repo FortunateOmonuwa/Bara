@@ -1,9 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import DashboardNavbar from "@/components/DashboardNavbar";
+import CreateAccountDropdown from "@/components/CreateAccountDropdown";
 
 export default function LandingPage() {
+  const [showDropdown, setShowDropdown] = useState(false);
+
   return (
     <main className="min-h-screen bg-white">
       {/* Navbar */}
@@ -12,9 +16,30 @@ export default function LandingPage() {
       <div>
         <div className="max-w-7xl mx-auto px-4 py-4">
           {/* Hello Jane with wave */}
-          <div className="flex items-center gap-2 mt-4">
-            <h2 className="text-lg font-bold text-[#22242A]">Hello Jane!</h2>
-            <Image src="/wave.png" alt="Wave" width={20} height={20} />
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold text-[#22242A]">Hello Jane!</h2>
+              <Image src="/wave.png" alt="Wave" width={20} height={20} />
+            </div>
+
+            {/* Create Account Button */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowDropdown((prev) => !prev)}
+                className="bg-[#800000] text-white font-medium px-6 py-2 rounded-md hover:bg-[#1a0000] transition-colors"
+              >
+                Create account
+              </button>
+
+              {showDropdown && (
+                <div className="absolute top-full right-0 mt-2">
+                  <CreateAccountDropdown
+                    onClose={() => setShowDropdown(false)}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Paragraph and Categories */}
