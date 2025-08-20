@@ -82,6 +82,7 @@ export default function RegisterPage() {
         const resBody = await response.json();
         const userId = resBody.data.userId;
         localStorage.setItem("userId", userId);
+        localStorage.setItem("userType", userType);
         if (response.ok) {
           setShowSuccess(true);
           console.log("Navigating to verify-email with email:", email);

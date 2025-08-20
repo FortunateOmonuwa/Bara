@@ -44,21 +44,19 @@ export default function VerifyEmailPage() {
     setErrorMessage("");
 
     try {
-      const response = await fetch(
-        `${baseUrl}${verifyUrl}/${email}/${otp}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "ngrok-skip-browser-warning": "true",
-          },
-        }
-      );
-
+      const response = await fetch(`${baseUrl}${verifyUrl}/${email}/${otp}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+      });
+    
+      const userType = localStorage.getItem("userType");
       if (response.ok) {
         toast.success("Email verified successfully!");
         setVerificationState("success");
-        setTimeout(() => router.push("/profile"), 1000);
+        setTimeout(() => router.push(`/profile/${userType}`), 1000);
       } else {
         const res = await response.json();
         const errorMsg = res.message || "Verification failed";
@@ -191,8 +189,8 @@ export default function VerifyEmailPage() {
 
                 <p className="text-sm text-[#333740] mb-6 leading-relaxed">
                   An OTP has been sent to{" "}
-                  <span className="font-semibold">{email}</span>               
-                  . Enter the 6-digit code below.
+                  <span className="font-semibold">{email}</span>. Enter the
+                  6-digit code below.
                 </p>
 
                 {verificationState === "failed" && errorMessage && (
