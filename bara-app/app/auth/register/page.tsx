@@ -55,8 +55,7 @@ export default function RegisterPage() {
     }
   }, [searchParams]);
 
-  const doPasswordsMatch =
-    password === confirmPassword && confirmPassword !== "";
+  const doPasswordsMatch = password === confirmPassword && confirmPassword !== "";
 
   const canContinue =
     email.trim() !== "" && termsChecked && isValidPassword && doPasswordsMatch;
@@ -85,9 +84,18 @@ export default function RegisterPage() {
         localStorage.setItem("userId", userId);
         if (response.ok) {
           setShowSuccess(true);
+          console.log("Navigating to verify-email with email:", email);
           setTimeout(() => {
-            router.push(`/auth/verify-email?email=${email}`);
-          }, 2500);
+            if (email && email.trim()) {
+              router.push(
+                `/auth/verify-email?email=${encodeURIComponent(email)}`
+              );
+            } else {
+              console.error(
+                "Email is empty or undefined, cannot navigate to verify-email"
+              );
+            }
+          }, 1000);
         } else {
           const errorData = await response.json();
           console.error("Registration failed:", errorData);
@@ -228,20 +236,7 @@ export default function RegisterPage() {
                 </p>
               </div>
             )}
-            {/* <div className="flex items-center gap-2 mb-4 mt-1">
-              {isValidPassword && (
-                <Image src="/check.png" alt="valid" width={16} height={16} />
-              )}
-              <p
-                className={`text-sm ${
-                  isValidPassword ? "text-[#0DA500]" : "text-[#333740]"
-                }`}
-              >
-                Use 8 characters or more
-              </p>
-            </div> */}
 
-            {/* Confirm */}
             <label className="block text-sm font-medium text-[#22242A] mb-2">
               Confirm password
             </label>
