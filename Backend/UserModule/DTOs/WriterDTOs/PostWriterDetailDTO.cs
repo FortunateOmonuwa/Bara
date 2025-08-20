@@ -26,29 +26,18 @@ namespace UserModule.DTOs.WriterDTOs
         public string MiddleName { get; init; }
 
         /// <summary>
-        /// The writer's email address.
-        /// </summary>
-        public required string Email { get; init; }
-
-        /// <summary>
-        /// The writer's login password.
-        /// </summary>
-        public required string Password { get; init; }
-
-        /// <summary>
         /// The writer's phone number, including country code.
         /// </summary>
         public required string PhoneNumber { get; init; }
 
         /// <summary>
-        /// A brief biography or profile summary of the writer.
-        /// </summary>
-        public required string Bio { get; init; }
-
-        /// <summary>
         /// The gender of the writer.
         /// </summary>
         public required Gender Gender { get; init; }
+        /// <summary>
+        /// A brief biography or description provided by the user.
+        /// </summary>
+        public string Bio { get; set; } = string.Empty;
 
         /// <summary>
         /// The writer's date of birth.
@@ -66,6 +55,11 @@ namespace UserModule.DTOs.WriterDTOs
         public required AddressDetail AddressDetail { get; init; }
 
         /// <summary>
+        /// Represents the experiences of a writer including their bio description, projects, organization, etc.
+        /// </summary>
+        public required List<BioExperienceDTO> Experiences { get; init; }
+
+        /// <summary>
         /// The verification document submitted by the writer for identity confirmation.
         /// </summary>
         public required PostDocumentDetailDTO VerificationDocument { get; init; }
@@ -74,5 +68,6 @@ namespace UserModule.DTOs.WriterDTOs
         /// The list of services the writer wants to offer on registration (e.g., editing, proofreading).
         /// </summary>
         public List<PostServiceDetailDTO>? PostServiceDetail { get; init; }
+
     }
 }

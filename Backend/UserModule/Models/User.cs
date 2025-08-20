@@ -10,19 +10,19 @@ namespace UserModule.Models
     /// Represents the core user entity in the system, capturing identity, profile,
     /// verification, contact details, and related relationships like wallet and authentication.
     /// </summary>
-    public abstract class User : BaseEntity
+    public class User : BaseEntity
     {
         /// <summary>
         /// The user's first name.
         /// </summary>
         [DataType(DataType.Text), Column(TypeName = "Nvarchar(60)")]
-        public required string FirstName { get; set; }
+        public string FirstName { get; set; } = string.Empty;
 
         /// <summary>
         /// The user's last name.
         /// </summary>
         [DataType(DataType.Text), Column(TypeName = "Nvarchar(60)")]
-        public required string LastName { get; set; }
+        public string LastName { get; set; } = string.Empty;
 
         /// <summary>
         /// The user's optional middle name.
@@ -35,31 +35,28 @@ namespace UserModule.Models
         /// Must be in valid email format.
         /// </summary>
         [RegularExpression("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$\r\n", ErrorMessage = "Please enter a valid Email Address"), DataType(DataType.EmailAddress)]
-        public required string Email { get; set; }
+        public string Email { get; set; }
 
         /// <summary>
         /// The user's phone number.
         /// Must be a valid international or local number (10 to 15 digits)..With country code.
         /// </summary>
         [RegularExpression("^(?!0+$)(\\+\\d{1,3}[- ]?)?(?!0+$)\\d{10,15}$", ErrorMessage = "Please enter valid phone no."), DataType(DataType.PhoneNumber)]
-        public required string PhoneNumber { get; set; }
-
+        public string PhoneNumber { get; set; } = string.Empty;
         /// <summary>
         /// A brief biography or description provided by the user.
         /// </summary>
         [DataType(DataType.Text), Column(TypeName = "Nvarchar(200)")]
-        public virtual string Bio { get; set; } = string.Empty;
-
+        public string Bio { get; set; } = string.Empty;
         /// <summary>
         /// The user's gender.
         /// </summary>
-        public required Gender Gender { get; set; }
+        public Gender Gender { get; set; }
 
         /// <summary>
         /// The user's date of birth.
         /// </summary>
-        public required DateOnly DateOfBirth { get; set; }
-
+        public DateOnly DateOfBirth { get; set; }
 
         /// <summary>
         /// Indicates whether the user has been blacklisted due to policy violations or suspicious activity.
@@ -99,7 +96,9 @@ namespace UserModule.Models
         /// <summary>
         /// Defines the type of user... {Producer or Writer}
         /// </summary>
-        public required Role Type { get; set; }
+        public Role Type { get; set; }
+
+        public List<BankDetail> BankDetails { get; set; } = new List<BankDetail>();
 
         /// <summary>
         /// Timestamp indicating when the user was soft-deleted.

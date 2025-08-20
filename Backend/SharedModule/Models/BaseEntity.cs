@@ -5,7 +5,7 @@ namespace SharedModule.Models
     /// <summary>
     /// This class contains properties that might be needed for different models
     /// </summary>
-    public class BaseEntity
+    public abstract class BaseEntity
     {
         [Key]
         public virtual Guid Id { get; set; }

@@ -5,8 +5,8 @@
     /// </summary>
     public enum ScriptDeliveryStatus
     {
-        Pending,
+        Cancelled,
         InProgress,
-        Delivered
+        Completed
     }
 }

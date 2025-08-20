@@ -1,4 +1,6 @@
 ﻿using ScriptModule.Models;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 
 namespace UserModule.Models
@@ -8,7 +10,12 @@ namespace UserModule.Models
     /// </summary>
     public class Writer : User
     {
-
+        /// <summary>
+        /// A brief biography or description provided by the user.
+        /// </summary>
+        [DataType(DataType.Text), Column(TypeName = "Nvarchar(200)")]
+        public string Bio { get; set; } = string.Empty;
+        public List<BioExperience> Experiences { get; set; }
         public bool IsPremiumMember { get; set; }
         /// <summary>
         /// The list of services provided by the writer, such as script editing, proofreading, etc.

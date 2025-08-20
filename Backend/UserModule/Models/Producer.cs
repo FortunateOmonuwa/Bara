@@ -13,7 +13,6 @@ namespace UserModule.Models
         ///// </summary>
         //public List<ScriptWritingPostByProducer> ScriptWritingPosts { get; set; } = [];
 
-
         /// <summary>
         /// The list of scripts purchased by the producer.
         /// </summary>

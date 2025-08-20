@@ -6,12 +6,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Services.BackgroudServices;
 using Services.FileStorageServices.Interfaces;
-using Services.MailingService;
 using Services.YouVerifyIntegration;
 using SharedModule.Models;
 using SharedModule.Settings;
 using SharedModule.Utils;
-using System.Security.Cryptography;
 using TransactionModule.DTOs;
 using TransactionModule.Models;
 using UserModule.DTOs.AddressDTOs;
@@ -20,7 +18,6 @@ using UserModule.DTOs.WriterDTOs;
 using UserModule.Interfaces.UserInterfaces;
 using UserModule.Models;
 using UserModule.Utilities;
-using Role = UserModule.Enums.Role;
 
 namespace Infrastructure.Repositories.UserRepositories
 {
@@ -45,98 +42,79 @@ namespace Infrastructure.Repositories.UserRepositories
             youVerify = youVerifyService;
         }
 
-        public async Task<ResponseDetail<GetWriterDetailDTO>> AddWriter(PostWriterDetailDTO writerDetailDTO)
+        public async Task<ResponseDetail<GetWriterDetailDTO>> AddWriter(PostWriterDetailDTO writerDetailDTO, Guid userId)
         {
             await using var transaction = await dbContext.Database.BeginTransactionAsync();
             try
             {
-                // -------------------- INPUT VALIDATION --------------------
-                var email = writerDetailDTO.Email.Trim().ToLowerInvariant();
-                var emailValidation = RegexValidations.IsValidMail(email);
                 var phoneNumberValidation = RegexValidations.IsValidPhoneNumber(writerDetailDTO.PhoneNumber);
                 var nameValidation = RegexValidations.IsValidName(writerDetailDTO.FirstName, writerDetailDTO.LastName, writerDetailDTO.MiddleName ?? "");
-                var passwordValidation = RegexValidations.IsAcceptablePasswordFormat(writerDetailDTO.Password);
+
                 var validationErrors = new List<string>();
 
-                if (!emailValidation) validationErrors.Add("Invalid email");
                 if (!phoneNumberValidation) validationErrors.Add("Invalid phone number");
                 if (!nameValidation) validationErrors.Add("Names can only contain alphabets");
-                if (!passwordValidation) validationErrors.Add("Password must be strong");
 
                 if (validationErrors.Count > 0)
                 {
                     return ResponseDetail<GetWriterDetailDTO>.Failed(string.Join(" | ", validationErrors));
                 }
 
-                // -------------------- CHECK FOR EXISTING ACCOUNT --------------------
-                var writerAccount = await dbContext.AuthProfiles
-                    .Select(x => new { x.Email, x.IsDeleted })
-                    .FirstOrDefaultAsync(x => x.Email == email);
-
-                if (writerAccount?.IsDeleted == true)
+                // -------------------- UPDATE WRITER PROFILE --------------------
+                var writerProfile = await dbContext.Writers.FindAsync(userId);
+                if (writerProfile is null)
                 {
-                    return ResponseDetail<GetWriterDetailDTO>.Failed("A profile with this email already exists and just needs to be Reactivated", 409, "Account Needs Reactivation");
-                }
-                else if (writerAccount is not null)
-                {
-                    return ResponseDetail<GetWriterDetailDTO>.Failed("A profile with this email already exists...", 409, "Conflict");
+                    logger.LogError($"Writer profile with ID {userId} does not exist.");
+                    return ResponseDetail<GetWriterDetailDTO>.Failed($"Writer profile with ID {userId} does not exist.", 404, "Not Found");
                 }
 
-                // -------------------- CREATE WRITER PROFILE --------------------
-                var newWriterProfile = new Writer
-                {
-                    Email = email,
-                    FirstName = writerDetailDTO.FirstName.ToUpperInvariant(),
-                    LastName = writerDetailDTO.LastName.ToUpperInvariant(),
-                    MiddleName = writerDetailDTO.MiddleName?.ToUpperInvariant() ?? "",
-                    PhoneNumber = writerDetailDTO.PhoneNumber,
-                    Bio = writerDetailDTO.Bio,
-                    Gender = writerDetailDTO.Gender,
-                    DateOfBirth = writerDetailDTO.DateOfBirth,
-                    IsPremiumMember = writerDetailDTO.IsPremiumMember,
-                    Type = Role.Writer,
-                };
 
-                // -------------------- CREATE AUTH PROFILE --------------------
-                AuthProfile authProfile = new()
+                writerProfile.FirstName = writerDetailDTO.FirstName.ToUpperInvariant();
+                writerProfile.LastName = writerDetailDTO.LastName.ToUpperInvariant();
+                writerProfile.MiddleName = writerDetailDTO.MiddleName?.ToUpperInvariant() ?? "";
+                writerProfile.PhoneNumber = writerDetailDTO.PhoneNumber;
+                writerProfile.Bio = writerDetailDTO.Bio ?? "";
+                writerProfile.Experiences = writerDetailDTO.Experiences.Select(x => new BioExperience
                 {
-                    Email = email,
-                    Password = BCrypt.Net.BCrypt.HashPassword(writerDetailDTO.Password),
-                    Role = "Writer",
+                    WriterId = userId,
+                    IsCurrent = x.IsCurrent,
+                    Organization = x.Organization?.ToUpperInvariant() ?? "",
+                    Project = x.Project?.ToUpperInvariant() ?? "",
+                    StartDate = x.StartDate,
+                    EndDate = x.EndDate,
+                    Description = x.Description?.ToUpperInvariant() ?? ""
+                }).ToList();
+                writerProfile.Gender = writerDetailDTO.Gender;
+                writerProfile.DateOfBirth = writerDetailDTO.DateOfBirth;
+                writerProfile.IsPremiumMember = writerDetailDTO.IsPremiumMember;
+                writerProfile.AuthProfile = new()
+                {
                     FullName = $"{writerDetailDTO.FirstName} {writerDetailDTO.LastName}".ToUpperInvariant(),
-                    UserId = newWriterProfile.Id
                 };
-
-
-                // -------------------- CREATE SERVICES --------------------
-                var services = writerDetailDTO.PostServiceDetail?
-                    .Select(dto => new Service
-                    {
-                        Name = dto.Name,
-                        Description = dto.Description,
-                        MinPrice = dto.MinPrice,
-                        MaxPrice = dto.MaxPrice,
-                        Currency = dto.Currency,
-                        IPDealType = dto.IPDealType,
-                        SharePercentage = dto.SharePercentage,
-                        PaymentType = dto.PaymentType,
-                        Genre = dto.Genre ?? [],
-                        WriterId = newWriterProfile.Id
-                    })
-                    .ToList() ?? [];
-
-                // -------------------- CREATE WALLET --------------------
-                Wallet wallet = new Wallet
+                writerProfile.Services = writerDetailDTO.PostServiceDetail?
+                .Select(dto => new Service
+                {
+                    Name = dto.Name,
+                    Description = dto.Description,
+                    MinPrice = dto.MinPrice,
+                    MaxPrice = dto.MaxPrice,
+                    Currency = dto.Currency,
+                    IPDealType = dto.IPDealType,
+                    SharePercentage = dto.SharePercentage,
+                    PaymentType = dto.PaymentType,
+                    Genre = dto.Genre ?? [],
+                    WriterId = userId
+                })
+                .ToList() ?? [];
+                writerProfile.Wallet = new Wallet
                 {
                     TotalBalance = 0,
                     AvailableBalance = 0,
                     LockedBalance = 0,
                     Currency = Currency.NAIRA,
-                    UserId = newWriterProfile.Id
+                    UserId = userId
                 };
-
-                // --------------- Create Address ----------------------
-                Address address = new Address
+                writerProfile.Address = new Address
                 {
                     City = writerDetailDTO.AddressDetail.City.ToUpperInvariant(),
                     Country = writerDetailDTO.AddressDetail.Country.ToUpperInvariant(),
@@ -144,25 +122,12 @@ namespace Infrastructure.Repositories.UserRepositories
                     Street = writerDetailDTO.AddressDetail.Street.ToUpperInvariant(),
                     PostalCode = writerDetailDTO.AddressDetail.PostalCode,
                     AdditionalDetails = writerDetailDTO.AddressDetail.AdditionalDetails.ToUpperInvariant(),
-                    UserId = newWriterProfile.Id,
+                    UserId = userId
                 };
-                newWriterProfile.AuthProfile = authProfile;
-                newWriterProfile.Services = services;
-                newWriterProfile.Wallet = wallet;
-                newWriterProfile.Address = address;
-
-                // -------------------- SAVE PROFILE TO DATABASE --------------------
-                await dbContext.Writers.AddAsync(newWriterProfile);
-                var writerRes = await dbContext.SaveChangesAsync();
-                if (writerRes < 1)
-                {
-                    logger.LogError($"An error occurred while creating a writer profile for {writerDetailDTO.FirstName} {writerDetailDTO.LastName}");
-                    return ResponseDetail<GetWriterDetailDTO>.Failed($"An error occurred while creating a writer profile for {writerDetailDTO.FirstName} {writerDetailDTO.LastName}", 500, "Unexpected Error");
-                }
 
                 // --------------------  UPLOAD & ASSIGN DOCUMENT ID --------------------
-                var userDirectoryName = $"Writer_{newWriterProfile.FirstName}_{newWriterProfile.LastName}-{newWriterProfile.Id}";
-                var document = await fileService.ProcessDocumentForUpload(newWriterProfile.Id, userDirectoryName, writerDetailDTO.VerificationDocument);
+                var userDirectoryName = $"Writer_{writerDetailDTO.FirstName.ToUpperInvariant()}_{writerDetailDTO.LastName.ToUpperInvariant()}-{userId}";
+                var document = await fileService.ProcessDocumentForUpload(userId, userDirectoryName, writerDetailDTO.VerificationDocument);
                 if (!document.IsSuccess || document.Data == null)
                 {
                     await transaction.RollbackAsync();
@@ -171,7 +136,7 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
 
                 // --------------------  ASSIGN DOCUMENT TO WRITER PROFILE --------------------
-                newWriterProfile.Document = new Document
+                writerProfile.Document = new Document
                 {
                     Id = document.Data.Id,
                     Name = document.Data.Name,
@@ -180,56 +145,65 @@ namespace Infrastructure.Repositories.UserRepositories
                     IdentificationNumber = writerDetailDTO.VerificationDocument.VerificationNumber,
                     Path = document.Data.Path,
                     DocumentUrl = document.Data.DocumentUrl,
-                    UserId = newWriterProfile.Id
+                    UserId = userId
                 };
-                dbContext.Users.Update(newWriterProfile);
-                await dbContext.SaveChangesAsync();
-                // --------------------  GENERATE EMAIL VERIFICATION TOKEN --------------------
-                var token = RandomNumberGenerator.GetInt32(100000, 999999);
-                cache.Set($"User_Verification_Token_{newWriterProfile.Id}", token.ToString(), absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
-                Console.WriteLine($"Writer_Verification_Token_{writerDetailDTO.FirstName} {writerDetailDTO.LastName}: {token}");
-                logger.LogInformation($"Writer_Verification_Token_{writerDetailDTO.FirstName} {writerDetailDTO.LastName}: {token}");
-
-                var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(newWriterProfile.Email, newWriterProfile.FirstName, token.ToString());
-                BackgroundJob.Enqueue(() => hangfire.SendMailAsync(verificationMail));
+                // --------------------  UPDATE WRITER PROFILE --------------------
+                dbContext.Writers.Update(writerProfile);
+                var writerRes = await dbContext.SaveChangesAsync();
+                if (writerRes < 1)
+                {
+                    await transaction.RollbackAsync();
+                    logger.LogError($"An error occurred while creating a writer profile for {writerDetailDTO.FirstName} {writerDetailDTO.LastName}");
+                    return ResponseDetail<GetWriterDetailDTO>.Failed($"An error occurred while creating a writer profile for {writerDetailDTO.FirstName} {writerDetailDTO.LastName}", 500, "Unexpected Error");
+                }
 
                 // --------------------  PREPARE KYC REQUEST --------------------
                 var kycDetail = new YouVerifyKycDto
                 {
                     Id = writerDetailDTO.VerificationDocument.VerificationNumber,
                     Type = writerDetailDTO.VerificationDocument.Type.ToString(),
-                    UserId = newWriterProfile.Id,
-                    LastName = newWriterProfile.LastName,
+                    UserId = writerProfile.Id,
+                    LastName = writerProfile.LastName,
                 };
 
                 BackgroundJob.Enqueue(() => hangfire.StartKycProcess(kycDetail));
                 // --------------------  BUILD RESPONSE DTO --------------------
-                var writerProfile = new GetWriterDetailDTO
+                var writer = new GetWriterDetailDTO
                 {
-                    Id = newWriterProfile.Id,
-                    Email = newWriterProfile.Email,
-                    FirstName = newWriterProfile.FirstName,
-                    LastName = newWriterProfile.LastName,
-                    MiddleName = newWriterProfile.MiddleName,
-                    Name = $"{newWriterProfile.FirstName} {newWriterProfile.LastName}",
-                    Bio = newWriterProfile.Bio,
-                    IsBlacklisted = newWriterProfile.AuthProfile.IsDeleted,
+                    Id = writerProfile.Id,
+                    Email = writerProfile.Email,
+                    FirstName = writerProfile.FirstName,
+                    LastName = writerProfile.LastName,
+                    MiddleName = writerProfile.MiddleName,
+                    Name = $"{writerProfile.FirstName} {writerProfile.LastName}",
+                    Bio = writerProfile.Bio,
+                    Experiences = writerProfile.Experiences.Select(x => new BioExperience
+                    {
+                        Description = x.Description,
+                        Organization = x.Organization,
+                        Project = x.Project,
+                        StartDate = x.StartDate,
+                        EndDate = x.EndDate,
+                        IsCurrent = x.IsCurrent,
+                        Id = x.Id
+                    }).ToList(),
+                    IsBlacklisted = writerProfile.IsBlacklisted,
                     Address = new AddressDetail
                     {
-                        City = newWriterProfile.Address.City,
-                        Country = newWriterProfile.Address.Country,
-                        State = newWriterProfile.Address.State,
-                        Street = newWriterProfile.Address.Street,
-                        PostalCode = newWriterProfile.Address.PostalCode,
-                        AdditionalDetails = newWriterProfile.Address.AdditionalDetails,
+                        City = writerProfile.Address.City,
+                        Country = writerProfile.Address.Country,
+                        State = writerProfile.Address.State,
+                        Street = writerProfile.Address.Street,
+                        PostalCode = writerProfile.Address.PostalCode,
+                        AdditionalDetails = writerProfile.Address.AdditionalDetails,
                     },
-                    IsEmailVerified = newWriterProfile.AuthProfile.IsEmailVerified,
-                    IsVerified = newWriterProfile.AuthProfile.IsVerified,
-                    PhoneNumber = newWriterProfile.PhoneNumber,
-                    VerificationStatus = newWriterProfile.VerificationStatus.ToString(),
-                    Role = newWriterProfile.AuthProfile.Role,
-                    IsPremium = newWriterProfile.IsPremiumMember,
-                    Services = newWriterProfile.Services.Select(s => new GetServiceDetailDTO
+                    IsEmailVerified = writerProfile.AuthProfile.IsEmailVerified,
+                    IsVerified = writerProfile.AuthProfile.IsVerified,
+                    PhoneNumber = writerProfile.PhoneNumber,
+                    VerificationStatus = writerProfile.VerificationStatus.ToString(),
+                    Role = writerProfile.AuthProfile.Role,
+                    IsPremium = writerProfile.IsPremiumMember,
+                    Services = writerProfile.Services.Select(s => new GetServiceDetailDTO
                     {
                         Id = s.Id,
                         Name = s.Name,
@@ -244,19 +218,19 @@ namespace Infrastructure.Repositories.UserRepositories
                     }).ToList(),
                     Wallet = new GetWalletDetailDTO
                     {
-                        Id = newWriterProfile.Wallet.Id,
-                        Balance = newWriterProfile.Wallet.TotalBalance,
-                        LockedBalance = newWriterProfile.Wallet.LockedBalance,
-                        Currency = newWriterProfile.Wallet.Currency,
-                        CurrencySymbol = newWriterProfile.Wallet.CurrencySymbol,
-                        UserId = newWriterProfile.Id
+                        Id = writerProfile.Wallet.Id,
+                        Balance = writerProfile.Wallet.TotalBalance,
+                        LockedBalance = writerProfile.Wallet.LockedBalance,
+                        Currency = writerProfile.Wallet.Currency,
+                        CurrencySymbol = writerProfile.Wallet.CurrencySymbol,
+                        UserId = writerProfile.Id
                     },
-                    CreatedAt = newWriterProfile.CreatedAt,
-                    DateCreated = newWriterProfile.DateCreated,
-                    TimeCreated = newWriterProfile.TimeCreated,
-                    DateModified = newWriterProfile.DateModified,
-                    ModifiedAt = newWriterProfile.ModifiedAt,
-                    TimeModified = newWriterProfile.TimeModified
+                    CreatedAt = writerProfile.CreatedAt,
+                    DateCreated = writerProfile.DateCreated,
+                    TimeCreated = writerProfile.TimeCreated,
+                    DateModified = writerProfile.DateModified,
+                    ModifiedAt = writerProfile.ModifiedAt,
+                    TimeModified = writerProfile.TimeModified
                 };
 
 
@@ -270,10 +244,10 @@ namespace Infrastructure.Repositories.UserRepositories
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
                     SlidingExpiration = TimeSpan.FromMinutes(5)
                 };
-                cache.Set($"Writer_Profile{newWriterProfile.Id}", writerProfile, cacheOptions);
+                cache.Set($"Writer_Profile{writerProfile.Id}", writerProfile, cacheOptions);
 
                 // -------------------- RETURN SUCCESS --------------------
-                return ResponseDetail<GetWriterDetailDTO>.Successful(writerProfile, $"Writer profile created successfully", 201);
+                return ResponseDetail<GetWriterDetailDTO>.Successful(writer, $"Writer profile created successfully", 201);
             }
             catch (DbUpdateException dbEx)
             {
@@ -288,6 +262,7 @@ namespace Infrastructure.Repositories.UserRepositories
                 return ResponseDetail<GetWriterDetailDTO>.Failed("Your request cannot be completed at this time... Please try again later", 500, "Unexpected error");
             }
         }
+
         public Task<ResponseDetail<bool>> DeleteWriter(Guid writerId)
         {
             //Set as deleted and delete login profile
@@ -298,7 +273,7 @@ namespace Infrastructure.Repositories.UserRepositories
         {
             try
             {
-                var writerProfile = await dbContext.Writers.Where(x => x.AuthProfile.IsDeleted == false).
+                var writerProfile = await dbContext.Writers.Where(x => x.IsDeleted == false).
                                     Select(x => new GetWriterDetailDTO
                                     {
                                         Id = x.Id,
@@ -307,6 +282,16 @@ namespace Infrastructure.Repositories.UserRepositories
                                         LastName = x.LastName,
                                         Name = $"{x.FirstName} {x.LastName}",
                                         Bio = x.Bio,
+                                        Experiences = x.Experiences.Select(x => new BioExperience
+                                        {
+                                            Description = x.Description,
+                                            Organization = x.Organization,
+                                            Project = x.Project,
+                                            StartDate = x.StartDate,
+                                            EndDate = x.EndDate,
+                                            IsCurrent = x.IsCurrent,
+                                            Id = x.Id
+                                        }).ToList(),
                                         IsPremium = x.IsPremiumMember,
                                         MiddleName = x.MiddleName ?? "-",
                                         Services = x.Services.Select(x => new GetServiceDetailDTO
@@ -342,7 +327,7 @@ namespace Infrastructure.Repositories.UserRepositories
                                             Id = x.Wallet.Id,
                                             UserId = x.Id
                                         },
-                                        IsBlacklisted = x.AuthProfile.IsDeleted,
+                                        IsBlacklisted = x.IsBlacklisted,
                                         CreatedAt = x.CreatedAt,
                                         DateCreated = x.DateCreated,
                                         TimeCreated = x.TimeCreated,

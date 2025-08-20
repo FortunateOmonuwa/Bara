@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ScriptModule.Models;
+using ScriptModule.Models.ScriptRelatedChats;
 using TransactionModule.Models;
 using UserModule.Models;
 using Document = UserModule.Models.Document;
@@ -21,8 +22,10 @@ namespace Infrastructure.DataContext
             Addresses = Set<Address>();
             Users = Set<User>();
             BlackListedUsers = Set<BlackListedUser>();
-            //ScriptWritingPosts = Set<ScriptWritingPostByProducer>();
             EscrowOperations = Set<Escrow>();
+            BankDetails = Set<BankDetail>();
+            ScriptTransactions = Set<ScriptTransaction>();
+            //ScriptWritingPosts = Set<ScriptWritingPostByProducer>();
             //Applicants = Set<ScriptWritingPostApplicant>();
         }
 
@@ -40,6 +43,10 @@ namespace Infrastructure.DataContext
         public DbSet<Escrow> EscrowOperations { get; set; }
         public DbSet<BlackListedUser> BlackListedUsers { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<BankDetail> BankDetails { get; set; }
+        public DbSet<ScriptTransaction> ScriptTransactions { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<Chat> Chats { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

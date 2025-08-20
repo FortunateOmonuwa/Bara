@@ -15,10 +15,11 @@ namespace UserModule.Interfaces.UserInterfaces
         /// A <see cref="PostWriterDetailDTO"/> containing the writer’s full name, email, password, bio, gender, date of birth, 
         /// premium membership flag, address details, verification document, and optionally, offered services.
         /// </param>
+        /// <param name="userId">The user profile id </param>
         /// <returns>
         /// A <see cref="ResponseDetail{T}"/> containing the full created profile in <see cref="GetWriterDetailDTO"/> format.
         /// </returns>
-        Task<ResponseDetail<GetWriterDetailDTO>> AddWriter(PostWriterDetailDTO writerDetail);
+        Task<ResponseDetail<GetWriterDetailDTO>> AddWriter(PostWriterDetailDTO writerDetail, Guid userId);
 
         /// <summary>
         /// Retrieves a specific writer's profile by their unique identifier.

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class New : Migration
+    public partial class InitMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -73,7 +73,6 @@ namespace Infrastructure.Migrations
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsLocked = table.Column<bool>(type: "bit", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     IsVerified = table.Column<bool>(type: "bit", nullable: false),
                     IsEmailVerified = table.Column<bool>(type: "bit", nullable: false),
                     LastLoginDevice = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -235,6 +234,32 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "BioExperience",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    WriterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Organization = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Project = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    IsCurrent = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    ModifiedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BioExperience", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BioExperience_Writers_WriterId",
+                        column: x => x.WriterId,
+                        principalTable: "Writers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Scripts",
                 columns: table => new
                 {
@@ -346,6 +371,11 @@ namespace Infrastructure.Migrations
                 table: "AuthProfiles",
                 column: "UserId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BioExperience_WriterId",
+                table: "BioExperience",
+                column: "WriterId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BlackListedUsers_UserId",
@@ -462,6 +492,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "AuthProfiles");
+
+            migrationBuilder.DropTable(
+                name: "BioExperience");
 
             migrationBuilder.DropTable(
                 name: "BlackListedUsers");

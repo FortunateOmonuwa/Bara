@@ -1,4 +1,5 @@
 ﻿using SharedModule.Utils;
+using UserModule.DTOs.UserDTO;
 using UserModule.Models;
 
 namespace UserModule.Interfaces.UserInterfaces
@@ -8,6 +9,13 @@ namespace UserModule.Interfaces.UserInterfaces
     /// </summary>
     public interface IUserService
     {
+        /// <summary>
+        /// Begins the registration process for a new user by validating their details and generating an email verification token.
+        /// </summary>
+        /// <param name="detail"> Contains the Email, password and Type of User registering</param>
+        /// <returns></returns>
+        Task<ResponseDetail<RegisterResponseDTO>> BeginRegistration(RegisterDTO detail);
+
         /// <summary>
         /// Updates a users kyc verification status using the verification id number
         /// </summary>

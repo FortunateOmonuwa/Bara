@@ -212,38 +212,34 @@ var app = builder.Build();
 //        s.ConfigObject.AdditionalItems["persistAuthorization"] = true;
 //    });
 //}
-app.UseWhen(context => context.Request.Path.StartsWithSegments("/docs"), appBuilder =>
-{
-    appBuilder.UseAuthentication();
-    appBuilder.UseAuthorization();
-});
+
+app.UseSerilogRequestLogging();
+app.UseHttpsRedirection();
 app.UseSwagger();
 app.UseSwaggerUI(s =>
 {
     s.SwaggerEndpoint("/swagger/bara/swagger.json", "Bara-API");
-    s.RoutePrefix = "docs";
+    //s.RoutePrefix = "docs";
     s.ConfigObject.AdditionalItems["persistAuthorization"] = true;
 });
-app.Use(async (context, next) =>
-{
-    if (context.Request.Path.StartsWithSegments("/docs") &&
-        !context.User.IsInRole("Admin"))
-    {
-        context.Response.StatusCode = 403;
-        await context.Response.WriteAsync("Forbidden");
-        return;
-    }
-    await next();
-});
+//app.Use(async (context, next) =>
+//{
+//    if (context.Request.Path.StartsWithSegments("/swagger") &&
+//        !context.User.IsInRole("Admin"))
+
+//    {
+//        context.Response.StatusCode = 403;
+//        await context.Response.WriteAsync("Forbidden");
+//        return;
+//    }
+//    await next();
+//});
 
 
 app.UseCors("AllowRegisterdOrigins");
-app.MapHub<NotificationHub>("/notification");
-app.UseSerilogRequestLogging();
-app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
+app.MapHub<NotificationHub>("/notification");
 
 app.Run();

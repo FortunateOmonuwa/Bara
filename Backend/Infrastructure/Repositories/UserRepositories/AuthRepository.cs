@@ -1,4 +1,5 @@
-﻿using Hangfire;
+﻿using CloudinaryDotNet.Actions;
+using Hangfire;
 using Infrastructure.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -80,9 +81,8 @@ namespace Infrastructure.Repositories.UserRepositories
                     return ResponseDetail<LoginResponseDTO>.Failed(response, "Login unsuccessful...account has been blocked due to too many wrong email or password attempts... Try again in 1hr");
                 }
 
-                else if (user.IsDeleted == true) validationErrors.Add("Login unsuccessful... user account has been deactivated and needs to be reactivated");
                 else if (!user.IsEmailVerified) validationErrors.Add("Login unsuccessful...Email address is unverified... Please verify yout email and try again");
-                else if (!user.IsVerified) validationErrors.Add("Login unsuccessful... Account verification failed or is still in progress");
+                else if (!user.IsVerified && user.Role != Role.Admin.ToString()) validationErrors.Add("Login unsuccessful... Account verification failed or is still in progress");
 
                 if (validationErrors.Count > 0)
                 {
@@ -194,9 +194,10 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
                 else
                 {
-                    cache.Set($"User_Verification_Token_{user.UserId}", token.ToString(), absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
+                    cache.Set($"User_Verification_Token_{email}", token.ToString(), absoluteExpiration: DateTimeOffset.UtcNow.AddMinutes(10));
                     logger.LogInformation($"User_Verification_Token_{user.Email}: {token}");
                     Console.WriteLine($"User_Verification_Token_{user.Email}: {token}");
+
                     var verificationMail = MailNotifications.RegistrationConfirmationMailNotification(user.Email, "", token.ToString());
                     var mailRes = await mailer.SendMail(verificationMail);
                     if (mailRes.IsSuccess == false)
@@ -224,15 +225,15 @@ namespace Infrastructure.Repositories.UserRepositories
                 }
                 else if (user.IsEmailVerified)
                 {
-                    return ResponseDetail<bool>.Failed("User email is already verified.", 409);
+                    return ResponseDetail<bool>.Failed("User email is already verified.", 409, "Conflict");
                 }
                 else
                 {
-                    var cacheKey = $"User_Verification_Token_{user.UserId}";
+                    var cacheKey = $"User_Verification_Token_{email}";
                     cache.TryGetValue(cacheKey, out string verificationToken);
                     if (verificationToken == null || token != verificationToken)
                     {
-                        return ResponseDetail<bool>.Failed("Operation failed because of invalid or expired token... Please try again");
+                        return ResponseDetail<bool>.Failed("Operation failed... Please try again", 400, "Invalid or Expired Token");
                     }
                     user.IsEmailVerified = true;
                     user.ModifiedAt = DateTimeOffset.UtcNow;
