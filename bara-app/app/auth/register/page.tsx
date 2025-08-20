@@ -17,8 +17,10 @@ export default function RegisterPage() {
   const handleGoogleClick = () => {
     setGoogleClicked(true);
   };
+ 
 
   const handleContinue = () => {
+
     if (canContinue) {
       router.push("/auth/verify-email"); 
     }
