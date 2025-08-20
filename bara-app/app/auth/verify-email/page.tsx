@@ -27,7 +27,7 @@ export default function VerifyEmailPage() {
     const value = e.target.value.replace(/\D/g, "");
     if (value.length <= 6) {
       setOtp(value);
-      // Reset error state when user starts typing
+
       if (verificationState === "failed") {
         setVerificationState("idle");
         setErrorMessage("");
@@ -36,7 +36,6 @@ export default function VerifyEmailPage() {
   };
 
   const canContinue = otp.length === 6 && !isVerifying;
-  const testEmail = "tegaadoro@gmail.com";
 
   const handleContinue = async () => {
     if (!canContinue) return;
@@ -46,7 +45,7 @@ export default function VerifyEmailPage() {
 
     try {
       const response = await fetch(
-        `${baseUrl}${verifyUrl}/${testEmail}/${otp}`,
+        `${baseUrl}${verifyUrl}/${email}/${otp}`,
         {
           method: "PUT",
           headers: {
@@ -64,7 +63,7 @@ export default function VerifyEmailPage() {
         const res = await response.json();
         const errorMsg = res.message || "Verification failed";
 
-        if (response.status === 409) {
+        if (res.statusCode === 409) {
           toast.success(res.message || "Email already verified!");
           setVerificationState("alreadyVerified");
           setTimeout(() => router.push("/profile"), 1000);
@@ -92,7 +91,7 @@ export default function VerifyEmailPage() {
 
     try {
       const response = await fetch(
-        `${baseUrl}${resendVerificationTokenUrl}/${testEmail}`,
+        `${baseUrl}${resendVerificationTokenUrl}/${email}`,
         {
           method: "POST",
           headers: {
@@ -192,7 +191,7 @@ export default function VerifyEmailPage() {
 
                 <p className="text-sm text-[#333740] mb-6 leading-relaxed">
                   An OTP has been sent to{" "}
-                  <span className="font-semibold">{email ?? "your email"}</span>
+                  <span className="font-semibold">{email}</span>               
                   . Enter the 6-digit code below.
                 </p>
 

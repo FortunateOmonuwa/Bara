@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import { Toaster } from "react-hot-toast";
-import ApiDiagnostic from "@/components/ApiDiagnostic";
 import "./globals.css";
 
 const lato = Lato({
@@ -52,7 +51,6 @@ export default function RootLayout({
             },
           }}
         />
-        <ApiDiagnostic />
       </body>
     </html>
   );
