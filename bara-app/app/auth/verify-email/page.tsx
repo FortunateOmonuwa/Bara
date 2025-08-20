@@ -51,6 +51,7 @@ export default function VerifyEmailPage() {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
           },
         }
       );
@@ -94,6 +95,9 @@ export default function VerifyEmailPage() {
         `${baseUrl}${resendVerificationTokenUrl}/${testEmail}`,
         {
           method: "POST",
+          headers: {
+            "ngrok-skip-browser-warning": "true",
+          },
         }
       );
 
@@ -154,7 +158,7 @@ export default function VerifyEmailPage() {
                   Email Verified!
                 </h1>
                 <p className="text-sm text-[#333740] mb-4">
-                  Your email has been successfully verified. 
+                  Your email has been successfully verified.
                 </p>
               </div>
             )}
