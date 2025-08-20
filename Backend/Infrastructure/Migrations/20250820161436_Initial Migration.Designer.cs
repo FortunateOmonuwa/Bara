@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(BaraContext))]
-    [Migration("20250818234646_Init Migration")]
-    partial class InitMigration
+    [Migration("20250820161436_Initial Migration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -122,6 +122,148 @@ namespace Infrastructure.Migrations
                     b.ToTable("Scripts");
                 });
 
+            modelBuilder.Entity("ScriptModule.Models.ScriptRelatedChats.Chat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("ModifiedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("ProducerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ProducerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ScriptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ScriptTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WriterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WriterName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Chats");
+                });
+
+            modelBuilder.Entity("ScriptModule.Models.ScriptRelatedChats.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AttachmentUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("ModifiedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("SenderName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("SentAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId");
+
+                    b.ToTable("ChatMessages");
+                });
+
+            modelBuilder.Entity("ScriptModule.Models.ScriptTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("ModifiedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("PaymentTransactionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("PlatformFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("ProducerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ProducerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ScriptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ScriptTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("WriterAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("WriterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WriterName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("WriterPaidAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ScriptTransactions");
+                });
+
             modelBuilder.Entity("TransactionModule.Models.Escrow", b =>
                 {
                     b.Property<Guid>("Id")
@@ -196,6 +338,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("int");
 
                     b.Property<string>("ReferenceId")
                         .HasColumnType("nvarchar(max)");
@@ -374,6 +519,47 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("AuthProfiles");
+                });
+
+            modelBuilder.Entity("UserModule.Models.BankDetail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasColumnType("Nvarchar(100)");
+
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasColumnType("Nvarchar(50)");
+
+                    b.Property<string>("BankCode")
+                        .IsRequired()
+                        .HasColumnType("Nvarchar(10)");
+
+                    b.Property<string>("BankName")
+                        .IsRequired()
+                        .HasColumnType("Nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("ModifiedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("BankDetails");
                 });
 
             modelBuilder.Entity("UserModule.Models.BioExperience", b =>
@@ -662,6 +848,15 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("WriterId");
                 });
 
+            modelBuilder.Entity("ScriptModule.Models.ScriptRelatedChats.ChatMessage", b =>
+                {
+                    b.HasOne("ScriptModule.Models.ScriptRelatedChats.Chat", null)
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("TransactionModule.Models.Escrow", b =>
                 {
                     b.HasOne("TransactionModule.Models.PaymentTransaction", "Transaction")
@@ -711,6 +906,17 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("UserModule.Models.AuthProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("UserModule.Models.BankDetail", b =>
+                {
+                    b.HasOne("UserModule.Models.User", "User")
+                        .WithMany("BankDetails")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("UserModule.Models.BioExperience", b =>
@@ -773,6 +979,11 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ScriptModule.Models.ScriptRelatedChats.Chat", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
             modelBuilder.Entity("TransactionModule.Models.Wallet", b =>
                 {
                     b.Navigation("Transactions");
@@ -785,6 +996,8 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("AuthProfile")
                         .IsRequired();
+
+                    b.Navigation("BankDetails");
 
                     b.Navigation("Document")
                         .IsRequired();
