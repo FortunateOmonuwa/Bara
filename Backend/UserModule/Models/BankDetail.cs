@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SharedModule.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UserModule.Models
 {
-    public class BankDetail
+    public class BankDetail : BaseEntity
     {
         // <summary>
         /// The unique identifier of the user who owns this bank account.
