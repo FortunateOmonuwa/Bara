@@ -10,12 +10,6 @@ namespace TransactionModule.Models
         [ForeignKey("User")]
         public Guid UserId { get; set; } = Guid.Empty;
 
-        //[ForeignKey("Producer")]
-        //public Guid ProducerId { get; set; }
-        //[ForeignKey("Writer")]
-        //public Guid WriterId { get; set; }
-        //[ForeignKey("Script")]
-        //public Guid ScriptId { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
         [Column(TypeName = "decimal(18,2)")]
@@ -34,6 +28,7 @@ namespace TransactionModule.Models
         public DateTimeOffset? CompletedAt { get; set; }
         public DateOnly? DateCompleted => CompletedAt.HasValue ? DateOnly.FromDateTime(CompletedAt.Value.UtcDateTime) : null;
         public TimeOnly? TimeCompleted => CompletedAt.HasValue ? TimeOnly.FromDateTime(CompletedAt.Value.UtcDateTime) : null;
+
         /// <summary>
         /// Reference ID for the transaction, such as a payment gateway transaction ID or internal reference number.
         /// </summary>
@@ -53,5 +48,10 @@ namespace TransactionModule.Models
         [ForeignKey("Wallet")]
         public Guid? WalletID { get; set; }
         public Wallet? Wallet { get; set; }
+
+        /// <summary>
+        /// Payment method used
+        /// </summary>
+        public PaymentMethod PaymentMethod { get; set; }
     }
 }

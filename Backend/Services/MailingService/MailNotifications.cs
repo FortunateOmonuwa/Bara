@@ -163,7 +163,7 @@
         /// <param name="name">The recipient's name.</param>
         /// <param name="token">The account verification token.</param>
         /// <returns>A populated <see cref="MailRequestDTO"/> ready to be sent.</returns>
-        public static MailRequestDTO RegistrationConfirmationMailNotification(string receiver, string name, string token)
+        public static MailRequestDTO RegistrationConfirmationMailNotification(string receiver, string token, string name = "friend")
         {
             var subject = "WELCOME TO BARA!";
             var body = $@"

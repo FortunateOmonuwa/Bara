@@ -15,10 +15,11 @@ namespace UserModule.Interfaces.UserInterfaces
         /// A <see cref="PostProducerDetailDTO"/> containing the producer’s first and last names, 
         /// contact information (email, phone number), date of birth, gender, address, a verification document, and optional bio.
         /// </param>
+        /// <param name="userId">The unique identifier for the user profile</param>
         /// <returns>
         /// A <see cref="ResponseDetail{T}"/> containing the full details of the created producer as a <see cref="GetProducerDetailDTO"/>.
         /// </returns>
-        Task<ResponseDetail<GetProducerDetailDTO>> AddProducer(PostProducerDetailDTO producerDetailDTO);
+        Task<ResponseDetail<GetProducerDetailDTO>> AddProducer(PostProducerDetailDTO producerDetailDTO, Guid userId);
 
         /// <summary>
         /// Updates an existing producer's profile with the specified ID using the provided information.

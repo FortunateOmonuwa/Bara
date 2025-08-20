@@ -325,9 +325,6 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsEmailVerified")
                         .HasColumnType("bit");
 
@@ -374,6 +371,49 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("AuthProfiles");
+                });
+
+            modelBuilder.Entity("UserModule.Models.BioExperience", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("ModifiedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Organization")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Project")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("WriterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WriterId");
+
+                    b.ToTable("BioExperience");
                 });
 
             modelBuilder.Entity("UserModule.Models.BlackListedUser", b =>
@@ -670,6 +710,17 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("UserModule.Models.BioExperience", b =>
+                {
+                    b.HasOne("UserModule.Models.Writer", "Writer")
+                        .WithMany("Experiences")
+                        .HasForeignKey("WriterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Writer");
+                });
+
             modelBuilder.Entity("UserModule.Models.BlackListedUser", b =>
                 {
                     b.HasOne("UserModule.Models.User", "User")
@@ -746,6 +797,8 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("UserModule.Models.Writer", b =>
                 {
+                    b.Navigation("Experiences");
+
                     b.Navigation("Scripts");
 
                     b.Navigation("Services");
