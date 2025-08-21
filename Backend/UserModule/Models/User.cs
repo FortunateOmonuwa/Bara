@@ -98,7 +98,17 @@ namespace UserModule.Models
         /// </summary>
         public Role Type { get; set; }
 
+        /// <summary>
+        /// Defines the bank detail(s) of a user. Useful during withdrawal operations
+        /// </summary>
         public List<BankDetail> BankDetails { get; set; } = new List<BankDetail>();
+
+        /// <summary>
+        /// Defines the payment details of a user. Useful during deposit or wallet funding operations
+        /// </summary>
+        public List<PaymentDetail> PaymentDetails { get; set; } = [];
+
+        public List<PaymentTransaction> PaymentTransactions { get; set; } = [];
 
         /// <summary>
         /// Timestamp indicating when the user was soft-deleted.

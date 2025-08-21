@@ -9,7 +9,7 @@ namespace SharedModule.Models
     {
         [Key]
         public virtual Guid Id { get; set; }
-        public DateTimeOffset CreatedAt { get; private set; } = DateTime.UtcNow;
+        public DateTimeOffset CreatedAt { get; set; } = DateTime.UtcNow;
         public DateOnly DateCreated => DateOnly.FromDateTime(CreatedAt.UtcDateTime);
         public TimeOnly TimeCreated => TimeOnly.FromDateTime(CreatedAt.UtcDateTime);
         public DateTimeOffset? ModifiedAt { get; set; }

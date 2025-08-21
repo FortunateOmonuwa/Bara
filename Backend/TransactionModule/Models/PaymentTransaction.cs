@@ -9,6 +9,7 @@ namespace TransactionModule.Models
     {
         [ForeignKey("User")]
         public Guid UserId { get; set; } = Guid.Empty;
+        public string UserFullName { get; set; } = string.Empty;
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
@@ -32,7 +33,7 @@ namespace TransactionModule.Models
         /// <summary>
         /// Reference ID for the transaction, such as a payment gateway transaction ID or internal reference number.
         /// </summary>
-        public string? ReferenceId { get; set; }
+        public string ReferenceId { get; set; } = string.Empty;
         /// <summary>
         /// Optional notes or comments about the transaction, such as payment details or special instructions.
         /// </summary>
@@ -45,6 +46,8 @@ namespace TransactionModule.Models
         //public Guid? PaymentDetailId { get; set; }
         //public PaymentDetail? PaymentDetail { get; set; }
 
+        public string? AccessCode { get; set; }
+
         [ForeignKey("Wallet")]
         public Guid? WalletID { get; set; }
         public Wallet? Wallet { get; set; }
@@ -52,6 +55,6 @@ namespace TransactionModule.Models
         /// <summary>
         /// Payment method used
         /// </summary>
-        public PaymentMethod PaymentMethod { get; set; }
+        public string PaymentMethod { get; set; }
     }
 }
