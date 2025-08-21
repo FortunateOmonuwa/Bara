@@ -6,9 +6,11 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Services.BackgroudServices;
 using Services.MailingService;
+using Services.Paystack;
 using Services.SignalR;
 using SharedModule.Utils;
 using System.Security.Cryptography;
+using UserModule.DTOs;
 using UserModule.DTOs.UserDTO;
 using UserModule.Enums;
 using UserModule.Interfaces.UserInterfaces;
@@ -25,8 +27,9 @@ namespace Infrastructure.Repositories.UserRepositories
         private readonly IHubContext<NotificationHub> notificationHub;
         private readonly HangfireJobs hangfire;
         private readonly IMemoryCache cache;
+        private readonly IPaystackService paystack;
         public UserRepository(BaraContext baraContext, LogHelper<UserRepository> logHelper, HangfireJobs hangfire,
-        ILogger<UserRepository> logger, IHubContext<NotificationHub> hubContext, IMemoryCache cache)
+        ILogger<UserRepository> logger, IHubContext<NotificationHub> hubContext, IMemoryCache cache, IPaystackService paystackService)
         {
             dbContext = baraContext;
             this.logHelper = logHelper;
@@ -34,6 +37,7 @@ namespace Infrastructure.Repositories.UserRepositories
             notificationHub = hubContext;
             this.hangfire = hangfire;
             this.cache = cache;
+            paystack = paystackService;
         }
 
         public async Task<ResponseDetail<RegisterResponseDTO>> BeginRegistration(RegisterDTO detail)
@@ -106,6 +110,74 @@ namespace Infrastructure.Repositories.UserRepositories
         {
             throw new NotImplementedException();
         }
+        public async Task<ResponseDetail<BankDetail>> AddBankDetail(PostBankDetailDTO bankDetailData, Guid userId)
+        {
+            try
+            {
+                var user = await dbContext.Users
+                                        .Include(x => x.BankDetails)
+                                        .FirstOrDefaultAsync(x => x.Id == userId);
+
+                if (user is null)
+                {
+                    return ResponseDetail<BankDetail>.Failed(default, "Invalid or non existent user id. Please check the user ID and try again.");
+                }
+
+                var resolveAccountRes = await paystack.ResolveAccountNumber(bankDetailData.AccountNumber, bankDetailData.BankCode);
+                if (resolveAccountRes.Status == false)
+                {
+                    return ResponseDetail<BankDetail>.Failed(default, resolveAccountRes.Message);
+                }
+                var bankDetail = new BankDetail
+                {
+                    AccountNumber = bankDetailData.AccountNumber,
+                    BankName = bankDetailData.BankName,
+                    AccountName = bankDetailData.AccountName,
+                    UserId = userId,
+                    BankCode = bankDetailData.BankCode,
+                    BankId = bankDetailData.BankId,
+                    BankType = bankDetailData.BankType,
+                };
+                user.BankDetails.Add(bankDetail);
+                await dbContext.SaveChangesAsync();
+                logger.LogInformation($"Bank detail added successfully for user {user.Email} with ID {userId}.");
+                return ResponseDetail<BankDetail>.Successful(bankDetail, "Bank detail added successfully.", 201);
+            }
+            catch (Exception ex)
+            {
+                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, "adding bank detail");
+                return ResponseDetail<BankDetail>.Failed(default, "An error occurred while adding bank detail. Please try again later.");
+            }
+        }
+        public async Task<ResponseDetail<List<BankDetail>>> GetAllBankDetails(Guid userId)
+        {
+            try
+            {
+                var bankDetails = await dbContext.BankDetails.Where(x => x.UserId == userId)
+                                                             .ToListAsync();
+                return ResponseDetail<List<BankDetail>>.Successful(bankDetails, "Bank details retrieved successfully.", 200);
+            }
+            catch (Exception ex)
+            {
+                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, "getting all bank details");
+                return ResponseDetail<List<BankDetail>>.Failed([], "An error occurred while retrieving bank details. Please try again later.");
+            }
+        }
+
+        public async Task<ResponseDetail<BankDetail>> GetBankDetail(Guid bankDetailId, Guid userId)
+        {
+            try
+            {
+                var bankDetail = await dbContext.BankDetails
+                    .FirstOrDefaultAsync(x => x.Id == bankDetailId && x.UserId == userId);
+                return ResponseDetail<BankDetail>.Successful(bankDetail, "Bank detail retrieved successfully.", 200);
+            }
+            catch (Exception ex)
+            {
+                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, "getting bank detail");
+                return ResponseDetail<BankDetail>.Failed(default, "An error occurred while retrieving bank detail. Please try again later.");
+            }
+        }
 
         public Task<ResponseDetail<BlackListedUser>> GetBlackListedUser(Guid userId)
         {
@@ -135,6 +207,12 @@ namespace Infrastructure.Repositories.UserRepositories
                 var errors = new List<string>();
 
                 if (user == null) errors.Add($"User not found with the provided verification ID number {verificationIdNumber}.");
+
+                if (user.VerificationStatus == VerificationStatus.Approved)
+                {
+                    logger.LogInformation($"Another verification attempt for {firstName} {lastName} was made after verification has been approved");
+                    return ResponseDetail<bool>.Successful(true, "Account is already verified");
+                }
 
                 name = $"{user?.FirstName} {user?.LastName}";
                 var dateOfBirthTallies = user.DateOfBirth.ToString("yyyy-MM-dd") == dateOfBirth;

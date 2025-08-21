@@ -1,4 +1,5 @@
 ﻿using SharedModule.Utils;
+using UserModule.DTOs;
 using UserModule.DTOs.UserDTO;
 using UserModule.Models;
 
@@ -55,5 +56,27 @@ namespace UserModule.Interfaces.UserInterfaces
         /// <param name="userId"></param>
         /// <returns> The detail of specific blacklisted user</returns>
         Task<ResponseDetail<BlackListedUser>> GetBlackListedUser(Guid userId);
+
+        /// <summary>
+        /// Adds a new bank detail for a user, such as account number and bank name.
+        /// </summary>
+        /// <param name="bankDetail"></param>
+        /// <param name="userId"> </param>
+        /// <returns></returns>
+        Task<ResponseDetail<BankDetail>> AddBankDetail(PostBankDetailDTO bankDetail, Guid userId);
+
+        /// <summary>
+        /// Retrieves the bank details of a user, including account number, bank name, and bank code.
+        /// </summary>
+        /// <returns></returns>
+        Task<ResponseDetail<List<BankDetail>>> GetAllBankDetails(Guid userId);
+
+        /// <summary>
+        /// Retrieves a specific bank detail by its ID for a given user.
+        /// </summary>
+        /// <param name="bankDetailId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<ResponseDetail<BankDetail>> GetBankDetail(Guid bankDetailId, Guid userId);
     }
 }

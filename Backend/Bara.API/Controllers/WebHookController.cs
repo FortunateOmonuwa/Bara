@@ -110,5 +110,37 @@ namespace Bara.API.Controllers
         {
             return Ok("App is working!");
         }
+
+        [HttpPost("paystack")]
+        public async Task<IActionResult> ReceivePaystackWebhook()
+        {
+            try
+            {
+                Request.EnableBuffering();
+                using var reader = new StreamReader(Request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
+                string rawBody = await reader.ReadToEndAsync();
+                Request.Body.Position = 0;
+                //const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
+                //if (hash == req.headers['x-paystack-signature'])
+                //{
+                //    // Retrieve the request's body
+                //    const event = req.body;
+                // logger.LogInformation("Received Paystack webhook event {Payload}", rawBody);
+                //var isValid = PaystackWebhookVerifier.IsValidPaystackSignature(rawBody, Request.Headers["x-paystack-signature"], secrets.PaystackWebhookSigningSecret);
+                //if (!isValid)
+                //{
+                //    logger.LogInformation("Invalid webhook signature from Paystack");
+                //    return Unauthorized("Invalid webhook signature");
+                //}
+                //// Process the Paystack webhook payload here
+                // ...
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, "Receiving Paystack webhook response");
+                return BadRequest(new { message = "An error occurred while processing the request." });
+            }
+        }
     }
 }
