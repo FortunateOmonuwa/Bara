@@ -1,0 +1,141 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: bara-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bara}
+      POSTGRES_USER: ${POSTGRES_USER:-bara_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_postgres_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - bara-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-bara_admin} -d ${POSTGRES_DB:-bara}",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "0.5"
+
+  # Backend API
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: dockerfile
+      args:
+        BUILD_CONFIGURATION: Release
+    container_name: bara-backend
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Connection=${DATABASE_CONNECTION_STRING:-Host=postgres;Port=5432;Database=bara;Username=bara_admin;Password=your_postgres_password;}
+      - Secrets__JwtSickRit=${JWT_SECRET:-your_jwt_secret_here}
+      - Secrets__CloudinaryAPISecret=${CLOUDINARY_API_SECRET:-your_cloudinary_secret}
+      - Secrets__CloudinaryAPIKEY=${CLOUDINARY_API_KEY:-your_cloudinary_key}
+      - Secrets__CloudinaryURL=${CLOUDINARY_URL:-your_cloudinary_url}
+      - Secrets__CloudinaryName=${CLOUDINARY_NAME:-your_cloudinary_name}
+      - Secrets__YouVerifyTestAPIKEY=${YOUVERIFY_API_KEY:-your_youverify_key}
+      - Secrets__SendGridApiKey=${SENDGRID_API_KEY:-your_sendgrid_key}
+      - Secrets__PaystackSecret=${PAYSTACK_SECRET:-your_paystack_secret}
+      - Secrets__PaystackPublic=${PAYSTACK_PUBLIC:-your_paystack_public}
+      - Secrets__IpInfoKey=${IPINFO_KEY:-your_ipinfo_key}
+      - AppSettings__YouVerifyBaseUrl=${YOUVERIFY_BASE_URL:-https://api.sandbox.youverify.co}
+      - AppSettings__CloudinaryBaseURL=${CLOUDINARY_BASE_URL:-https://api.cloudinary.com/v1_1}
+      - AllowedOrigins__Origins__0=${FRONTEND_URL:-http://localhost:3000}
+      - AllowedOrigins__Origins__1=${FRONTEND_URL_HTTPS:-https://localhost:3000}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - bara-network
+    volumes:
+      - backend_logs:/app/Logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+
+  # Frontend
+  frontend:
+    build:
+      context: ./bara-app
+      dockerfile: dockerfile
+    container_name: bara-frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${BACKEND_URL:-http://localhost:8080}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - bara-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+
+  # Redis (for caching and SignalR backplane if needed)
+  redis:
+    image: redis:7-alpine
+    container_name: bara-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-your_redis_password}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - bara-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+
+networks:
+  bara-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  backend_logs:
