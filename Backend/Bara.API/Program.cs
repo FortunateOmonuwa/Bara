@@ -16,6 +16,7 @@ using Services.FileStorageServices.CloudinaryStorage;
 using Services.FileStorageServices.Interfaces;
 using Services.MailingService;
 using Services.MailingService.SendGrid;
+using Services.Paystack;
 using Services.SignalR;
 using Services.YouVerifyIntegration;
 using SharedModule.Settings;
@@ -32,8 +33,12 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle  
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+//builder.Services.AddDbContext<BaraContext>(options =>
+//   options.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
 builder.Services.AddDbContext<BaraContext>(options =>
-   options.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Connection"));
+});
 
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.Configure<Secrets>(builder.Configuration.GetSection("Secrets"));
@@ -75,6 +80,8 @@ builder.Services.AddTransient<IScriptService, ScriptRepository>();
 builder.Services.AddTransient<IProducerService, ProducerRepository>();
 builder.Services.AddTransient<IAuthService, AuthRepository>();
 builder.Services.AddTransient<IUserService, UserRepository>();
+builder.Services.AddScoped<IPaystackService, PaystackService>();
+//builder.Services.AddTransient<IWalletService, WalletService>();
 builder.Services.AddScoped(typeof(LogHelper<>));
 
 builder.Services.AddSignalR();

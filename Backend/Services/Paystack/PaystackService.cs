@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using PayStack.Net;
 using Services.Paystack.DTOs;
@@ -23,9 +24,9 @@ namespace Services.Paystack
         private readonly IMemoryCache cache;
 
         public PaystackService(HttpClient httpClient, IConfiguration configuration,
-            Secrets appSecrets, LogHelper<PaystackService> logHelper, ILogger<PaystackService> logger, IMemoryCache memoryCache)
+                IOptions<Secrets> appSecrets, LogHelper<PaystackService> logHelper, ILogger<PaystackService> logger, IMemoryCache memoryCache)
         {
-            secrets = appSecrets;
+            secrets = appSecrets.Value;
             this.logHelper = logHelper;
             this.logger = logger;
             _httpClient = httpClient;
