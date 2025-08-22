@@ -22,7 +22,7 @@ namespace Infrastructure.DataContext
             Addresses = Set<Address>();
             Users = Set<User>();
             BlackListedUsers = Set<BlackListedUser>();
-            EscrowOperations = Set<Escrow>();
+            //EscrowOperations = Set<Escrow>();
             BankDetails = Set<BankDetail>();
             ScriptTransactions = Set<ScriptTransaction>();
             //ScriptWritingPosts = Set<ScriptWritingPostByProducer>();
@@ -40,7 +40,7 @@ namespace Infrastructure.DataContext
         public DbSet<Address> Addresses { get; set; }
         //public DbSet<ScriptWritingPostByProducer> ScriptWritingPosts { get; set; }
         //public DbSet<ScriptWritingPostApplicant> Applicants { get; set; }
-        public DbSet<Escrow> EscrowOperations { get; set; }
+        //public DbSet<Escrow> EscrowOperations { get; set; }
         public DbSet<BlackListedUser> BlackListedUsers { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<BankDetail> BankDetails { get; set; }

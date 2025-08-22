@@ -6,7 +6,7 @@ namespace UserModule.Models
 {
     public class BankDetail : BaseEntity
     {
-        // <summary>
+        /// <summary>
         /// The unique identifier of the user who owns this bank account.
         /// Links this bank account to a specific user in the system for withdrawal purposes.
         /// </summary>

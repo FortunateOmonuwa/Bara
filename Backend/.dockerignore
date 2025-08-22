@@ -1,0 +1,41 @@
+# Build artifacts
+bin/
+obj/
+out/
+*.dll
+*.exe
+*.pdb
+
+# Logs
+*.log
+logs/
+LogFiles/
+
+# IDE/editor stuff
+.vscode/
+.idea/
+*.user
+*.suo
+*.sln.docstates
+*.sln.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Env & secrets
+.env
+*.secrets.json
+secrets.json
+
+# Docker overrides
+docker-compose.override.yml
+
+# Test outputs
+TestResults/
+coverage/
