@@ -405,3 +405,4 @@ FodyWeavers.xsd
 BaraTests/Utils/test.config.json
 UpgradeLog
 UpgradeLog.htm
+/Backend/Bara.API/appsettings.Development.json
