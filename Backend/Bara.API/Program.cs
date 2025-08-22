@@ -1,5 +1,6 @@
 using AspNetCoreRateLimit;
 using Hangfire;
+using Hangfire.PostgreSql;
 using Infrastructure.DataContext;
 using Infrastructure.Repositories.FileRepositories;
 using Infrastructure.Repositories.ScriptRepositories;
@@ -60,6 +61,15 @@ builder.Services.AddHangfire(config =>
         .UseSimpleAssemblyNameTypeSerializer()
         .UseRecommendedSerializerSettings();
 });
+
+builder.Services.AddHangfire(config =>
+{
+    config.UsePostgreSqlStorage(options =>
+    {
+        options.UseNpgsqlConnection(builder.Configuration.GetConnectionString("Connection"));
+    });
+});
+
 builder.Services.AddHangfireServer();
 GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute
 {
