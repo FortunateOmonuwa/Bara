@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -62,12 +60,12 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    FirstName = table.Column<string>(type: "Nvarchar(60)", nullable: false),
-                    LastName = table.Column<string>(type: "Nvarchar(60)", nullable: false),
-                    MiddleName = table.Column<string>(type: "Nvarchar(60)", nullable: false),
+                    FirstName = table.Column<string>(type: "text", nullable: false),
+                    LastName = table.Column<string>(type: "text", nullable: false),
+                    MiddleName = table.Column<string>(type: "text", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
                     PhoneNumber = table.Column<string>(type: "text", nullable: false),
-                    Bio = table.Column<string>(type: "Nvarchar(200)", nullable: false),
+                    Bio = table.Column<string>(type: "text", nullable: false),
                     Gender = table.Column<string>(type: "text", nullable: false),
                     DateOfBirth = table.Column<DateOnly>(type: "date", nullable: false),
                     IsBlacklisted = table.Column<bool>(type: "boolean", nullable: false),
@@ -174,12 +172,12 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AccountNumber = table.Column<string>(type: "Nvarchar(50)", nullable: false),
-                    BankName = table.Column<string>(type: "Nvarchar(100)", nullable: false),
-                    BankCode = table.Column<string>(type: "Nvarchar(10)", nullable: false),
+                    AccountNumber = table.Column<string>(type: "text", nullable: false),
+                    BankName = table.Column<string>(type: "text", nullable: false),
+                    BankCode = table.Column<string>(type: "text", nullable: false),
                     BankId = table.Column<string>(type: "text", nullable: false),
                     BankType = table.Column<string>(type: "text", nullable: false),
-                    AccountName = table.Column<string>(type: "Nvarchar(100)", nullable: false),
+                    AccountName = table.Column<string>(type: "text", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     ModifiedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
@@ -400,8 +398,8 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Title = table.Column<string>(type: "Nvarchar(100)", maxLength: 200, nullable: false),
-                    Genre = table.Column<string>(type: "Nvarchar(60)", maxLength: 100, nullable: false),
+                    Title = table.Column<string>(type: "text", maxLength: 200, nullable: false),
+                    Genre = table.Column<string>(type: "text", maxLength: 100, nullable: false),
                     Logline = table.Column<string>(type: "text", nullable: false),
                     Synopsis = table.Column<string>(type: "text", nullable: false),
                     Price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
@@ -442,8 +440,8 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "Nvarchar(60)", nullable: false),
-                    Description = table.Column<string>(type: "Nvarchar(200)", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
                     MinPrice = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     MaxPrice = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     Currency = table.Column<string>(type: "text", nullable: false),
