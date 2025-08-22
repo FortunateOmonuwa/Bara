@@ -101,16 +101,6 @@ namespace Bara.API.Controllers
             }
         }
 
-        /// <summary>
-        /// This endpoint is used to perfrom a health check.
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("test")]
-        public IActionResult Test()
-        {
-            return Ok("App is working!");
-        }
-
         [HttpPost("paystack")]
         public async Task<IActionResult> ReceivePaystackWebhook()
         {

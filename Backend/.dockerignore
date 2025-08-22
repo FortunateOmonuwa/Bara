@@ -32,6 +32,7 @@ Thumbs.db
 .env
 *.secrets.json
 secrets.json
+appsettings.Development.json
 
 # Docker overrides
 docker-compose.override.yml
@@ -39,3 +40,9 @@ docker-compose.override.yml
 # Test outputs
 TestResults/
 coverage/
+BaraTests/Utils/test.config.json
+test.config.json
+
+UpgradeLog
+UpgradeLog.htm
+

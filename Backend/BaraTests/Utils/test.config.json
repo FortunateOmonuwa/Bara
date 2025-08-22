@@ -1,4 +1,4 @@
-{
+﻿{
   "Logging": {
     "LogLevel": {
       "Default": "Information",
@@ -7,8 +7,7 @@
   },
   "AllowedHosts": "*",
   "ConnectionStrings": {
-    //"Connection": "Server = YOUR-HELPER;Database=Bara;Trusted_Connection=True;Integrated Security=True; TrustServerCertificate=True;"
-    "Connection": "Host=dpg-d2jstgqli9vc73dkmtr0-a;Port=5432;Database=bara_hmt3;Username=bara_admin;Password=3gsfSPegV9KoZxylXuuye9TfdmEA89Ta;"
+    "Connection": "Server = YOUR-HELPER;Database=Bara;Trusted_Connection=True;Integrated Security=True; TrustServerCertificate=True;"
   },
 
   "Secrets": {
@@ -21,15 +20,15 @@
     "CloudinaryName": "dh0j3blok",
     "CloudinaryFolderName": "Bara",
     "JwtSickRit": "ICommendEverybodyToGodAndToTheWordOfHisGRaceWhichIsABleToBuildMeUpAndGiveMeMyInheritanceAmongsThemWhichAreSanctfiedAmen!!!!",
-    "Issuers": ["https:localhost:7131", "https://5e270cf17f34.ngrok-free.app"],
+    "Issuers": [
+      "https:localhost:7131",
+      "https://5e270cf17f34.ngrok-free.app"
+    ],
     "IpInfoKey": "a63f5499732f18",
     "RabbitMqHost": "",
     "RabbitMqPort": 5269,
     "RabbitMqUserName": "guest",
-    "RabbitMqPassword": "guest",
-    "SendGridApiKey": "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",
-    "PaystackSecret": "sk_live_5a79072e94007ac0edab626b6bb8d95ad6a73332",
-    "PaystackPublic": "pk_live_ec8f16b4342018345056b80fd58401eecc116c79"
+    "RabbitMqPassword": "guest"
   },
   "AppSettings": {
     // YOU VERIFY CONFIG
@@ -41,8 +40,7 @@
     "YouVerify_International_Passport_VerificationUrl": "/v2/api/identity/ng/passport",
 
     //SMTP CONFIG
-    "Sender": "support@barastories.com",
-    "SenderName": "Bara",
+    //"Sender": "for2unateomonuwa@outlook.com",
     //"Server": "smtp-mail.outlook.com",
     //"Port": "",
     //"Password":"",
@@ -63,7 +61,10 @@
   },
 
   "Serilog": {
-    "Using": ["Serilog.Sinks.Console", "Serilog.Sinks.File"],
+    "Using": [
+      "Serilog.Sinks.Console",
+      "Serilog.Sinks.File"
+    ],
 
     "MinimumLevel": {
       "Default": "Information",
@@ -94,6 +95,7 @@
           "useSpaces": true,
           "applyAdditionalLevelPadding": true
         }
+
       },
 
       {
@@ -130,8 +132,7 @@
       "https://localhost:7131",
       "http://localhost:7131",
       "https://bara-frontend.vercel.app",
-      "http://bara-frontend.vercel.app",
-      "http://localhost:3000"
+      "http://bara-frontend.vercel.app"
     ]
   }
 }

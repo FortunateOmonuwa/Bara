@@ -39,6 +39,10 @@ builder.Services.AddDbContext<BaraContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("Connection"));
 });
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables();
 
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.Configure<Secrets>(builder.Configuration.GetSection("Secrets"));

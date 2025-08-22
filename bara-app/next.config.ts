@@ -7,6 +7,25 @@ const nextConfig: NextConfig = {
   devIndicators: {
     buildActivity: false,
   },
+
+  // Enable standalone output for Docker
+  output: "standalone",
+
+  // Optimize for production
+  experimental: {
+    optimizePackageImports: ["react-hot-toast", "react-pdf"],
+  },
+
+  // Configure image optimization
+  images: {
+    unoptimized: false,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

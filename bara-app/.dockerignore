@@ -1,10 +1,12 @@
-# Dependencies
+# Dependencies (don’t copy local node_modules, Docker installs fresh)
 node_modules/
 npm-debug.log
 yarn-error.log
 pnpm-debug.log
 
-# Build output (don’t ship compiled dist, Docker builds it fresh)
+# Build output (Next.js generates fresh during build)
+.next/
+out/
 build/
 dist/
 
