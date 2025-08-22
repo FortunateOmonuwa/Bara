@@ -55,7 +55,8 @@ export default function RegisterPage() {
     }
   }, [searchParams]);
 
-  const doPasswordsMatch = password === confirmPassword && confirmPassword !== "";
+  const doPasswordsMatch =
+    password === confirmPassword && confirmPassword !== "";
 
   const canContinue =
     email.trim() !== "" && termsChecked && isValidPassword && doPasswordsMatch;
@@ -112,7 +113,7 @@ export default function RegisterPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#1a0000] px-4">
       {/* White container card */}
-      <div className="bg-white rounded-lg shadow-lg flex flex-col md:flex-row w-full max-w-4xl h-[550px]">
+      <div className="bg-white rounded-lg shadow-lg flex flex-col md:flex-row w-full max-w-4xl h-[600px]">
         {/* Left: Form Section */}
         <div className="flex-1 md:p-12 flex flex-col justify-between overflow-y-auto">
           <div>
