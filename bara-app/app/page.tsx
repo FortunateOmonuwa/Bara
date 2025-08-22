@@ -2,11 +2,11 @@
 
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
-import CreateAccountDropdown from "@/components/CreateAccountDropdown";
-import { useState } from "react";
+// import CreateAccountDropdown from "@/components/CreateAccountDropdown";
+// import { useState } from "react";
 
 export default function HomePage() {
-  const [showDropdown, setShowDropdown] = useState(false);
+  // const [showDropdown, setShowDropdown] = useState(false);
 
   return (
     <main className="min-h-screen bg-white flex flex-col relative">
@@ -25,9 +25,9 @@ export default function HomePage() {
           </p>
 
           <div className="mt-6 flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-            <div className="relative">
+            {/* <div className="relative"> */}
               {/* Create Account button*/}
-              <button
+              {/* <button
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
@@ -44,8 +44,8 @@ export default function HomePage() {
                     onClose={() => setShowDropdown(false)}
                   />
                 </div>
-              )}
-            </div>
+              )} */}
+            {/* </div> */}
 
             {/* Explore for free link*/}
             <a
