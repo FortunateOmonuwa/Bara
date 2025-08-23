@@ -25,7 +25,7 @@ namespace Bara.API.Controllers
         [HttpGet("basic_health_check")]
         public IActionResult Simple()
         {
-            return Ok("It works")
+            return Ok("It works");
         }
         [HttpGet("detailed")]
         public IActionResult GetDetailed()
