@@ -69,10 +69,10 @@ jobs:
 
       - name: Build Docker image
         working-directory: Backend
-        run: docker build -t bara/bara-backend:${TAG} .
+        run: docker build -t fortunateomonuwa/bara-backend:${TAG} .
 
       - name: Push Docker image to Docker Hub
-        run: docker push bara/bara-backend:${TAG}
+        run: docker push fortunateomonuwa/bara-backend:${TAG}
 
       - name: Create .env file
         run: |
@@ -111,7 +111,7 @@ jobs:
             --name bara-backend \
             --env-file .env \
             -p 8080:8080 \
-            bara/bara-backend:${TAG}
+            fortunateomonuwa/bara-backend:${TAG}
 
       - name: Wait for app and show container status
         run: |
