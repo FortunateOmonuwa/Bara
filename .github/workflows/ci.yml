@@ -18,17 +18,19 @@ jobs:
   paths-filter:
     runs-on: ubuntu-latest
     outputs:
-      should-build-backend: ${{ steps.paths-filter.outputs.should-build-backend }}
-      should-build-frontend: ${{ steps.paths-filter.outputs.should-build-frontend }}
+      should-build-backend: ${{ steps.paths-filter.outputs.backend }}
+      should-build-frontend: ${{ steps.paths-filter.outputs.frontend }}
     steps:
+      - uses: actions/checkout@v3
       - id: paths-filter
         uses: dorny/paths-filter@v2
         with:
           filters: |
             backend:
-              - "Backend/**"
+              - 'Backend/**'
             frontend:
-              - "bara-app/**"
+              - 'bara-app/**'
+
   build-backend:
     name: Build Backend
     runs-on: ubuntu-latest
