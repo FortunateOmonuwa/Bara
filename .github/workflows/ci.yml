@@ -60,19 +60,22 @@ jobs:
         id: vars
         run: |
             if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "TAG=latest" >> $GITHUB_ENV
+              echo "TAG=latest" >> $GITHUB_ENV
+              echo "tag=latest" >> $GITHUB_OUTPUT
             elif [ "${{ github.ref_name }}" = "dev" ]; then
-            echo "TAG=dev" >> $GITHUB_ENV
+              echo "TAG=dev" >> $GITHUB_ENV
+              echo "tag=dev" >> $GITHUB_OUTPUT
             else
-            echo "TAG=${{ github.ref_name }}" >> $GITHUB_ENV
+              echo "TAG=${{ github.ref_name }}" >> $GITHUB_ENV
+              echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
             fi
 
       - name: Build Docker image
         working-directory: Backend
-        run: docker build -t fortunateomonuwa/bara-backend:${TAG} .
+        run: docker build -t fortunateomonuwa/bara-backend:${{ steps.vars.outputs.tag }} .
 
       - name: Push Docker image to Docker Hub
-        run: docker push fortunateomonuwa/bara-backend:${TAG}
+        run: docker push fortunateomonuwa/bara-backend:${{ steps.vars.outputs.tag }}
 
       - name: Create .env file
         run: |
@@ -107,11 +110,12 @@ jobs:
             EOF
 
       - name: Run container
-        run: docker run -d \
+        run: |
+          docker run -d \
             --name bara-backend \
             --env-file .env \
             -p 8080:8080 \
-            fortunateomonuwa/bara-backend:${TAG}
+            fortunateomonuwa/bara-backend:${{ steps.vars.outputs.tag }}
 
       - name: Wait for app and show container status
         run: |
