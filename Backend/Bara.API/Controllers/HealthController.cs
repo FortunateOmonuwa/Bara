@@ -4,7 +4,7 @@ using System.Reflection;
 namespace Bara.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("health")]
     public class HealthController : ControllerBase
     {
         [HttpGet]
@@ -22,6 +22,11 @@ namespace Bara.API.Controllers
             return Ok(response);
         }
 
+        [HttpGet("basic_health_check")]
+        public IActionResult Simple()
+        {
+            return Ok("It works")
+        }
         [HttpGet("detailed")]
         public IActionResult GetDetailed()
         {
