@@ -145,14 +145,14 @@ jobs:
           echo -e "\n=== Detailed health check ==="
           curl -s http://localhost:8080/health/detailed | jq . || curl -s http://localhost:8080/health/detailed
 
-#   deploy-to-render:
-#     needs: [paths-filter, build-backend]
-#     if: needs.paths-filter.outputs.should-build-backend == 'true'
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Deploy to Staging
-#         if: github.ref == 'refs/heads/dev'
-#         run: curl -X POST ${{ secrets.BACKEND_STAGING_DEPLOY_HOOK }}
-#       - name: Deploy to Production
-#         if: github.ref == 'refs/heads/main'
-#         run: curl -X POST ${{ secrets.BACKEND_PRODUCTION_DEPLOY_HOOK }}
+  deploy-to-render:
+    needs: [paths-filter, build-backend]
+    if: needs.paths-filter.outputs.should-build-backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Staging
+        if: github.ref == 'refs/heads/dev'
+        run: curl -X POST ${{ secrets.BACKEND_STAGING_DEPLOY_HOOK }}
+      - name: Deploy to Production
+        if: github.ref == 'refs/heads/main'
+        run: curl -X POST ${{ secrets.BACKEND_PRODUCTION_DEPLOY_HOOK }}
