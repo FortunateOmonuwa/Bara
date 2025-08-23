@@ -99,6 +99,7 @@ builder.Services.AddScoped<IPaystackService, PaystackService>();
 builder.Services.AddScoped(typeof(LogHelper<>));
 
 builder.Services.AddSignalR();
+builder.Services.AddHealthChecks();
 //var retryPolicy = HttpPolicyExtensions
 //    .HandleTransientHttpError()
 //    .OrResult(msg => (int)msg.StatusCode == 429) 
@@ -262,5 +263,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notification");
-
+app.MapHealthChecks("/health");
 app.Run();
