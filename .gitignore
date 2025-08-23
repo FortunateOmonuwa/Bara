@@ -24,7 +24,6 @@ extensions.json
 *.suo
 *.ntvs*
 *.njsproj
-*.sln
 *.sw?
 generated/prisma/
 node_modules
