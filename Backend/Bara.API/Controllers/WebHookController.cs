@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Services;
+using Services.Paystack;
 using Services.YouVerifyIntegration;
 using SharedModule.Settings;
 using SharedModule.Utils;
@@ -20,7 +21,8 @@ namespace Bara.API.Controllers
         private readonly LogHelper<WebHookController> logHelper;
         private readonly ILogger<WebHookController> logger;
         private readonly IUserService userService;
-        public WebHookController(IYouVerifyService youVerifyService, IOptions<Secrets> secretOptions,
+        private readonly IPaystackService paystack;
+        public WebHookController(IYouVerifyService youVerifyService, IOptions<Secrets> secretOptions, IPaystackService paystackService,
             LogHelper<WebHookController> logHelper, IUserService userService, ILogger<WebHookController> logger)
         {
             youVerify = youVerifyService;
@@ -28,6 +30,7 @@ namespace Bara.API.Controllers
             this.logHelper = logHelper;
             this.userService = userService;
             this.logger = logger;
+            paystack = paystackService;
         }
 
         //[HttpPost("youverify")]
@@ -101,36 +104,56 @@ namespace Bara.API.Controllers
             }
         }
 
-        [HttpPost("paystack")]
+        [HttpPost("paystack-webhook")]
         public async Task<IActionResult> ReceivePaystackWebhook()
         {
             try
             {
                 Request.EnableBuffering();
+
                 using var reader = new StreamReader(Request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
                 string rawBody = await reader.ReadToEndAsync();
+
                 Request.Body.Position = 0;
-                //const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
-                //if (hash == req.headers['x-paystack-signature'])
-                //{
-                //    // Retrieve the request's body
-                //    const event = req.body;
-                // logger.LogInformation("Received Paystack webhook event {Payload}", rawBody);
-                //var isValid = PaystackWebhookVerifier.IsValidPaystackSignature(rawBody, Request.Headers["x-paystack-signature"], secrets.PaystackWebhookSigningSecret);
-                //if (!isValid)
-                //{
-                //    logger.LogInformation("Invalid webhook signature from Paystack");
-                //    return Unauthorized("Invalid webhook signature");
-                //}
-                //// Process the Paystack webhook payload here
-                // ...
+
+                if (!Request.Headers.TryGetValue("x-paystack-signature", out var signatureHeader))
+                {
+                    logger.LogWarning("Paystack signature header missing");
+                    return Unauthorized("Signature header missing");
+                }
+
+                string secret = secrets.PaystackPublic;
+                if (!PaystackWebhookVerifier.IsValidPaystackSignature(rawBody, signatureHeader, secret))
+                {
+                    logger.LogWarning("Invalid webhook signature from Paystack");
+                    return Unauthorized("Invalid webhook signature");
+                }
+
+                logger.LogInformation("Received valid Paystack webhook: {Payload}", rawBody);
+
+                var payload = JsonConvert.DeserializeObject<PaystackWebhookPayload>(rawBody);
+
+                if (payload == null && payload.Data == null)
+                {
+                    logger.LogError("Invalid payload received from Paystack webhook");
+                    return BadRequest("Invalid payload");
+                }
+                if (payload.Data.Metadata == null || string.IsNullOrEmpty(payload.Data.Metadata.Reference))
+                {
+                    logger.LogError("Metadata or UserId is missing in the payload");
+                    return BadRequest("Invalid payload");
+                }
+                string reference = payload.Data.Metadata.Reference;
+                var verifyReq = await paystack.VerifyPaymentAsync(reference);
+
                 return Ok();
             }
             catch (Exception ex)
             {
-                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, "Receiving Paystack webhook response");
+                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, "Receiving Paystack webhook");
                 return BadRequest(new { message = "An error occurred while processing the request." });
             }
         }
+
     }
 }

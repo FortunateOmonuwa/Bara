@@ -54,13 +54,13 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 builder.Services.AddMemoryCache();
 
-builder.Services.AddHangfire(config =>
-{
-    config.UseSqlServerStorage(builder.Configuration.GetConnectionString("Connection"))
-        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-        .UseSimpleAssemblyNameTypeSerializer()
-        .UseRecommendedSerializerSettings();
-});
+//builder.Services.AddHangfire(config =>
+//{
+//    config.UseSqlServerStorage(builder.Configuration.GetConnectionString("Connection"))
+//        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+//        .UseSimpleAssemblyNameTypeSerializer()
+//        .UseRecommendedSerializerSettings();
+//});
 
 builder.Services.AddHangfire(config =>
 {
