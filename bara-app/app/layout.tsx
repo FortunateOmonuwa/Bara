@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Lato } from "next/font/google";
-import { Toaster } from "react-hot-toast";
+//import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 const lato = Lato({
@@ -27,7 +27,7 @@ export default function RootLayout({
     <html lang="en" className={lato.variable}>
       <body className="font-sans bg-white text-black">
         {children}
-        <Toaster
+        {/* <Toaster
           position="top-center"
           toastOptions={{
             duration: 4000,
@@ -50,7 +50,7 @@ export default function RootLayout({
               },
             },
           }}
-        />
+        /> */}
       </body>
     </html>
   );
