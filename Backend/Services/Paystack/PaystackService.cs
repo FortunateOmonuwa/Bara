@@ -42,13 +42,13 @@ namespace Services.Paystack
             try
             {
                 var paystack = new PayStackApi(secrets.PaystackSecret);
-
+                var reference = GenerateReference(request.TransactionId);
                 var res = paystack.Transactions.Initialize(new TransactionInitializeRequest
                 {
                     AmountInKobo = (int)(request.Amount * 100),
                     Email = request.Email,
                     Currency = request.Currency,
-                    Reference = GenerateReference(request.TransactionId),
+                    Reference = reference,
                     //CallbackUrl = request.CallbackUrl,
                     Metadata = JsonConvert.SerializeObject(new
                     {
@@ -56,6 +56,7 @@ namespace Services.Paystack
                         request.CustomerName,
                         request.Email,
                         request.TransactionId,
+                        reference
                     })
                 });
 
