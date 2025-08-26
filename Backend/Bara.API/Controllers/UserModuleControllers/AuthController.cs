@@ -35,6 +35,7 @@ namespace Bara.API.Controllers.UserModuleControllers
                 var response = await authService.Login(loginPayload);
                 if (response.IsSuccess)
                 {
+                    //logger.LogInformation("User {email} logged in successfully", loginPayload.Email);
                     return Ok(response);
                 }
                 else if (response.StatusCode == 500)
@@ -66,6 +67,7 @@ namespace Bara.API.Controllers.UserModuleControllers
             try
             {
                 await authService.Logout(userId);
+                logger.LogInformation("User with ID {userId} logged out successfully", userId);
                 return Ok(new { message = "Logout successful" });
             }
             catch (Exception ex)
@@ -91,6 +93,7 @@ namespace Bara.API.Controllers.UserModuleControllers
                 var response = await authService.VerifyLogin(loginDetails);
                 if (response.IsSuccess)
                 {
+                    logger.LogInformation("Login verification successful for {email}", loginDetails.Email);
                     return Ok(response);
                 }
                 else if (response.StatusCode == 500)
@@ -124,6 +127,7 @@ namespace Bara.API.Controllers.UserModuleControllers
                 var response = await authService.ResendVerificationToken(email);
                 if (response.IsSuccess)
                 {
+                    logger.LogInformation("Resend verification token successful for {email}", email);
                     return Ok(response);
                 }
                 else if (response.StatusCode == 500)
@@ -158,6 +162,7 @@ namespace Bara.API.Controllers.UserModuleControllers
                 var response = await authService.VerifyEmail(token, email);
                 if (response.IsSuccess)
                 {
+                    logger.LogInformation("Email verification successful for {email}", email);
                     return Ok(response);
                 }
                 else if (response.StatusCode == 500)
