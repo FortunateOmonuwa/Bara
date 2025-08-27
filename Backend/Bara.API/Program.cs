@@ -29,7 +29,7 @@ using UserModule.Interfaces.UserInterfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.  
-
+//Console.WriteLine($"ENVIRONMENT: {builder.Environment.EnvironmentName}");
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle  
 builder.Services.AddEndpointsApiExplorer();
@@ -61,6 +61,8 @@ builder.Services.AddMemoryCache();
 //        .UseSimpleAssemblyNameTypeSerializer()
 //        .UseRecommendedSerializerSettings();
 //});
+var cs = builder.Configuration.GetConnectionString("Connection");
+//Console.WriteLine($"ConnectionString: {cs}");
 
 builder.Services.AddHangfire(config =>
 {
@@ -221,6 +223,8 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+//Console.WriteLine($"ENVIRONMENT: {builder.Environment.EnvironmentName}");
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.  

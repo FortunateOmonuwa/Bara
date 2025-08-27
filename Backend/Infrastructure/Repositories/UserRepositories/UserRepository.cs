@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Services.BackgroudServices;
 using Services.MailingService;
 using Services.Paystack;
+using Services.Paystack.DTOs;
 using Services.SignalR;
 using SharedModule.Utils;
 using System.Security.Cryptography;
@@ -128,15 +129,27 @@ namespace Infrastructure.Repositories.UserRepositories
                 {
                     return ResponseDetail<BankDetail>.Failed(default, resolveAccountRes.Message);
                 }
+                var receipientData = new CreateRecipientRequest
+                {
+                    AccountNumber = bankDetailData.AccountNumber,
+                    BankCode = bankDetailData.BankCode,
+                    Name = resolveAccountRes.Data.AccountName,
+                };
+                var paymentRecipient = await paystack.CreateRecipientAsync(receipientData);
+                if (paymentRecipient.RecipientCode is null)
+                {
+                    return ResponseDetail<BankDetail>.Failed(default, "An error occurred while adding bank detail. Please try again later.");
+                }
                 var bankDetail = new BankDetail
                 {
                     AccountNumber = bankDetailData.AccountNumber,
                     BankName = bankDetailData.BankName,
-                    AccountName = bankDetailData.AccountName,
+                    AccountName = resolveAccountRes.Data.AccountName,
                     UserId = userId,
                     BankCode = bankDetailData.BankCode,
                     BankId = bankDetailData.BankId,
                     BankType = bankDetailData.BankType,
+                    RecipientCode = paymentRecipient.RecipientCode
                 };
                 user.BankDetails.Add(bankDetail);
                 await dbContext.SaveChangesAsync();

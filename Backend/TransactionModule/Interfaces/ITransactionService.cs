@@ -5,9 +5,27 @@ namespace TransactionModule.Interfaces
 {
     public interface ITransactionService
     {
-        Task<ResponseDetail<object>> InitiateTransactionAsync(TransactionInitDTO data);
+        /// <summary>
+        /// Initiates a paystack transaction for a user.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<ResponseDetail<object>> InitiateTransactionAsync(TransactionInitDTO data, Guid userId);
+        /// <summary>
+        /// Verifies a paystack transaction for a user.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="reference"></param>
+        /// <returns></returns>
         Task<ResponseDetail<bool>> VerifyTransactionAsync(Guid userId, string reference);
         //Task<ResponseDetail<bool>> ProcessScriptPurchaseAsync(Guid producerId, Guid writerId, Guid scriptId, decimal amount);
-        Task<ResponseDetail<bool>> InitiateWithdrawalAsync(Guid userId, decimal amount, Guid bankAccountId);
+        /// <summary>
+        /// Initiates a withdrawal request for a user to their bank account.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        Task<ResponseDetail<bool>> InitiateWithdrawalAsync(Guid userId, InitiateWithdrawalDTO data);
     }
 }

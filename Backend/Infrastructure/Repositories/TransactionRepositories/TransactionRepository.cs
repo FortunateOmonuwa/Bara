@@ -33,11 +33,11 @@ namespace Infrastructure.Repositories.TransactionRepositories
             this.mailer = mailer;
             this.notificationHub = notificationHub;
         }
-        public async Task<ResponseDetail<object>> InitiateTransactionAsync(TransactionInitDTO data)
+        public async Task<ResponseDetail<object>> InitiateTransactionAsync(TransactionInitDTO data, Guid userId)
         {
             try
             {
-                var user = await dbContext.Users.Where(x => x.Id == data.UserId)
+                var user = await dbContext.Users.Where(x => x.Id == userId)
                         .Select(x => new
                         {
                             x.Id,
@@ -47,7 +47,7 @@ namespace Infrastructure.Repositories.TransactionRepositories
                         }).FirstOrDefaultAsync();
                 if (user == null)
                 {
-                    logger.LogInformation($"User with ID {data.UserId} not found while initiating transaction.");
+                    logger.LogInformation($"User with ID {userId} not found while initiating transaction.");
                     return ResponseDetail<object>.Failed("User not found", 404);
                 }
 
@@ -110,14 +110,22 @@ namespace Infrastructure.Repositories.TransactionRepositories
             }
             catch (Exception ex)
             {
-                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, $"While creating a transaction for {data.UserId}");
+                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, $"While creating a transaction for {userId}");
                 return ResponseDetail<object>.Failed("Failed to initiate transaction", 500, ex.Message);
             }
         }
 
-        public Task<ResponseDetail<bool>> InitiateWithdrawalAsync(Guid userId, decimal amount, Guid bankAccountId)
+        public Task<ResponseDetail<bool>> InitiateWithdrawalAsync(Guid userId, InitiateWithdrawalDTO data)
         {
-            throw new NotImplementedException();
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch (Exception ex)
+            {
+                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, $"While initiating withdrawal for {userId}");
+                return Task.FromResult(ResponseDetail<bool>.Failed("Failed to initiate withdrawal", 500, ex.Message));
+            }
         }
 
         public Task<ResponseDetail<bool>> ProcessScriptPurchaseAsync(Guid producerId, Guid writerId, Guid scriptId, decimal amount)
@@ -142,7 +150,6 @@ namespace Infrastructure.Repositories.TransactionRepositories
                                     u.PaymentDetails
                                 }
                             ).FirstOrDefaultAsync();
-
 
                 if (result is null)
                 {

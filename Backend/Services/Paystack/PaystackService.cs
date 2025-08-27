@@ -149,25 +149,24 @@ namespace Services.Paystack
             }
         }
 
-        public async Task<CreateRecipientResponse> CreateRecipientAsync(CreateRecipientRequest request)
+        public async Task<RecipientData> CreateRecipientAsync(CreateRecipientRequest data)
         {
-            var payload = new
+            try
             {
-                type = request.Type,
-                name = request.Name,
-                account_number = request.AccountNumber,
-                bank_code = request.BankCode,
-                currency = request.Currency
-            };
+                var paystack = new PayStackApi(secrets.PaystackSecret);
+                var req = paystack.Post<ApiResponse<RecipientData>, CreateRecipientRequest>($"{_baseUrl}/transferrecipient", data);
 
-            var json = JsonSerializer.Serialize(payload);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync($"{_baseUrl}/transferrecipient", content);
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            return JsonSerializer.Deserialize<CreateRecipientResponse>(responseContent,
-                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                if (req.Status && req.Data != null)
+                {
+                    return req.Data;
+                }
+                return new RecipientData();
+            }
+            catch (Exception ex)
+            {
+                logHelper.LogExceptionError(ex.GetType().Name, ex.GetBaseException().GetType().Name, "Creating transfer recipient with Paystack");
+                return new RecipientData();
+            }
         }
 
         public async Task<WithdrawalResponse> InitiateWithdrawalAsync(WithdrawalRequest request)

@@ -20,13 +20,19 @@ namespace Bara.API.Controllers.TransactionControllers
             this.logger = logger;
         }
 
+        /// <summary>
+        /// Initiates a paystack transaction for a user.
+        /// </summary>
+        /// <param name="payload"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin, Producer, Writer")]
-        [HttpPost("initiate")]
-        public async Task<IActionResult> InitiateTransaction([FromBody] TransactionInitDTO payload)
+        [HttpPost("initiate/{userId}")]
+        public async Task<IActionResult> InitiateTransaction([FromBody] TransactionInitDTO payload, Guid userId)
         {
             try
             {
-                var response = await transactionService.InitiateTransactionAsync(payload);
+                var response = await transactionService.InitiateTransactionAsync(payload, userId);
                 if (response.IsSuccess)
                 {
                     return Ok(response);
@@ -49,6 +55,12 @@ namespace Bara.API.Controllers.TransactionControllers
             }
         }
 
+        /// <summary>
+        /// Verifies a paystack payment transaction for a user.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="reference"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin, Producer, Writer")]
         [HttpPost("verify-payment/{userId}/{reference}")]
         public async Task<IActionResult> VerifyPayment(Guid userId, string reference)

@@ -154,6 +154,5 @@ namespace Bara.API.Controllers
                 return BadRequest(new { message = "An error occurred while processing the request." });
             }
         }
-
     }
 }

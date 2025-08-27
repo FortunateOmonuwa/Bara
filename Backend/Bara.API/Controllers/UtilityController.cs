@@ -19,7 +19,10 @@ namespace Bara.API.Controllers
             PaystackService = paystackService;
         }
 
-
+        /// <summary>
+        /// Fetches a list of banks from Paystack.
+        /// </summary>
+        /// <returns></returns>
         [Authorize(Roles = "Admin, Producer, Writer")]
         [HttpGet("banks")]
         public async Task<IActionResult> GetBanks()
